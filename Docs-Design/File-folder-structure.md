@@ -1,5 +1,7 @@
-src/
+# Frontend Project Structure
 
+```text
+src/
 │
 ├── app/
 │   ├── App.jsx
@@ -20,6 +22,20 @@ src/
 ├── components/
 │   │
 │   ├── ui/
+│   │   ├── Button.jsx
+│   │   ├── Input.jsx
+│   │   ├── Card.jsx
+│   │   ├── Badge.jsx
+│   │   ├── Avatar.jsx
+│   │   ├── Modal.jsx
+│   │   ├── Dialog.jsx
+│   │   ├── Tooltip.jsx
+│   │   ├── Dropdown.jsx
+│   │   ├── Tabs.jsx
+│   │   ├── Table.jsx
+│   │   ├── EmptyState.jsx
+│   │   ├── LoadingSkeleton.jsx
+│   │   └── SearchInput.jsx
 │   │
 │   ├── navigation/
 │   │   ├── Navbar.jsx
@@ -106,25 +122,19 @@ src/
 │   ├── Faculty/
 │   │   ├── Dashboard/
 │   │   │   └── FacultyDashboard.jsx
-│   │   │
 │   │   ├── Claims/
 │   │   │   ├── FacultyClaims.jsx
 │   │   │   ├── FacultyClaimDetails.jsx
 │   │   │   ├── FacultyCreateClaim.jsx
 │   │   │   └── FacultyEditClaim.jsx
-│   │   │
 │   │   ├── Publications/
 │   │   │   └── FacultyPublications.jsx
-│   │   │
 │   │   ├── Payments/
 │   │   │   └── FacultyPayments.jsx
-│   │   │
 │   │   ├── ResearchScore/
 │   │   │   └── FacultyResearchScore.jsx
-│   │   │
 │   │   ├── Notifications/
 │   │   │   └── FacultyNotifications.jsx
-│   │   │
 │   │   └── Profile/
 │   │       └── FacultyProfile.jsx
 │   │
@@ -217,3 +227,4 @@ src/
     ├── globals.css
     ├── variables.css
     └── animations.css
+```
