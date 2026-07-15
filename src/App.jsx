@@ -1,7 +1,8 @@
+import LoginPage from "./pages/Auth/LoginPage";
 function App() {
   return (
     <>
-      <h1 className="text-gray-600">This is MMDU incentives </h1>
+    <LoginPage />
     </>
   );
 }
