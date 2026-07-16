@@ -1,8 +1,16 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/Auth/LoginPage";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+
 function App() {
   return (
     <>
-    <LoginPage />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Routes>
+      </BrowserRouter>
     </>
   );
 }
