@@ -17,7 +17,7 @@ const ForgotPassword = () => {
 
     <div className="w-full max-w-md">
     <div className="text-center">
-    <h1 className="text-4xl font-bold text-[#8c0404]">
+    <h1 className="text-4xl font-bold text-[#cba430]">
     MMU RPMS
     </h1>
 
@@ -26,7 +26,7 @@ const ForgotPassword = () => {
     </div>
 
     <div className="mt-8 rounded-3xl border border-[#c5c3c3] bg-white p-8 shadow-xl">
-    <h2 className="text-2xl font-semibold text-[#8c0404]">
+    <h2 className="text-2xl font-semibold text-[#cba430]">
     Forgot Password
     </h2>
 
@@ -38,7 +38,7 @@ const ForgotPassword = () => {
     Registered Email
     </label>
 
-    <div className="flex h-16 items-center rounded-2xl border border-[#c5c3c3] px-6 transition focus-within:border-[#8c0404]">
+    <div className="flex h-16 items-center rounded-2xl border border-[#c5c3c3] px-6 transition focus-within:border-[#cba430]">
     <Mail size={22} className="text-[#807d7d]" />
     <input
     type="email"
@@ -49,12 +49,12 @@ const ForgotPassword = () => {
     </div>
     </div>
 
-    <button className="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-[#8c0404] font-semibold text-white transition duration-300 hover:bg-[#6f0303]">
+    <button className="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-[#cba430] font-semibold text-white transition duration-300 hover:bg-[#cba430]">
     Send Reset Link
     <Send size={18} className="ml-2" />
     </button>
 
-    <Link to="/" className="mt-6 flex items-center justify-center text-[#8c0404] hover:underline" >
+    <Link to="/" className="mt-6 flex items-center justify-center text-[#cba430] hover:underline" >
     <ArrowLeft size={18} className="mr-2" />
     Back to Login
     </Link>
@@ -62,20 +62,20 @@ const ForgotPassword = () => {
 
     <div className="mt-8 text-center">
     <div className="space-x-5 text-sm text-[#807d7d]">
-    <button className="hover:text-[#8c0404]">
+    <button className="hover:text-[#cba430]">
     Privacy Policy
     </button>
     <span>•</span>
-    <button className="hover:text-[#8c0404]">
+    <button className="hover:text-[#cba430]">
     IT Support
     </button>
     <span>•</span> 
-    <button className="hover:text-[#8c0404]">
+    <button className="hover:text-[#cba430]">
     Terms of Use
     </button>
     </div>
     <p className="mt-4 text-xs text-[#807d7d]">
-    © 2026 Maharishi Markandeshwar University. All rights reserved.
+    ©️ 2026 Maharishi Markandeshwar University. All rights reserved.
     </p>
     </div>
    </div>

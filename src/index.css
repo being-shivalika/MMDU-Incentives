@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
-body{
-    font-family:'Poppins',sans-serif;
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
 }

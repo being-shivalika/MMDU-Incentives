@@ -40,7 +40,7 @@ return (
 
     <div className="w-full max-w-md">
     <div className="text-center">
-    <h1 className="text-4xl font-bold text-[#8c0404]">
+    <h1 className="text-4xl font-bold text-[#cba430]">
     MMU RPMS
     </h1>
     <p className="mt-2 text-sm text-[#242323]">
@@ -50,7 +50,7 @@ return (
 
     {/*For Login card */}
     <div className="mt-8 rounded-3xl border border-[#c5c3c3] bg-white p-8 shadow-xl">
-    <h2 className="text-2xl font-semibold text-[#8c0404]">
+    <h2 className="text-2xl font-semibold text-[#cba430]">
       Institutional Login
     </h2>
     <p className="mt-2 text-sm text-[#242323]">
@@ -65,7 +65,7 @@ return (
   <select
   value={role}
   onChange={(e) => setRole(e.target.value)}
-  className="h-16 w-full rounded-2xl border border-[#c5c3c3] bg-white px-6 text-lg text-[#6c6969] outline-none transition focus:border-[#8c0404]"
+  className="h-16 w-full rounded-2xl border border-[#c5c3c3] bg-white px-6 text-lg text-[#6c6969] outline-none transition focus:border-[#cba430]"
 >
   <option value="">Select Role</option>
 
@@ -96,7 +96,7 @@ return (
     : "University ID"}
 </label>
 
-    <div className="flex h-16 items-center rounded-2xl border border-[#c5c3c3] px-6 transition focus-within:border-[#8c0404]">
+    <div className="flex h-16 items-center rounded-2xl border border-[#c5c3c3] px-6 transition focus-within:border-[#cba430]">
     <User size={22} className="text-[#807d7d]" />
 
     <input
@@ -112,12 +112,12 @@ return (
     Password
     </label>
 
-    <Link to="/forgot-password" className="text-base text-[#8c0404] hover:underline" >
+    <Link to="/forgot-password" className="text-base text-[#cba430] hover:underline" >
     Forgot Password?
     </Link>
     </div>
 
-    <div className="flex h-16 items-center rounded-2xl border border-[#c5c3c3] px-6 transition focus-within:border-[#8c0404]">
+    <div className="flex h-16 items-center rounded-2xl border border-[#c5c3c3] px-6 transition focus-within:border-[#cba430]">
     <Lock size={22} className="text-[#807d7d]" />
 
     <input
@@ -134,7 +134,7 @@ return (
     </div>
     {/* Login Button */}
 
-    <button className="mt-7 flex h-12 w-full items-center justify-center rounded-xl bg-[#8c0404] font-semibold text-white transition duration-300 hover:bg-[#6f0303]">
+    <button className="mt-7 flex h-12 w-full items-center justify-center rounded-xl bg-[#cba430] font-semibold text-white transition duration-300 hover:bg-[#cba430]">
     Sign In
    <ArrowRight size={18} className="ml-2" />
    </button>
@@ -142,14 +142,14 @@ return (
   
    <div className="mt-8 text-center">
    <div className="space-x-5 text-sm text-[#807d7d]">
-    <button className="hover:text-[#8c0404]">Privacy Policy</button>
+    <button className="hover:text-[#cba430]">Privacy Policy</button>
     <span>•</span>
-     <button className="hover:text-[#8c0404]">IT Support</button>
+     <button className="hover:text-[#cba430]">IT Support</button>
     <span>•</span>
-    <button className="hover:text-[#8c0404]">Terms of Use</button>
+    <button className="hover:text-[#cba430]">Terms of Use</button>
    </div>
    <p className="mt-4 text-xs text-[#807d7d]">
-    © 2026 Maharishi Markandeshwar University. All rights reserved.
+    ©️ 2026 Maharishi Markandeshwar University. All rights reserved.
     </p>
    </div>
    </div>
