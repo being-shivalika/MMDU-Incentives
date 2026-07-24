@@ -2,7 +2,7 @@ import React from "react";
 import SubmissionForm from "./SubmissionForm";
 import Input from "../Ui/Input";
 
-const StartupForm = () => {
+const StartupForm = ({ formData, handleInputChange, handleAddAuthor, handleRemoveAuthor, onSubmit, onDraft }) => {
   return (
     <SubmissionForm
       title="Startup Submission"
@@ -24,21 +24,21 @@ const StartupForm = () => {
         third: "Incubation Link",
         fourth: "Supporting Document Link",
       }}
+      formData={formData}
+      handleInputChange={handleInputChange}
+      handleAddAuthor={handleAddAuthor}
+      handleRemoveAuthor={handleRemoveAuthor}
+      onSubmit={onSubmit}
+      onDraft={onDraft}
     >
       {/* Startup Specific Fields */}
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <Input label="Founder Name" />
-
-        <Input label="Registration Date" type="date" />
-
-        <Input label="Startup Category" />
-
-        <Input label="Funding Status" />
-
-        <Input label="Incubator / Accelerator Name" />
-
-        <Input label="Revenue Generated" />
+        <Input label="Founder Name" name="founderName" value={formData?.founderName || ""} onChange={handleInputChange} />
+        <Input label="Registration Date" type="date" name="registrationDate" value={formData?.registrationDate || ""} onChange={handleInputChange} />
+        <Input label="Startup Category" name="startupCategory" value={formData?.startupCategory || ""} onChange={handleInputChange} />
+        <Input label="Funding Status" name="fundingStatus" value={formData?.fundingStatus || ""} onChange={handleInputChange} />
+        <Input label="Incubator / Accelerator Name" name="incubatorName" value={formData?.incubatorName || ""} onChange={handleInputChange} />
+        <Input label="Revenue Generated" name="revenueGenerated" value={formData?.revenueGenerated || ""} onChange={handleInputChange} />
       </div>
     </SubmissionForm>
   );

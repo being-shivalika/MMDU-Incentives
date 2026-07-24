@@ -3,7 +3,8 @@ import { ROUTES } from "../../../constants/routes";
 
 import ApplicantsDashboard from "../../../pages/Teachers/Dashboard/ApplicantsDashboard";
 import ApplicantsCreateSubmission from "../../../pages/Teachers/Submissions/ApplicantsCreateSubmissions";
-import { MySubmissions } from "../../../submissions/MySubmissions";
+import ApplicantSubmissions from "../../../pages/Teachers/Submissions/ApplicantSubmissions";
+import ApplicantSubmissionDetails from "../../../pages/Teachers/Submissions/ApplicantSubmissionDetails";
 
 const applicantsRoutes = [
   {
@@ -21,10 +22,17 @@ const applicantsRoutes = [
     allowedRoles: [ROLES.STUDENT, ROLES.FACULTY],
   },
   {
-    path: ROUTES.APPLICANT_MY_SUBMISSIONS,
-    element: <MySubmissions />,
+    path: ROUTES.APPLICANT_SUBMISSIONS,
+    element: <ApplicantSubmissions />,
     label: "My Submissions",
     showInSidebar: true,
+    allowedRoles: [ROLES.STUDENT, ROLES.FACULTY],
+  },
+  {
+    path: ROUTES.APPLICANT_SUBMISSION_DETAILS,
+    element: <ApplicantSubmissionDetails />,
+    label: "Submission Details",
+    showInSidebar: false,
     allowedRoles: [ROLES.STUDENT, ROLES.FACULTY],
   },
 ];

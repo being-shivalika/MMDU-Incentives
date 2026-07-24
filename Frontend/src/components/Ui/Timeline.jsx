@@ -3,7 +3,7 @@ import { Check, Clock, AlertCircle, RefreshCw, XCircle } from "lucide-react";
 import { cn } from "../../utils/cn";
 import dayjs from "dayjs";
 
-export const Timeline = ({ history = [], className }) => {
+export default function Timeline({ history = [], className }) {
   const getIcon = (status) => {
     switch (status) {
       case "approved":
@@ -89,4 +89,4 @@ export const Timeline = ({ history = [], className }) => {
       ))}
     </div>
   );
-};
+}

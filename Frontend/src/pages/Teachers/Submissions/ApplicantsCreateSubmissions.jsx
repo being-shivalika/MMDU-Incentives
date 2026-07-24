@@ -1,18 +1,17 @@
 import { useParams } from "react-router-dom";
 
-import PublicationForm from "../../../components/Forms/PublicationForm";
-import PatentForm from "../../../components/Forms/PatentForm";
-import BookForm from "../../../components/Forms/BookForm";
-import StartupForm from "../../../components/Forms/StartupForm";
-import CopyrightForm from "../../../components/Forms/CopyRightForm";
-// ...
+import ApplicantCreatePublication from "./ApplicantCreatePublication";
+import ApplicantCreatePatent from "./ApplicantCreatePatent";
+import ApplicantCreateBook from "./ApplicantCreateBook";
+import ApplicantCreateProject from "./ApplicantCreateProject";
+import ApplicantCreateClaim from "./ApplicantCreateClaim";
 
 const FORM_MAP = {
-  publication: PublicationForm,
-  patent: PatentForm,
-  book: BookForm,
-  startup: StartupForm,
-  copyright: CopyrightForm,
+  publication: ApplicantCreatePublication,
+  patent: ApplicantCreatePatent,
+  book: ApplicantCreateBook,
+  startup: ApplicantCreateProject,
+  copyright: ApplicantCreateClaim,
 };
 
 const ApplicantsCreateSubmission = () => {
