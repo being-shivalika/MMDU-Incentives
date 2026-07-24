@@ -1,0 +1,91 @@
+export const departmentReviewMockData = [
+  {
+    id: "SUB001",
+    applicant: {
+      name: "Dr. Rahul Sharma",
+      department: "Computer Science & Engineering",
+      designation: "Assistant Professor",
+      email: "rahul.sharma@mmdu.ac.in",
+    },
+    type: "Publication",
+    title: "AI Based Research for Healthcare Applications",
+    status: "pending_review",
+    submittedAt: "2026-07-20",
+    description: "A comprehensive study on utilizing AI models for predictive analytics in healthcare. Published in IEEE Access.",
+    files: [
+      { name: "Research_Paper.pdf", url: "#" },
+      { name: "Acceptance_Letter.pdf", url: "#" },
+    ],
+  },
+  {
+    id: "SUB002",
+    applicant: {
+      name: "Dr. Priya Gupta",
+      department: "Computer Science & Engineering",
+      designation: "Associate Professor",
+      email: "priya.gupta@mmdu.ac.in",
+    },
+    type: "Patent",
+    title: "Smart Irrigation System using IoT",
+    status: "approved",
+    submittedAt: "2026-07-15",
+    description: "Granted patent for an IoT-based system that optimizes water usage in agriculture.",
+    files: [
+      { name: "Patent_Certificate.pdf", url: "#" },
+    ],
+  },
+  {
+    id: "SUB003",
+    applicant: {
+      name: "Mr. Amit Kumar",
+      department: "Computer Science & Engineering",
+      designation: "Research Scholar",
+      email: "amit.kumar@mmdu.ac.in",
+    },
+    type: "Project",
+    title: "Blockchain for Supply Chain",
+    status: "returned",
+    submittedAt: "2026-07-18",
+    description: "Proposed research project on integrating blockchain technology for transparent supply chain management.",
+    comments: "Please provide detailed methodology and budget breakdown.",
+    files: [
+      { name: "Project_Proposal.pdf", url: "#" },
+    ],
+  },
+  {
+    id: "SUB004",
+    applicant: {
+      name: "Dr. Neha Verma",
+      department: "Computer Science & Engineering",
+      designation: "Professor",
+      email: "neha.verma@mmdu.ac.in",
+    },
+    type: "Book",
+    title: "Advanced Data Structures in C++",
+    status: "forwarded",
+    submittedAt: "2026-07-22",
+    description: "Authored a textbook covering advanced data structures and algorithms.",
+    files: [
+      { name: "Book_Cover_Index.pdf", url: "#" },
+      { name: "Publisher_Contract.pdf", url: "#" },
+    ],
+  },
+  {
+    id: "SUB005",
+    applicant: {
+      name: "Dr. Vikas Singh",
+      department: "Computer Science & Engineering",
+      designation: "Assistant Professor",
+      email: "vikas.singh@mmdu.ac.in",
+    },
+    type: "Consultancy",
+    title: "Security Audit for TechCorp",
+    status: "rejected",
+    submittedAt: "2026-07-21",
+    description: "Consultancy services provided to TechCorp for auditing their internal security infrastructure.",
+    comments: "Does not meet the minimum criteria for university consultancy guidelines.",
+    files: [
+      { name: "Audit_Report_Summary.pdf", url: "#" },
+    ],
+  },
+];
