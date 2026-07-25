@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { uploadDocument, getClaimDocuments, deleteDocument } from '../controllers/uploadController.js';
 import protect from '../middleware/auth.js';
 import authorize from '../middleware/authorize.js';
-import { upload } from '../middleware/upload.js';
+import upload from '../middleware/upload.js';
 
 const router = Router();
 

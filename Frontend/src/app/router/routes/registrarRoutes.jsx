@@ -1,8 +1,9 @@
+import { ROUTES } from "../../../constants/routes";
 import RegistrarDashboard from "../../../pages/Registrar/Dashboard/RegistrarDashboard";
 
 const registrarRoutes = [
   {
-    path: "/registrar",
+    path: ROUTES.REGISTRAR,
     element: <RegistrarDashboard />,
   },
 ];

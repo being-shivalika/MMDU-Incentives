@@ -57,17 +57,7 @@ const DashboardLayout = () => {
           >
             <Outlet />
           </DepartmentReviewSidebar>
-        ) : ["rpc_cell", "rd_cell"].includes(user?.role) ? (
-          <Sidebar
-            isCollapsed={isCollapsed}
-            isMobileOpen={isMobileOpen}
-            setIsMobileOpen={setIsMobileOpen}
-            navItems={navItems}
-            title={sidebarTitle}
-          >
-            <Outlet />
-          </Sidebar>
-        ) : (
+        ) : ["student", "faculty"].includes(user?.role) ? (
           <ApplicantsSidebar
             isCollapsed={isCollapsed}
             isMobileOpen={isMobileOpen}
@@ -78,6 +68,16 @@ const DashboardLayout = () => {
           >
             <Outlet />
           </ApplicantsSidebar>
+        ) : (
+          <Sidebar
+            isCollapsed={isCollapsed}
+            isMobileOpen={isMobileOpen}
+            setIsMobileOpen={setIsMobileOpen}
+            navItems={navItems}
+            title={sidebarTitle}
+          >
+            <Outlet />
+          </Sidebar>
         )}
       </div>
     </div>

@@ -13,11 +13,6 @@ const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Default Route */}
-        <Route
-          path={ROUTES.HOME}
-          element={<Navigate to={ROUTES.LOGIN} replace />}
-        />
 
         {/* Public Routes */}
         <Route element={<PublicRoute />}>

@@ -28,7 +28,7 @@ const SubmissionCard = ({ submission, onClick }) => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">{submission.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">{submission.submissionType} • {submission.category}</p>
+              <p className="text-sm text-gray-500 mt-1">{submission.subtype || submission.submissionType} • {submission.category}</p>
             </div>
             <Badge variant={getStatusColor(submission.status)}>
               {submission.status || "Unknown"}
@@ -38,27 +38,31 @@ const SubmissionCard = ({ submission, onClick }) => {
           <div className="grid grid-cols-2 gap-4 text-sm mt-4">
             <div>
               <span className="text-gray-500 block">Department</span>
-              <span className="font-medium text-gray-800">{submission.department || "-"}</span>
+              <span className="font-medium text-gray-800">{submission.department || submission.creatorDept || "-"}</span>
             </div>
             <div>
               <span className="text-gray-500 block">Domain</span>
-              <span className="font-medium text-gray-800">{submission.domain || "-"}</span>
+              <span className="font-medium text-gray-800">{submission.domain || submission.generalInfo?.domain || submission.metadata?.domain || "-"}</span>
             </div>
             <div>
               <span className="text-gray-500 block">Submission Date</span>
-              <span className="font-medium text-gray-800">{submission.submissionDate ? new Date(submission.submissionDate).toLocaleDateString() : "-"}</span>
+              <span className="font-medium text-gray-800">
+                {(submission.dateSubmitted || submission.submissionDate) ? new Date(submission.dateSubmitted || submission.submissionDate).toLocaleDateString() : "-"}
+              </span>
             </div>
             <div>
               <span className="text-gray-500 block">Last Updated</span>
-              <span className="font-medium text-gray-800">{submission.lastUpdated ? new Date(submission.lastUpdated).toLocaleDateString() : "-"}</span>
+              <span className="font-medium text-gray-800">
+                {(submission.updatedAt || submission.lastUpdated) ? new Date(submission.updatedAt || submission.lastUpdated).toLocaleDateString() : "-"}
+              </span>
             </div>
             <div>
               <span className="text-gray-500 block">Current Review Level</span>
-              <span className="font-medium text-gray-800">{submission.currentReviewLevel || "-"}</span>
+              <span className="font-medium text-gray-800">{submission.currentLevel || submission.currentReviewLevel || "-"}</span>
             </div>
             <div>
               <span className="text-gray-500 block">Reviewing Authority</span>
-              <span className="font-medium text-gray-800">{submission.reviewingAuthority || "-"}</span>
+              <span className="font-medium text-gray-800">{submission.currentLevel || submission.reviewingAuthority || "-"}</span>
             </div>
           </div>
         </div>

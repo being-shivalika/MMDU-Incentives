@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import useAuth from "../../../hooks/useAuth";
 import Card from "../../../components/Ui/Card";
-import ReviewStats from "./components/ReviewStats";
-import ReviewFilters from "./components/ReviewFilters";
-import ReviewQueueTable from "./components/ReviewQueueTable";
-import ReviewDrawer from "./components/ReviewDrawer";
+import ReviewStats from "../../DepartmentReview/Dashboard/components/ReviewStats";
+import ReviewFilters from "../../DepartmentReview/Dashboard/components/ReviewFilters";
+import ReviewQueueTable from "../../DepartmentReview/Dashboard/components/ReviewQueueTable";
+import ReviewDrawer from "../../DepartmentReview/Dashboard/components/ReviewDrawer";
 import { getSubmissions } from "../../../services/submissionService";
 import { processTransition } from "../../../services/workflowService";
 
-const DepartmentReviewDashboard = () => {
+const DirectorDashboard = () => {
   const { user } = useAuth();
   
   const [submissions, setSubmissions] = useState([]);
@@ -29,9 +29,7 @@ const DepartmentReviewDashboard = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // The backend automatically filters based on the authenticated HOD's department and role
       const response = await getSubmissions();
-      // Ensure we have an array (assume response.data contains the list)
       const data = response.data || [];
       setSubmissions(data);
     } catch (err) {
@@ -71,7 +69,6 @@ const DepartmentReviewDashboard = () => {
   const handleAction = async (actionType, remarks) => {
     if (!selectedSubmission) return;
     
-    // Map UI action types to backend transition types
     let transitionAction;
     if (actionType === "Approve") transitionAction = "approve";
     else if (actionType === "Reject") transitionAction = "reject";
@@ -84,7 +81,6 @@ const DepartmentReviewDashboard = () => {
         action: transitionAction,
         remarks: remarks
       });
-      // Refresh the list after action
       await loadSubmissions();
       setIsDrawerOpen(false);
     } catch (err) {
@@ -97,9 +93,9 @@ const DepartmentReviewDashboard = () => {
     <div className="space-y-6 text-left">
       <div className="bg-white rounded-xl p-6 border shadow-sm">
         <h1 className="text-2xl font-bold text-gray-900">
-          Welcome HOD, {user?.department || "Computer Science & Engineering"}
+          Welcome Director, {user?.name || "Prof. Johnson"}
         </h1>
-        <p className="text-gray-500 mt-1">Review and manage department research submissions.</p>
+        <p className="text-gray-500 mt-1">Review and manage institutional research submissions.</p>
       </div>
 
       <ReviewStats 
@@ -111,7 +107,7 @@ const DepartmentReviewDashboard = () => {
 
       <Card>
         <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 sm:mb-0">Department Review Queue</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4 sm:mb-0">Director Review Queue</h2>
         </div>
         
         <ReviewFilters 
@@ -147,4 +143,4 @@ const DepartmentReviewDashboard = () => {
   );
 };
 
-export default DepartmentReviewDashboard;
+export default DirectorDashboard;

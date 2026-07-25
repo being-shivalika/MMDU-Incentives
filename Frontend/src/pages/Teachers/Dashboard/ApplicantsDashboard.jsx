@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import Card from "../../../components/Ui/Card";
@@ -8,17 +8,32 @@ import { FileText, ArrowRight, HelpCircle } from "lucide-react";
 import dayjs from "dayjs";
 import StatsRow from "./components/StatsRow";
 import WelcomeHero from "./components/WelcomeHero";
+import { getSubmissions } from "../../../services/submissionService";
 
 const ApplicantsDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Temporary fallback until backend APIs are connected
-  const submissions = [];
+  const [submissions, setSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const circulars = [];
 
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      try {
+        const res = await getSubmissions();
+        setSubmissions(res.claims || []);
+      } catch (err) {
+        console.error("Failed to load submissions", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSubmissions();
+  }, []);
+
   // User submissions
-  const mySubmissions = submissions.filter((s) => s.creatorId === user?._id);
+  const mySubmissions = submissions;
 
   const drafts = mySubmissions.filter((s) => s.status === "draft");
 

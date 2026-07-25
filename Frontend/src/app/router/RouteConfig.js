@@ -6,6 +6,8 @@ import registrarRoutes from "./routes/registrarRoutes";
 import vcRoutes from "./routes/vcRoutes";
 import departmentReviewRoutes from "./routes/departmentReviewRoutes";
 import researchReviewRoutes from "./routes/researchReviewRoutes";
+import principalRoutes from "./routes/principalRoutes";
+import directorRoutes from "./routes/directorRoutes";
 
 import { ROLES } from "../../constants/roles";
 
@@ -31,9 +33,21 @@ const routeConfig = {
       routes: departmentReviewRoutes,
     },
 
+    // Principal
+    {
+      allowedRoles: [ROLES.PRINCIPAL],
+      routes: principalRoutes,
+    },
+
+    // Director
+    {
+      allowedRoles: [ROLES.DIRECTOR],
+      routes: directorRoutes,
+    },
+
     // Research Review (RPC / R&D Cell)
     {
-      allowedRoles: [ROLES.RD_CELL, "rpc"],
+      allowedRoles: [ROLES.RD_CELL, ROLES.RPC],
       routes: researchReviewRoutes,
     },
 

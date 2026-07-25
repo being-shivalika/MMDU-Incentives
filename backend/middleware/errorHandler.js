@@ -2,6 +2,10 @@ const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Server Error';
 
+  if (statusCode === 500) {
+    console.error('Unhandled Exception:', err);
+  }
+
   // Mongoose duplicate key error
   if (err.code === 11000) {
     statusCode = 400;

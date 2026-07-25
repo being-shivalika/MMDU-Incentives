@@ -106,13 +106,50 @@ export const deleteSubmission = asyncHandler(async (req, res) => {
 const transformClaimForResponse = (claim, approvalHistory = null) => {
   const claimObj = claim.toJSON ? claim.toJSON() : claim;
   
+  // Mapping currentDesk to currentLevel
+  let currentLevel = 'Applicant';
+  if (claimObj.currentDesk === 'hod') currentLevel = 'HOD';
+  else if (claimObj.currentDesk === 'principal') currentLevel = 'Principal';
+  else if (claimObj.currentDesk === 'director') currentLevel = 'Director';
+  else if (claimObj.currentDesk === 'rpc_cell' || claimObj.currentDesk === 'rpc') currentLevel = 'RPC';
+  else if (claimObj.currentDesk === 'accounts') currentLevel = 'Accounts';
+  else if (claimObj.status === 'COMPLETED') currentLevel = 'Completed';
+  else if (claimObj.status === 'REJECTED') currentLevel = 'Applicant';
+  
+  // Mapping status to frontend string
+  let frontendStatus = `Pending ${currentLevel} Review`;
+  if (claimObj.status === 'COMPLETED') frontendStatus = 'Approved';
+  else if (claimObj.status === 'REJECTED') frontendStatus = 'Rejected';
+  else if (claimObj.status === 'RETURNED') frontendStatus = 'Revision Requested';
+  else if (claimObj.status === 'DRAFT') frontendStatus = 'Draft';
+  
+  // Mapping reviews
+  const reviews = { hod: null, principal: null, director: null, rpc: null, accounts: null };
+  if (approvalHistory) {
+    const sorted = [...approvalHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
+    ['hod', 'principal', 'director', 'rpc', 'accounts'].forEach(role => {
+      const lastAction = sorted.find(h => h.actionByRole === role || (h.actionByRole && h.actionByRole.includes(role)));
+      if (lastAction) {
+        reviews[role] = {
+          action: lastAction.action.includes('REJECT') ? 'Rejected' : lastAction.action.includes('RETURN') ? 'Revision Requested' : 'Approved',
+          remarks: lastAction.remarks,
+          by: lastAction.actionByName,
+          date: lastAction.date
+        };
+      }
+    });
+  }
+
   return {
     id: claimObj.id || claimObj._id,
     claimNumber: claimObj.claimNumber,
     title: claimObj.title,
     category: claimObj.category,
     subtype: claimObj.subtype,
-    status: claimObj.status,
+    status: frontendStatus,
+    originalStatus: claimObj.status,
+    currentLevel: currentLevel,
+    department: claimObj.department,
     creatorId: claimObj.applicant,
     creatorName: claimObj.applicantName,
     creatorDept: claimObj.department,
@@ -126,13 +163,20 @@ const transformClaimForResponse = (claim, approvalHistory = null) => {
     paidAmount: claimObj.paidAmount,
     currency: claimObj.currency || 'INR',
     researchScore: claimObj.researchScore,
-    // Alias metadata as 'fields' for frontend compatibility
     fields: claimObj.metadata || {},
     metadata: claimObj.metadata || {},
-    // Workflow progress for progress bar
     workflowProgress: claimObj.workflowProgress || null,
-    // Approval history
-    approvalHistory: approvalHistory 
+    
+    workflowHistory: approvalHistory 
+      ? approvalHistory.map(h => ({
+          level: h.actionByRole === 'hod' ? 'HOD' : h.actionByRole === 'principal' ? 'Principal' : h.actionByRole === 'director' ? 'Director' : h.actionByRole === 'accounts' ? 'Accounts' : 'Applicant',
+          action: h.action.includes('REJECT') ? 'Rejected' : h.action.includes('RETURN') ? 'Revision Requested' : h.action.includes('SUBMIT') ? 'Submitted' : 'Approved',
+          by: h.actionByName,
+          remarks: h.remarks,
+          date: h.date
+        }))
+      : [],
+    reviewHistory: approvalHistory 
       ? approvalHistory.map(h => ({
           step: h.step,
           status: h.action.includes('REJECT') ? 'rejected' : 
@@ -143,7 +187,23 @@ const transformClaimForResponse = (claim, approvalHistory = null) => {
           date: h.date
         }))
       : [],
-    // Payment details
+    reviews: reviews,
+    generalInfo: {
+      title: claimObj.title,
+      submissionType: claimObj.subtype,
+      category: claimObj.category,
+      domain: claimObj.metadata?.domain || 'General',
+      subDomain: claimObj.metadata?.subDomain || '',
+      description: claimObj.metadata?.description || ''
+    },
+    publicationDetails: claimObj.metadata?.publicationDetails || claimObj.metadata || {},
+    incentiveInfo: {
+      incentiveCategory: claimObj.category,
+      eligibleIncentive: 'Yes',
+      estimatedAmount: claimObj.calculatedAmount || claimObj.approvedAmount || 0,
+      claimStatus: frontendStatus
+    },
+    permissions: { canEdit: claimObj.status === 'DRAFT' || claimObj.status === 'RETURNED' },
     paymentDetails: claimObj.paymentDetails || null,
     createdAt: claimObj.createdAt,
     updatedAt: claimObj.updatedAt

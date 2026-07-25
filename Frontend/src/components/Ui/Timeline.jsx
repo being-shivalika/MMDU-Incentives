@@ -21,7 +21,7 @@ export default function Timeline({ history = [], className }) {
   const getIconBg = (status) => {
     switch (status) {
       case "approved":
-      case "completed":
+      case "completed":np
         return "bg-emerald-50 border-emerald-200";
       case "returned":
         return "bg-amber-50 border-amber-200";
@@ -52,7 +52,7 @@ export default function Timeline({ history = [], className }) {
           {/* Timeline Dot Indicator */}
           <div
             className={cn(
-              "absolute -left-[37px] top-0.5 rounded-full border h-8 w-8 flex items-center justify-center bg-white shadow-sm",
+              "absolute -left-10 top-0.5 rounded-full border h-8 w-8 flex items-center justify-center bg-white shadow-sm",
               getIconBg(item.status),
             )}
           >

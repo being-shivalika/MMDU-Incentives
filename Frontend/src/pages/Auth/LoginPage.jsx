@@ -21,8 +21,43 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      navigate(ROUTES.HOME);
+      const loggedInUser = await login(email, password);
+      const role = loggedInUser.role?.toLowerCase();
+      let dashboardRoute = ROUTES.HOME;
+      
+      switch (role) {
+        case "student":
+        case "faculty":
+          dashboardRoute = ROUTES.APPLICANT_DASHBOARD;
+          break;
+        case "hod":
+          dashboardRoute = ROUTES.DEPARTMENT_REVIEW;
+          break;
+        case "principal":
+          dashboardRoute = ROUTES.PRINCIPAL_DASHBOARD;
+          break;
+        case "director":
+          dashboardRoute = ROUTES.DIRECTOR_DASHBOARD;
+          break;
+        case "rd_cell":
+        case "rpc_cell":
+          dashboardRoute = ROUTES.RESEARCH_REVIEW;
+          break;
+        case "accounts":
+          dashboardRoute = ROUTES.ACCOUNTS;
+          break;
+        case "registrar":
+          dashboardRoute = ROUTES.REGISTRAR;
+          break;
+        case "vc":
+          dashboardRoute = ROUTES.VC;
+          break;
+        case "admin":
+          dashboardRoute = ROUTES.ADMIN;
+          break;
+      }
+      
+      navigate(dashboardRoute);
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {

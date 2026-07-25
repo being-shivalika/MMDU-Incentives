@@ -1,8 +1,9 @@
+import { ROUTES } from "../../../constants/routes";
 import VCDashboard from "../../../pages/VC/Dashboard/VCDashboard";
 
 const vcRoutes = [
   {
-    path: "/vc",
+    path: ROUTES.VC,
     element: <VCDashboard />,
   },
 ];

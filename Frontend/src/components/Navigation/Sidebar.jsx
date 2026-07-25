@@ -172,7 +172,7 @@ const Sidebar = ({
       {/* Main Content */}
       {children && (
         <main
-          className={`flex-1 p-8 transition-all duration-300 ease-in-out
+          className={`flex-1 p-8 min-w-0 transition-all duration-300 ease-in-out
             ${isCollapsed ? "lg:ml-20" : "lg:ml-72"}
             ml-0
           `}

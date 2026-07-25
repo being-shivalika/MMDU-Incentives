@@ -24,6 +24,7 @@ const apiClient = async (endpoint, options = {}) => {
     if (response.status === 401) {
       removeStoredToken();
       localStorage.removeItem("rpms-user");
+      window.dispatchEvent(new Event("auth:logout"));
     }
     throw new Error(data.message || "Something went wrong");
   }

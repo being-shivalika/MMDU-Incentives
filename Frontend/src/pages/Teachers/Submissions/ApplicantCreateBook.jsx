@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BookForm from "../../../components/Forms/BookForm";
-import { saveMockSubmission } from "../../../utils/mockBackend";
+import { createSubmission } from "../../../services/submissionService";
 
 const ApplicantCreateBook = () => {
   const [formData, setFormData] = useState({
@@ -45,15 +45,38 @@ const ApplicantCreateBook = () => {
 
   const navigate = useNavigate();
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     console.log("Submitting Book API...", formData);
-    saveMockSubmission(formData, "Book", "Publication");
-    navigate("/applicant/submissions");
+    try {
+      await createSubmission({
+        title: formData.title || "Untitled Book",
+        typeId: "book",
+        category: "books_chapters",
+        metadata: formData,
+        status: "DEPARTMENT_REVIEW"
+      });
+      navigate("/applicant/submissions");
+    } catch (err) {
+      console.error("Failed to submit book", err);
+      alert("Error submitting book: " + (err.response?.data?.message || err.message));
+    }
   };
 
-  const onDraft = () => {
+  const onDraft = async () => {
     console.log("Saving Book Draft API...", formData);
-    // TODO: Connect to backend APIs
+    try {
+      await createSubmission({
+        title: formData.title || "Untitled Book Draft",
+        typeId: "book",
+        category: "books_chapters",
+        metadata: formData,
+        status: "DRAFT"
+      });
+      navigate("/applicant/submissions");
+    } catch (err) {
+      console.error("Failed to save draft", err);
+      alert("Error saving draft: " + (err.response?.data?.message || err.message));
+    }
   };
 
   return (

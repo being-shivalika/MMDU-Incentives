@@ -4,11 +4,10 @@ import {
   login as loginService,
   logout as logoutService,
   getCurrentUser,
-  getCachedUser,
 } from "../services/authService";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(getCachedUser);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
@@ -30,7 +29,17 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
+    const handleLogout = () => {
+      setUser(null);
+      setLoading(false);
+    };
+
+    window.addEventListener("auth:logout", handleLogout);
     checkAuth();
+
+    return () => {
+      window.removeEventListener("auth:logout", handleLogout);
+    };
   }, []);
 
   const login = async (email, password) => {

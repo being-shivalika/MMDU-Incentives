@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SubmissionCard from "../../../components/Ui/SubmissionCard";
 
-import { getMockSubmissions } from "../../../utils/mockBackend";
+import { getSubmissions } from "../../../services/submissionService";
 
 const ApplicantSubmissions = () => {
   const navigate = useNavigate();
@@ -10,18 +10,14 @@ const ApplicantSubmissions = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In the future this will be replaced with an actual API call.
     const fetchSubmissions = async () => {
       setLoading(true);
       try {
-        const mockData = getMockSubmissions();
-        // Simulating network delay
-        setTimeout(() => {
-          setSubmissions(mockData);
-          setLoading(false);
-        }, 500);
+        const response = await getSubmissions();
+        setSubmissions(response.data || []);
       } catch (error) {
         console.error("Failed to fetch submissions", error);
+      } finally {
         setLoading(false);
       }
     };

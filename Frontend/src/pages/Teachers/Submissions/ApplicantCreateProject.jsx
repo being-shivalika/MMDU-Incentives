@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StartupForm from "../../../components/Forms/StartupForm";
-import { saveMockSubmission } from "../../../utils/mockBackend";
+import { createSubmission } from "../../../services/submissionService";
 
 const ApplicantCreateProject = () => {
   const [formData, setFormData] = useState({
@@ -45,15 +45,38 @@ const ApplicantCreateProject = () => {
 
   const navigate = useNavigate();
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     console.log("Submitting Project API...", formData);
-    saveMockSubmission(formData, "Startup", "Project");
-    navigate("/applicant/submissions");
+    try {
+      await createSubmission({
+        title: formData.title || "Untitled Project",
+        typeId: "startup",
+        category: "innovation_projects",
+        metadata: formData,
+        status: "DEPARTMENT_REVIEW"
+      });
+      navigate("/applicant/submissions");
+    } catch (err) {
+      console.error("Failed to submit project", err);
+      alert("Error submitting project: " + (err.response?.data?.message || err.message));
+    }
   };
 
-  const onDraft = () => {
+  const onDraft = async () => {
     console.log("Saving Project Draft API...", formData);
-    // TODO: Connect to backend APIs
+    try {
+      await createSubmission({
+        title: formData.title || "Untitled Project Draft",
+        typeId: "startup",
+        category: "innovation_projects",
+        metadata: formData,
+        status: "DRAFT"
+      });
+      navigate("/applicant/submissions");
+    } catch (err) {
+      console.error("Failed to save draft", err);
+      alert("Error saving draft: " + (err.response?.data?.message || err.message));
+    }
   };
 
   return (

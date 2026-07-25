@@ -1,10 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { X, Check, ArrowRight, CornerUpLeft } from "lucide-react";
 import dayjs from "dayjs";
 import Badge from "../../../../components/Ui/Badge";
 
 const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
+  const [remarks, setRemarks] = useState("");
+
   if (!isOpen || !submission) return null;
+
+  const handleActionClick = (actionType) => {
+    onAction(actionType, remarks);
+    setRemarks(""); // Reset remarks
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -21,10 +28,8 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
           <section>
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Applicant Details</h3>
             <div className="bg-gray-50 rounded-xl p-4 space-y-2 border">
-              <p className="font-medium text-lg">{submission.applicant.name}</p>
-              <p className="text-sm text-gray-600">{submission.applicant.designation}</p>
-              <p className="text-sm text-gray-600">{submission.applicant.department}</p>
-              <p className="text-sm text-gray-600">{submission.applicant.email}</p>
+              <p className="font-medium text-lg">{submission.submittedBy || "Unknown Applicant"}</p>
+              <p className="text-sm text-gray-600">Department: {submission.department || "Unknown"}</p>
             </div>
           </section>
 
@@ -42,7 +47,7 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <p className="text-sm text-gray-500">Type</p>
-                  <p className="font-medium">{submission.type}</p>
+                  <p className="font-medium">{submission.submissionType || submission.type}</p>
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-gray-500">Date Submitted</p>
@@ -51,41 +56,33 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Description</p>
-                <p className="text-sm mt-1 text-gray-700 bg-gray-50 p-3 rounded-lg border">{submission.description}</p>
+                <p className="text-sm mt-1 text-gray-700 bg-gray-50 p-3 rounded-lg border">
+                  {submission.generalInfo?.description || "No description provided."}
+                </p>
               </div>
-              {submission.comments && (
-                <div>
-                  <p className="text-sm text-gray-500">Previous Comments</p>
-                  <p className="text-sm mt-1 text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">{submission.comments}</p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Attached Documents</h3>
-            <div className="space-y-2">
-              {submission.files.map((file, idx) => (
-                <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <span className="text-sm font-medium text-blue-600">{file.name}</span>
-                  <ArrowRight className="h-4 w-4 text-gray-400" />
-                </a>
-              ))}
+              
+              <div className="mt-4">
+                <p className="text-sm text-gray-500 mb-2">Reviewer Remarks (Optional)</p>
+                <textarea 
+                  className="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  rows="3"
+                  placeholder="Enter remarks for this action..."
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                />
+              </div>
             </div>
           </section>
         </div>
 
         <div className="p-6 border-t bg-gray-50 flex gap-3 flex-wrap">
-          <button onClick={() => onAction("Approve")} className="flex-1 bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
+          <button onClick={() => handleActionClick("Approve")} className="flex-1 bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
             <Check className="h-4 w-4" /> Approve
           </button>
-          <button onClick={() => onAction("Forward")} className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
-            <ArrowRight className="h-4 w-4" /> Forward
+          <button onClick={() => handleActionClick("Request Revision")} className="flex-1 bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
+            <CornerUpLeft className="h-4 w-4" /> Request Revision
           </button>
-          <button onClick={() => onAction("Return")} className="flex-1 bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
-            <CornerUpLeft className="h-4 w-4" /> Return
-          </button>
-          <button onClick={() => onAction("Reject")} className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
+          <button onClick={() => handleActionClick("Reject")} className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
             <X className="h-4 w-4" /> Reject
           </button>
         </div>

@@ -6,7 +6,7 @@ const Navbar = ({ onToggleSidebar, onOpenMobileSidebar }) => {
   const { user } = useAuth();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-gray-800 bg-[#f5f3f3]">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[#bababa8b] bg-[#f5f3f3]">
       <div className="flex h-full items-center justify-between px-3">
         <div className="flex items-center gap-3">
           {/* Desktop Toggle */}

@@ -123,7 +123,24 @@ export const processTransition = async (submissionId, actionType, user, comment,
   }
   
   // 4. Find action definition
-  const actionDef = (stageConfig.allowedActions || []).find(a => a.type === actionType);
+  let actualActionType = actionType;
+  let actionDef = (stageConfig.allowedActions || []).find(a => a.type === actualActionType);
+  
+  if (!actionDef) {
+    const genericType = actualActionType.toLowerCase().trim();
+    if (genericType === 'approve' || genericType === 'approved') {
+      actionDef = (stageConfig.allowedActions || []).find(a => a.isForward);
+    } else if (genericType === 'reject' || genericType === 'rejected') {
+      actionDef = (stageConfig.allowedActions || []).find(a => a.isTerminal && !a.isForward);
+    } else if (genericType === 'return' || genericType === 'returned' || genericType === 'request_revision' || genericType === 'revision requested' || genericType === 'revision') {
+      actionDef = (stageConfig.allowedActions || []).find(a => !a.isForward && !a.isTerminal);
+    }
+    
+    if (actionDef) {
+      actualActionType = actionDef.type;
+    }
+  }
+
   if (!actionDef) {
     const error = new Error(`Action '${actionType}' is not allowed in status '${currentStatus}'`);
     error.statusCode = 400;
@@ -153,7 +170,7 @@ export const processTransition = async (submissionId, actionType, user, comment,
   if (actionDef.targetStage) {
     targetStatus = actionDef.targetStage;
   } else if (actionDef.isTerminal) {
-    targetStatus = actionType.includes('REJECT') || actionType.includes('WITHDRAW') 
+    targetStatus = actualActionType.includes('REJECT') || actualActionType.includes('WITHDRAW') 
       ? CLAIM_STATUSES.REJECTED 
       : CLAIM_STATUSES.COMPLETED;
   } else if (actionDef.isForward) {
@@ -169,14 +186,14 @@ export const processTransition = async (submissionId, actionType, user, comment,
   const newDesk = targetStageConfig?.requiredRole || null;
   
   // 8. Determine step name for history
-  const stepName = getStepName(actionType, user.role);
+  const stepName = getStepName(actualActionType, user.role);
   const actionLabel = actionDef.isForward ? 'approved' : 
                      (actionDef.isTerminal ? 'rejected' : 'returned');
   
   // === SPECIAL ACTIONS ===
   
   // Policy calculation on APPROVE_INCENTIVE
-  if (actionType === 'APPROVE_INCENTIVE') {
+  if (actualActionType === 'APPROVE_INCENTIVE') {
     const policyResult = await policyEngine.calculateIncentive(claim);
     claim.calculatedAmount = policyResult.amount;
     claim.approvedAmount = incentiveAmount || policyResult.amount;
@@ -197,7 +214,7 @@ export const processTransition = async (submissionId, actionType, user, comment,
   }
   
   // Transaction creation on RELEASE_PAYMENT
-  if (actionType === 'RELEASE_PAYMENT') {
+  if (actualActionType === 'RELEASE_PAYMENT') {
     const amount = incentiveAmount || claim.approvedAmount || claim.calculatedAmount;
     claim.releasedAmount = amount;
     
@@ -223,7 +240,7 @@ export const processTransition = async (submissionId, actionType, user, comment,
   await ApprovalHistory.create({
     claim: claim._id,
     step: stepName,
-    action: actionType,
+    action: actualActionType,
     fromStatus: currentStatus,
     toStatus: targetStatus,
     actionBy: user._id,
@@ -242,15 +259,15 @@ export const processTransition = async (submissionId, actionType, user, comment,
     entity: 'Claim',
     entityId: claim._id,
     performedBy: user._id,
-    details: { fromStatus: currentStatus, toStatus: targetStatus, actionType, remarks: comment },
+    details: { fromStatus: currentStatus, toStatus: targetStatus, actionType: actualActionType, remarks: comment },
     ipAddress
   });
   
   // 13. DB Notifications
-  await generateNotifications(claim, actionType, actionDef, user, comment);
+  await generateNotifications(claim, actualActionType, actionDef, user, comment);
   
   // 14. Email Notifications
-  await generateEmails(claim, actionType, actionDef, user, comment);
+  await generateEmails(claim, actualActionType, actionDef, user, comment);
   
   // 15. Re-fetch with full history and return
   const updatedClaim = await Claim.findById(claim._id);

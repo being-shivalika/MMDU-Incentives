@@ -5,20 +5,21 @@ import { ChevronRight } from "lucide-react";
 
 const ReviewQueueTable = ({ data, onRowClick }) => {
   const getStatusBadge = (status) => {
-    switch (status) {
-      case "approved":
-        return <Badge variant="success">Approved</Badge>;
-      case "pending_review":
-        return <Badge variant="warning">Pending Review</Badge>;
-      case "returned":
-        return <Badge variant="danger">Returned</Badge>;
-      case "rejected":
-        return <Badge variant="danger">Rejected</Badge>;
-      case "forwarded":
-        return <Badge variant="info">Forwarded</Badge>;
-      default:
-        return <Badge variant="default">{status}</Badge>;
+    if (!status) return <Badge variant="default">Unknown</Badge>;
+    
+    if (status === "Approved") {
+      return <Badge variant="success">Approved</Badge>;
     }
+    if (status.includes("Pending")) {
+      return <Badge variant="warning">{status}</Badge>;
+    }
+    if (status === "Revision Requested" || status === "Returned") {
+      return <Badge variant="danger">Revision Requested</Badge>;
+    }
+    if (status === "Rejected") {
+      return <Badge variant="danger">Rejected</Badge>;
+    }
+    return <Badge variant="default">{status}</Badge>;
   };
 
   return (
@@ -51,13 +52,13 @@ const ReviewQueueTable = ({ data, onRowClick }) => {
               >
                 <td className="px-6 py-4 font-medium">{row.id}</td>
                 <td className="px-6 py-4">
-                  <p className="font-medium text-gray-900">{row.applicant.name}</p>
-                  <p className="text-xs text-gray-500">{row.applicant.department}</p>
+                  <p className="font-medium text-gray-900">{row.submittedBy || row.creatorName || "Unknown Applicant"}</p>
+                  <p className="text-xs text-gray-500">{row.department || row.creatorDept || "Unknown"}</p>
                 </td>
-                <td className="px-6 py-4">{row.type}</td>
+                <td className="px-6 py-4">{row.submissionType || row.type || row.subtype}</td>
                 <td className="px-6 py-4 max-w-xs truncate">{row.title}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {dayjs(row.submittedAt).format("MMM DD, YYYY")}
+                  {dayjs(row.submittedAt || row.dateSubmitted).format("MMM DD, YYYY")}
                 </td>
                 <td className="px-6 py-4">{getStatusBadge(row.status)}</td>
                 <td className="px-6 py-4 text-center">
