@@ -35,37 +35,28 @@ connectDB();
 
 const app = express();
 
-// Middleware
-// CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://mmdu-incentives.vercel.app/",
+  "https://mmdu-incentives.vercel.app",
+  "https://mmdu-incentives-git-master-shivalika-mehras-projects.vercel.app",
 ];
 
 app.use(
   cors({
     origin(origin, callback) {
-      // Allow requests without Origin (Postman, mobile apps, server-to-server)
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error("CORS: Origin not allowed"));
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Origin",
-      "X-Requested-With",
-      "Content-Type",
-      "Accept",
-      "Authorization",
-    ],
-    optionsSuccessStatus: 200,
   }),
 );
+
+
 app.use(express.json());
 app.use(helmet());
 app.use(mongoSanitize());
