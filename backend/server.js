@@ -39,7 +39,7 @@ const app = express();
 // CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://mmdu-incentives-git-master-shivalika-mehras-projects.vercel.app",
+  "https://mmdu-incentives.vercel.app/",
 ];
 
 app.use(
