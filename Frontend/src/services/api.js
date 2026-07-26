@@ -38,7 +38,12 @@ const apiClient = async (endpoint, options = {}) => {
       window.dispatchEvent(new Event("auth:logout"));
     }
 
-    throw new Error(data.message || "Something went wrong");
+    console.error("Status:", response.status);
+    console.error("Response:", data);
+
+    throw new Error(
+      data.message || `HTTP ${response.status} ${response.statusText}`,
+    );
   }
 
   return data;
