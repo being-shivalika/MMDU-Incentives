@@ -1,7 +1,6 @@
 const TOKEN_KEY = "rpms-token";
 
 const API_URL = "https://mmdu-incentives.onrender.com";
-
 export const getStoredToken = () => localStorage.getItem(TOKEN_KEY);
 
 export const setStoredToken = (token) => localStorage.setItem(TOKEN_KEY, token);
@@ -21,7 +20,6 @@ const apiClient = async (endpoint, options = {}) => {
   };
 
   const response = await fetch(`${API_URL}/api${endpoint}`, config);
-
   let data = {};
 
   try {
