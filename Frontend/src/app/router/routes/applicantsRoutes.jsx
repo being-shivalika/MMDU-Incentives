@@ -5,6 +5,9 @@ import ApplicantsDashboard from "../../../pages/Teachers/Dashboard/ApplicantsDas
 import ApplicantsCreateSubmission from "../../../pages/Teachers/Submissions/ApplicantsCreateSubmissions";
 import ApplicantSubmissions from "../../../pages/Teachers/Submissions/ApplicantSubmissions";
 import ApplicantSubmissionDetails from "../../../pages/Teachers/Submissions/ApplicantSubmissionDetails";
+import ApplicantDrafts from "../../../pages/Teachers/Submissions/ApplicantDrafts";
+import ResearchDirectory from "../../../pages/Shared/ResearchDirectory";
+import Policies from "../../../pages/Shared/Policies";
 
 const applicantsRoutes = [
   {
@@ -33,6 +36,27 @@ const applicantsRoutes = [
     element: <ApplicantSubmissionDetails />,
     label: "Submission Details",
     showInSidebar: false,
+    allowedRoles: [ROLES.STUDENT, ROLES.FACULTY],
+  },
+  {
+    path: ROUTES.APPLICANT_DRAFTS,
+    element: <ApplicantDrafts />,
+    label: "Drafts",
+    showInSidebar: true,
+    allowedRoles: [ROLES.STUDENT, ROLES.FACULTY],
+  },
+  {
+    path: "/directory/research",
+    element: <ResearchDirectory />,
+    label: "Research Directory",
+    showInSidebar: true,
+    allowedRoles: [ROLES.STUDENT, ROLES.FACULTY],
+  },
+  {
+    path: "/policies",
+    element: <Policies />,
+    label: "Policies",
+    showInSidebar: true,
     allowedRoles: [ROLES.STUDENT, ROLES.FACULTY],
   },
 ];

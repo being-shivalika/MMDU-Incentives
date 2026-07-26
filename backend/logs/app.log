@@ -8,3 +8,11 @@
 2026-07-25T16:07:29.058Z warn: Email not configured. Would have sent to faculty@mmdu.ac.in: [RPMS] Claim RPMS-2026-0004 — Approved by Director
 2026-07-25T16:07:29.230Z warn: Email not configured. Would have sent to director@mmdu.ac.in: [RPMS] Claim RPMS-2026-0004 — Your Approval Processed
 2026-07-25T16:08:59.763Z warn: Email not configured. Would have sent to faculty@mmdu.ac.in: [RPMS] Claim RPMS-2026-0004 — Payment Released ₹0
+2026-07-25T17:07:39.661Z warn: Email not configured. Would have sent to faculty@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Approved by HOD
+2026-07-25T17:07:40.023Z warn: Email not configured. Would have sent to hod@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Your Approval Processed
+2026-07-25T17:08:06.633Z warn: Email not configured. Would have sent to faculty@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Approved by Principal
+2026-07-25T17:08:06.801Z warn: Email not configured. Would have sent to principal@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Your Approval Processed
+2026-07-25T17:08:46.730Z warn: No policy rule found for research_publications/journal_publication/OTHER
+2026-07-25T17:08:48.718Z warn: Email not configured. Would have sent to faculty@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Approved by Director
+2026-07-25T17:08:48.942Z warn: Email not configured. Would have sent to director@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Your Approval Processed
+2026-07-25T17:09:21.852Z warn: Email not configured. Would have sent to faculty@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Payment Released ₹0

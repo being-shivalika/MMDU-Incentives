@@ -22,7 +22,7 @@ const Navbar = ({ onToggleSidebar, onOpenMobileSidebar }) => {
             onClick={onOpenMobileSidebar}
             className="rounded-lg p-2 transition hover:bg-white/10 lg:hidden"
           >
-            <Menu className="h-5 w-5 text-white" />
+            <Menu className="h-5 w-5 text-black" />
           </button>
 
           {/* Logo */}

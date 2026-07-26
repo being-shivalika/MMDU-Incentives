@@ -24,7 +24,7 @@ const LoginPage = () => {
       const loggedInUser = await login(email, password);
       const role = loggedInUser.role?.toLowerCase();
       let dashboardRoute = ROUTES.HOME;
-      
+
       switch (role) {
         case "student":
         case "faculty":
@@ -56,7 +56,7 @@ const LoginPage = () => {
           dashboardRoute = ROUTES.ADMIN;
           break;
       }
-      
+
       navigate(dashboardRoute);
     } catch (err) {
       setError(err.message || "Invalid email or password");

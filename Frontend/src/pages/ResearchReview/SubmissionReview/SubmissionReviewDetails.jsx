@@ -12,6 +12,7 @@ import { ROUTES } from "../../../constants/routes";
 
 import Badge from "../../../components/Ui/Badge";
 import Card from "../../../components/Ui/Card";
+import ActionButton from "../../../shared/components/ActionButton";
 
 const SubmissionReviewDetails = () => {
   const { id } = useParams();
@@ -355,17 +356,13 @@ const SubmissionReviewDetails = () => {
           >
             Reject
           </button>
-          <button 
+          <ActionButton 
             disabled={submitting}
             onClick={() => handleAction("approve")}
-            className="px-8 py-2.5 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {submitting ? "Processing..." : (
-              <>
-                FINAL APPROVAL <ArrowLeft className="h-4 w-4 rotate-180" />
-              </>
-            )}
-          </button>
+            defaultText="FINAL APPROVAL"
+            activeText="Processing..."
+            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 shadow-md"
+          />
         </div>
       </div>
     </div>

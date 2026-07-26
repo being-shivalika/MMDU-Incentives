@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X, Check, ArrowRight, CornerUpLeft } from "lucide-react";
-import dayjs from "dayjs";
 import Badge from "../../../../components/Ui/Badge";
+import ActionButton from "../../../../shared/components/ActionButton";
 
 const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
   const [remarks, setRemarks] = useState("");
@@ -76,15 +76,29 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
         </div>
 
         <div className="p-6 border-t bg-gray-50 flex gap-3 flex-wrap">
-          <button onClick={() => handleActionClick("Approve")} className="flex-1 bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
-            <Check className="h-4 w-4" /> Approve
-          </button>
-          <button onClick={() => handleActionClick("Request Revision")} className="flex-1 bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
-            <CornerUpLeft className="h-4 w-4" /> Request Revision
-          </button>
-          <button onClick={() => handleActionClick("Reject")} className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
-            <X className="h-4 w-4" /> Reject
-          </button>
+          <ActionButton 
+            defaultText="Approve" 
+            activeText="Approved" 
+            onClick={() => handleActionClick("Approve")}
+            icon={Check}
+            className="flex-1 bg-black text-white hover:bg-gray-800"
+          />
+          <ActionButton 
+            defaultText="Request Revision" 
+            activeText="Revision Requested" 
+            onClick={() => handleActionClick("Request Revision")}
+            icon={CornerUpLeft}
+            variant="warning"
+            className="flex-1"
+          />
+          <ActionButton 
+            defaultText="Reject" 
+            activeText="Rejected" 
+            onClick={() => handleActionClick("Reject")}
+            icon={X}
+            variant="danger"
+            className="flex-1"
+          />
         </div>
       </div>
     </div>

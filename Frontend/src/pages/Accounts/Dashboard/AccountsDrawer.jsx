@@ -103,7 +103,7 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-100 bg-green-50 p-4 rounded-xl border border-green-200">
+              <div className="mt-4 pt-4 border-t  bg-green-50 p-4 rounded-xl border border-green-200">
                 <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-2">
                   Financial Information
                 </p>
