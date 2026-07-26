@@ -1,7 +1,11 @@
 const TOKEN_KEY = "rpms-token";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const getStoredToken = () => localStorage.getItem(TOKEN_KEY);
+
 export const setStoredToken = (token) => localStorage.setItem(TOKEN_KEY, token);
+
 export const removeStoredToken = () => localStorage.removeItem(TOKEN_KEY);
 
 const apiClient = async (endpoint, options = {}) => {
@@ -16,8 +20,15 @@ const apiClient = async (endpoint, options = {}) => {
     },
   };
 
-  const response = await fetch(`/api${endpoint}`, config);
-  const data = await response.json();
+  const response = await fetch(`${API_URL}/api${endpoint}`, config);
+
+  let data = {};
+
+  try {
+    data = await response.json();
+  } catch {
+    // Handle empty or non-JSON responses gracefully
+  }
 
   if (!response.ok) {
     // If token is expired/invalid, clear it
@@ -26,6 +37,7 @@ const apiClient = async (endpoint, options = {}) => {
       localStorage.removeItem("rpms-user");
       window.dispatchEvent(new Event("auth:logout"));
     }
+
     throw new Error(data.message || "Something went wrong");
   }
 
