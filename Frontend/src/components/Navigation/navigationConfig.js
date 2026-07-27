@@ -290,18 +290,6 @@ export const navigationConfig = {
       label: "Review History",
       icon: History,
     },
-
-    {
-      path: "/rpc_cell/analytics",
-      label: "Analytics",
-      icon: LayoutDashboard,
-    },
-
-    {
-      path: "/rpc_cell/reports",
-      label: "Reports",
-      icon: FileSpreadsheet,
-    },
   ],
 
   /*
