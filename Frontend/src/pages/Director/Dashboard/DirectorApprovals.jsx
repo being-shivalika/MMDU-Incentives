@@ -1,41 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PageHeader from "../../../shared/components/PageHeader";
 import { CheckCircle, Search, Filter, Download } from "lucide-react";
 import StatusBadge from "../../../shared/components/StatusBadge";
 import ActionButton from "../../../shared/components/ActionButton";
-
-const mockApprovals = [
-  {
-    id: "DIR-4050",
-    applicant: "Dr. Anjali Sharma",
-    department: "Computer Science",
-    type: "Publication",
-    title: "AI in Sustainable Agriculture",
-    date: "16 Jul 2024",
-    status: "Pending Director",
-    amount: "₹ 15,000",
-  },
-  {
-    id: "DIR-4055",
-    applicant: "Prof. Rajesh Kumar",
-    department: "Electrical Engineering",
-    type: "Patent",
-    title: "Smart Grid Load Balancing",
-    date: "17 Jul 2024",
-    status: "Approved",
-    amount: "₹ 20,000",
-  },
-];
+import { getSubmissions } from "../../../services/submissionService";
 
 const DirectorApprovals = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [approvals, setApprovals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredData = mockApprovals.filter(
-    (item) =>
-      item.applicant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.department.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  useEffect(() => {
+    const loadApprovals = async () => {
+      try {
+        const response = await getSubmissions();
+        const data = response.data || [];
+
+        const reviewed = data.filter((submission) =>
+          ["Approved", "Rejected", "Revision Requested"].includes(
+            submission.status,
+          ),
+        );
+
+        setApprovals(reviewed);
+      } catch (err) {
+        console.error("Failed to load approvals:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadApprovals();
+  }, []);
+
+  const filteredData = approvals.filter((item) => {
+    const query = searchTerm.toLowerCase();
+
+    return (
+      (item.applicantName || item.applicant || "")
+        .toLowerCase()
+        .includes(query) ||
+      (item.title || "").toLowerCase().includes(query) ||
+      (item.department || "").toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -83,7 +91,13 @@ const DirectorApprovals = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredData.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-gray-500">
+                    Loading approvals...
+                  </td>
+                </tr>
+              ) : filteredData.length > 0 ? (
                 filteredData.map((item) => (
                   <tr
                     key={item.id}
@@ -92,45 +106,42 @@ const DirectorApprovals = () => {
                     <td className="p-4">
                       <div className="font-medium text-gray-900">{item.id}</div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {item.date}
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleDateString()
+                          : item.date}
                       </div>
                     </td>
+
                     <td className="p-4">
                       <div className="font-medium text-gray-900">
-                        {item.applicant}
+                        {item.applicantName || item.applicant}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
                         {item.department}
                       </div>
                     </td>
-                    <td className="p-4 max-w-50 truncate" title={item.title}>
-                      {item.title}
-                    </td>
+
+                    <td className="p-4 max-w-50 truncate">{item.title}</td>
+
                     <td className="p-4">
                       <span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs font-medium">
-                        {item.type}
+                        {item.submissionType || item.type}
                       </span>
                     </td>
+
                     <td className="p-4 font-medium text-gray-900">
-                      {item.amount}
+                      {item.incentiveAmount || item.amount || "-"}
                     </td>
+
                     <td className="p-4 text-right">
-                      {item.status === "Approved" ? (
-                        <StatusBadge status={item.status} />
-                      ) : (
-                        <ActionButton
-                          defaultText="Approve / Reject"
-                          activeText="Reviewed"
-                          size="sm"
-                        />
-                      )}
+                      <StatusBadge status={item.status} />
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-gray-500">
-                    No pending director approvals.
+                    No reviewed submissions found.
                   </td>
                 </tr>
               )}

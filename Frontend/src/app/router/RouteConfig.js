@@ -47,7 +47,7 @@ const routeConfig = {
 
     // Research Review (RPC / R&D Cell)
     {
-      allowedRoles: [ROLES.RD_CELL, ROLES.RPC],
+      allowedRoles: [ROLES.RD_CELL, ROLES.RPC_CELL],
       routes: researchReviewRoutes,
     },
 

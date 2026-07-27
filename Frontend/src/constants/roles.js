@@ -7,7 +7,7 @@ export const ROLES = {
   DIRECTOR: "director",
 
   RD_CELL: "rd_cell",
-  RPC: "rpc_cell",
+  RPC_CELL: "rpc_cell",
 
   ACCOUNTS: "accounts",
   ADMIN: "admin",

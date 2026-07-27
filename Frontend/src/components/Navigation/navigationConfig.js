@@ -264,12 +264,6 @@ export const navigationConfig = {
       label: "Director Approvals",
       icon: CheckCircle,
     },
-
-    {
-      path: "/director/reports",
-      label: "Reports",
-      icon: Building2,
-    },
   ],
 
   /*
@@ -283,7 +277,6 @@ export const navigationConfig = {
       path: "/research-review",
       label: "Dashboard",
       icon: LayoutDashboard,
-      end: true,
     },
 
     {
@@ -299,13 +292,13 @@ export const navigationConfig = {
     },
 
     {
-      path: "/rpc/analytics",
+      path: "/rpc_cell/analytics",
       label: "Analytics",
       icon: LayoutDashboard,
     },
 
     {
-      path: "/rpc/reports",
+      path: "/rpc_cell/reports",
       label: "Reports",
       icon: FileSpreadsheet,
     },
