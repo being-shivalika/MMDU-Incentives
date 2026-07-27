@@ -48,7 +48,7 @@ const StatsRow = ({
           Incentive Released
         </span>
         <span className="text-2xl font-bold text-emerald-800 mt-2">
-          ${totalReleasedIncentive}
+          ₹{totalReleasedIncentive}
         </span>
       </Card>
       <Card className="p-4 flex flex-col justify-between">
@@ -56,7 +56,7 @@ const StatsRow = ({
           Payment Pending
         </span>
         <span className="text-2xl font-bold text-brand-gray-600 mt-2">
-          ${totalProcessingIncentive}
+          ₹{totalProcessingIncentive}
         </span>
       </Card>
     </div>
