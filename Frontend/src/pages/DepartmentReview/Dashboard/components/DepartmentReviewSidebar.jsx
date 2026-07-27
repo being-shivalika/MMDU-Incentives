@@ -24,16 +24,6 @@ const DepartmentReviewSidebar = ({ role = "hod", children, ...props }) => {
       label: "Department Queue",
       icon: FileClock,
     },
-    {
-      path: "/department-review/history",
-      label: "Review History",
-      icon: History,
-    },
-    {
-      path: "/directory/research",
-      label: "Research Directory",
-      icon: FolderSearch,
-    },
   ];
 
   return (

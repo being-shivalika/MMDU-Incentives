@@ -76,6 +76,9 @@ const seedDatabase = async () => {
     // Seed Users (passwords will be hashed by the pre-save hook)
     console.log("Seeding users...");
     const users = [
+      // =========================
+      // ADMIN
+      // =========================
       {
         name: "Admin",
         email: "admin@mmdu.ac.in",
@@ -84,85 +87,149 @@ const seedDatabase = async () => {
         department: "IT Cell",
         institute: "MMDU",
       },
+
+      // =========================
+      // STUDENT
+      // =========================
       {
-        name: "Student",
+        name: "Aman Verma",
         email: "student@mmdu.ac.in",
         password: "Student@123",
         role: "student",
         department: "Computer Science & Engineering",
         institute: "MMDU",
       },
+
+      // =========================
+      // COMPUTER SCIENCE & ENGINEERING
+      // (HOD EXISTS)
+      // =========================
+
       {
-        name: "Faculty",
-        email: "faculty@mmdu.ac.in",
+        name: "Dr. Rahul Sharma",
+        email: "rahul.sharma@mmdu.ac.in",
         password: "Faculty@123",
         role: "faculty",
         department: "Computer Science & Engineering",
         institute: "MMDU",
       },
+
       {
-        name: "HOD",
-        email: "hod@mmdu.ac.in",
+        name: "Dr. Priya Mehta",
+        email: "priya.mehta@mmdu.ac.in",
+        password: "Faculty@123",
+        role: "faculty",
+        department: "Computer Science & Engineering",
+        institute: "MMDU",
+      },
+
+      {
+        name: "Dr. Amit Verma",
+        email: "amit.verma@mmdu.ac.in",
         password: "Hod@123",
         role: "hod",
         department: "Computer Science & Engineering",
         institute: "MMDU",
       },
+
+      // View-only principal for Engineering
       {
-        name: "Principal",
-        email: "principal@mmdu.ac.in",
+        name: "Dr. Neeraj Gupta",
+        email: "principal.cse@mmdu.ac.in",
         password: "Principal@123",
         role: "principal",
-        department: "Office of Principal",
+        department: "Computer Science & Engineering",
         institute: "MMDU",
       },
+
+      // =========================
+      // PHARMACY
+      // (NO HOD)
+      // =========================
+
       {
-        name: "Director",
-        email: "director@mmdu.ac.in",
-        password: "Director@123",
-        role: "director",
-        department: "Office of Director",
-        institute: "MMDU",
-      },
-      {
-        name: "RD Cell",
-        email: "rd@mmdu.ac.in",
-        password: "RD@123",
-        role: "rd_cell",
-        department: "R&D Cell",
-        institute: "MMDU",
-      },
-      {
-        name: "RPC Cell",
-        email: "rpc@mmdu.ac.in",
-        password: "Rpc@123",
-        role: "rpc_cell",
-        department: "RPC Cell",
+        name: "Dr. Anjali Kapoor",
+        email: "anjali.kapoor@mmdu.ac.in",
+        password: "Faculty@123",
+        role: "faculty",
+        department: "Pharmacy",
         institute: "MMDU",
       },
 
       {
-        name: "Accounts",
+        name: "Dr. Vivek Sharma",
+        email: "vivek.sharma@mmdu.ac.in",
+        password: "Faculty@123",
+        role: "faculty",
+        department: "Pharmacy",
+        institute: "MMDU",
+      },
+
+      // Principal becomes approver because Pharmacy has no HOD
+      {
+        name: "Dr. Meena Arora",
+        email: "principal.pharmacy@mmdu.ac.in",
+        password: "Principal@123",
+        role: "principal",
+        department: "Pharmacy",
+        institute: "MMDU",
+      },
+
+      // =========================
+      // UNIVERSITY LEVEL
+      // =========================
+
+      {
+        name: "Prof. S.K. Verma",
+        email: "director@mmdu.ac.in",
+        password: "Director@123",
+        role: "director",
+        department: "Administration",
+        institute: "MMDU",
+      },
+
+      {
+        name: "R&D Cell Coordinator",
+        email: "rd@mmdu.ac.in",
+        password: "RD@123",
+        role: "rd_cell",
+        department: "Administration",
+        institute: "MMDU",
+      },
+
+      {
+        name: "RPC Cell Coordinator",
+        email: "rpc@mmdu.ac.in",
+        password: "Rpc@123",
+        role: "rpc_cell",
+        department: "Administration",
+        institute: "MMDU",
+      },
+
+      {
+        name: "Accounts Officer",
         email: "accounts@mmdu.ac.in",
         password: "Accounts@123",
         role: "accounts",
-        department: "Finance & Accounts",
+        department: "Administration",
         institute: "MMDU",
       },
+
       {
         name: "Registrar",
         email: "registrar@mmdu.ac.in",
         password: "Registrar@123",
         role: "registrar",
-        department: "Office of Registrar",
+        department: "Administration",
         institute: "MMDU",
       },
+
       {
-        name: "VC",
+        name: "Vice Chancellor",
         email: "vc@mmdu.ac.in",
         password: "VC@123",
         role: "vc",
-        department: "Office of Vice Chancellor",
+        department: "Administration",
         institute: "MMDU",
       },
     ];

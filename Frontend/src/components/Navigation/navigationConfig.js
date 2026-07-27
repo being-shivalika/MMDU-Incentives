@@ -218,18 +218,6 @@ export const navigationConfig = {
       label: "Department Queue",
       icon: FileClock,
     },
-
-    {
-      path: "/hod/history",
-      label: "Approval History",
-      icon: History,
-    },
-
-    {
-      path: "/directory/faculty",
-      label: "Faculty Directory",
-      icon: Users,
-    },
   ],
 
   /*
@@ -256,12 +244,6 @@ export const navigationConfig = {
       label: "Approval History",
       icon: History,
     },
-
-    {
-      path: "/directory/research",
-      label: "Research Directory",
-      icon: FolderSearch,
-    },
   ],
 
   /*
@@ -287,12 +269,6 @@ export const navigationConfig = {
       path: "/director/reports",
       label: "Reports",
       icon: Building2,
-    },
-
-    {
-      path: "/directory/research",
-      label: "Research Directory",
-      icon: FolderSearch,
     },
   ],
 

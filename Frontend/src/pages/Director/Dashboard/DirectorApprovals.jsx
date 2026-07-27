@@ -34,7 +34,7 @@ const DirectorApprovals = () => {
     (item) =>
       item.applicant.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.department.toLowerCase().includes(searchTerm.toLowerCase())
+      item.department.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -48,7 +48,10 @@ const DirectorApprovals = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50/50">
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Search by name, title, or dept..."
@@ -82,16 +85,25 @@ const DirectorApprovals = () => {
             <tbody className="divide-y divide-gray-100">
               {filteredData.length > 0 ? (
                 filteredData.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={item.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="p-4">
                       <div className="font-medium text-gray-900">{item.id}</div>
-                      <div className="text-xs text-gray-500 mt-1">{item.date}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {item.date}
+                      </div>
                     </td>
                     <td className="p-4">
-                      <div className="font-medium text-gray-900">{item.applicant}</div>
-                      <div className="text-xs text-gray-500 mt-1">{item.department}</div>
+                      <div className="font-medium text-gray-900">
+                        {item.applicant}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {item.department}
+                      </div>
                     </td>
-                    <td className="p-4 max-w-[200px] truncate" title={item.title}>
+                    <td className="p-4 max-w-50 truncate" title={item.title}>
                       {item.title}
                     </td>
                     <td className="p-4">
@@ -99,14 +111,16 @@ const DirectorApprovals = () => {
                         {item.type}
                       </span>
                     </td>
-                    <td className="p-4 font-medium text-gray-900">{item.amount}</td>
+                    <td className="p-4 font-medium text-gray-900">
+                      {item.amount}
+                    </td>
                     <td className="p-4 text-right">
                       {item.status === "Approved" ? (
                         <StatusBadge status={item.status} />
                       ) : (
-                        <ActionButton 
-                          defaultText="Approve / Reject" 
-                          activeText="Reviewed" 
+                        <ActionButton
+                          defaultText="Approve / Reject"
+                          activeText="Reviewed"
                           size="sm"
                         />
                       )}
