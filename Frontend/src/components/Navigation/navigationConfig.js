@@ -323,12 +323,6 @@ export const navigationConfig = {
     },
 
     {
-      path: "/directory/research",
-      label: "Research Directory",
-      icon: FolderSearch,
-    },
-
-    {
       path: "/rpc/analytics",
       label: "Analytics",
       icon: LayoutDashboard,
