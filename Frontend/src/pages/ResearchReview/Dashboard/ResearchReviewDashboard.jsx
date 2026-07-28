@@ -38,23 +38,7 @@ const ResearchReviewDashboard = () => {
       const response = await getSubmissions();
       const data = response.data || [];
 
-      const statusMap = {
-        hod: "Pending HOD Review",
-        principal: "Pending Principal Review",
-        director: "Pending Director Review",
-        rd_cell: "Pending R&D Review",
-        rpc_cell: "Pending RPC Review",
-        accounts: "Pending Accounts Review",
-      };
-
-      const expectedStatus = statusMap[user?.role];
-
-      // If this role isn't in the map, don't filter anything
-      const queue = expectedStatus
-        ? data.filter((submission) => submission.status === expectedStatus)
-        : [];
-
-      setSubmissions(queue);
+      setSubmissions(data);
     } catch (err) {
       console.error("Error loading submissions:", err);
       setError(err.message || "Failed to load submissions");
@@ -62,7 +46,6 @@ const ResearchReviewDashboard = () => {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     if (user?.role) {
       loadSubmissions();
