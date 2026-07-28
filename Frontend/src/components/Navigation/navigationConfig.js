@@ -121,18 +121,6 @@ export const navigationConfig = {
     },
 
     {
-      path: "/directory/research",
-      label: "Research Directory",
-      icon: FolderSearch,
-    },
-
-    {
-      path: "/directory/faculty",
-      label: "Faculty Directory",
-      icon: Users,
-    },
-
-    {
       path: "/policies",
       label: "Research Policies",
       icon: BookOpen,
@@ -185,18 +173,6 @@ export const navigationConfig = {
       path: "/student/drafts",
       label: "Drafts",
       icon: FileClock,
-    },
-
-    {
-      path: "/directory/research",
-      label: "Research Directory",
-      icon: FolderSearch,
-    },
-
-    {
-      path: "/directory/faculty",
-      label: "Faculty Directory",
-      icon: Users,
     },
   ],
 

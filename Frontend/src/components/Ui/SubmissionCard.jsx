@@ -22,15 +22,26 @@ const SubmissionCard = ({ submission, onClick }) => {
   };
 
   return (
-    <div onClick={() => onClick && onClick(submission)} className="cursor-pointer">
+    <div
+      onClick={() => onClick && onClick(submission)}
+      className="cursor-pointer"
+    >
       <Card className="hover:shadow-lg transition-shadow duration-300">
         <div className="p-5">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">{submission.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">{submission.subtype || submission.submissionType} • {submission.category}</p>
+              <h3 className="text-lg font-semibold text-gray-800">
+                {submission.title}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {submission.subtype || submission.submissionType} •{" "}
+                {submission.category}
+              </p>
             </div>
-            <Badge variant={getStatusColor(submission.status)}>
+            <Badge
+              variant={getStatusColor(submission.status)}
+              className="text-center text-[10px]"
+            >
               {submission.status || "Unknown"}
             </Badge>
           </div>
@@ -38,31 +49,54 @@ const SubmissionCard = ({ submission, onClick }) => {
           <div className="grid grid-cols-2 gap-4 text-sm mt-4">
             <div>
               <span className="text-gray-500 block">Department</span>
-              <span className="font-medium text-gray-800">{submission.department || submission.creatorDept || "-"}</span>
+              <span className="font-medium text-gray-800">
+                {submission.department || submission.creatorDept || "-"}
+              </span>
             </div>
             <div>
               <span className="text-gray-500 block">Domain</span>
-              <span className="font-medium text-gray-800">{submission.domain || submission.generalInfo?.domain || submission.metadata?.domain || "-"}</span>
+              <span className="font-medium text-gray-800">
+                {submission.domain ||
+                  submission.generalInfo?.domain ||
+                  submission.metadata?.domain ||
+                  "-"}
+              </span>
             </div>
             <div>
               <span className="text-gray-500 block">Submission Date</span>
               <span className="font-medium text-gray-800">
-                {(submission.dateSubmitted || submission.submissionDate) ? new Date(submission.dateSubmitted || submission.submissionDate).toLocaleDateString() : "-"}
+                {submission.dateSubmitted || submission.submissionDate
+                  ? new Date(
+                      submission.dateSubmitted || submission.submissionDate,
+                    ).toLocaleDateString()
+                  : "-"}
               </span>
             </div>
             <div>
               <span className="text-gray-500 block">Last Updated</span>
               <span className="font-medium text-gray-800">
-                {(submission.updatedAt || submission.lastUpdated) ? new Date(submission.updatedAt || submission.lastUpdated).toLocaleDateString() : "-"}
+                {submission.updatedAt || submission.lastUpdated
+                  ? new Date(
+                      submission.updatedAt || submission.lastUpdated,
+                    ).toLocaleDateString()
+                  : "-"}
               </span>
             </div>
             <div>
               <span className="text-gray-500 block">Current Review Level</span>
-              <span className="font-medium text-gray-800">{submission.currentLevel || submission.currentReviewLevel || "-"}</span>
+              <span className="font-medium text-gray-800">
+                {submission.currentLevel ||
+                  submission.currentReviewLevel ||
+                  "-"}
+              </span>
             </div>
             <div>
               <span className="text-gray-500 block">Reviewing Authority</span>
-              <span className="font-medium text-gray-800">{submission.currentLevel || submission.reviewingAuthority || "-"}</span>
+              <span className="font-medium text-gray-800">
+                {submission.currentLevel ||
+                  submission.reviewingAuthority ||
+                  "-"}
+              </span>
             </div>
           </div>
         </div>

@@ -1,6 +1,13 @@
 import SubmissionForm from "./SubmissionForm";
 
-const PublicationForm = ({ formData, handleInputChange, handleAddAuthor, handleRemoveAuthor, onSubmit, onDraft }) => {
+const PublicationForm = ({
+  formData,
+  handleInputChange,
+  handleAddAuthor,
+  handleRemoveAuthor,
+  onSubmit,
+  onDraft,
+}) => {
   return (
     <SubmissionForm
       title="Publication Submission"
@@ -18,9 +25,7 @@ const PublicationForm = ({ formData, handleInputChange, handleAddAuthor, handleR
       ]}
       verificationLabels={{
         first: "DOI",
-        second: "Scopus Profile Link",
-        third: "Publisher URL",
-        fourth: "Journal Website",
+        second: "Scopus Link",
       }}
       formData={formData}
       handleInputChange={handleInputChange}
@@ -32,14 +37,14 @@ const PublicationForm = ({ formData, handleInputChange, handleAddAuthor, handleR
       <div className="space-y-6">
         <div className="grid md:grid-cols-2 gap-5">
           <div>
-            <label className="text-xs uppercase text-zinc-500 block mb-1.5">
+            <label className="text-xs uppercase text-zinc-500 block mb-0.5">
               Quartile
             </label>
             <select
               name="quartile"
               value={formData?.quartile || ""}
               onChange={handleInputChange}
-              className="border rounded-md px-3 py-2 w-full"
+              className="border rounded-md px-2 py-1 w-full"
             >
               <option value="">Select Quartile</option>
               <option value="Q1">Q1</option>
@@ -49,7 +54,7 @@ const PublicationForm = ({ formData, handleInputChange, handleAddAuthor, handleR
             </select>
           </div>
           <div>
-            <label className="text-xs uppercase text-zinc-500 block mb-1.5">
+            <label className="text-xs uppercase text-zinc-500 block mb-0.5">
               Impact Factor
             </label>
             <input
@@ -59,16 +64,16 @@ const PublicationForm = ({ formData, handleInputChange, handleAddAuthor, handleR
               placeholder="e.g. 5.4"
               value={formData?.impactFactor || ""}
               onChange={handleInputChange}
-              className="border rounded-md px-3 py-2 w-full"
+              className="border rounded-md px-2 py-1 w-full"
             />
           </div>
         </div>
 
         <div>
           <label className="flex items-start gap-3 cursor-pointer">
-            <input 
-              type="checkbox" 
-              className="mt-1 accent-black" 
+            <input
+              type="checkbox"
+              className="mt-1 accent-black"
               name="certified"
               checked={formData?.certified || false}
               onChange={handleInputChange}

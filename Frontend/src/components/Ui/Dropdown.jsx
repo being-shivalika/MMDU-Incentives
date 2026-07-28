@@ -33,9 +33,9 @@ const Dropdown = ({ trigger, items = [], align = "right", className = "" }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -4 }}
             transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
-            className={`absolute mt-1.5 w-48 rounded-md bg-white border border-zinc-100 shadow-lg ring-1 ring-black/5 z-50 focus:outline-none overflow-hidden ${alignClasses}`}
+            className={`absolute mt-0.5 w-48 rounded-md bg-white border border-zinc-100 shadow-lg ring-1 ring-black/5 z-50 focus:outline-none overflow-hidden ${alignClasses}`}
           >
-            <div className="py-1">
+            <div className="py-0.5">
               {items.map((item, index) => (
                 <button
                   key={index}
@@ -43,7 +43,7 @@ const Dropdown = ({ trigger, items = [], align = "right", className = "" }) => {
                     if (item.onClick) item.onClick();
                     setIsOpen(false);
                   }}
-                  className={`flex w-full items-center px-4 py-2 text-sm text-left transition-colors ${
+                  className={`flex w-full items-center px-3 py-1 text-sm text-left transition-colors ${
                     item.variant === "danger"
                       ? "text-red-600 hover:bg-red-50"
                       : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900"

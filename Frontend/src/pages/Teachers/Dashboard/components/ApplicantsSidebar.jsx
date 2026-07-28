@@ -15,7 +15,9 @@ const ApplicantsSidebar = ({ role = "faculty", children, ...props }) => {
   const isStudent = role === "student";
 
   const getSubmissionPath = (category) => {
-    const route = ROUTES?.APPLICANT_CREATE_SUBMISSION || "/applicant/submissions/create/:category";
+    const route =
+      ROUTES?.APPLICANT_CREATE_SUBMISSION ||
+      "/applicant/submissions/create/:category";
     return route.replace(":category", category);
   };
 
@@ -71,12 +73,6 @@ const ApplicantsSidebar = ({ role = "faculty", children, ...props }) => {
       path: ROUTES?.APPLICANT_DRAFTS || "/applicant/submissions/drafts",
       label: "Drafts",
       icon: FileClock,
-    },
-
-    {
-      path: "/directory/research",
-      label: "Research Directory",
-      icon: FolderSearch,
     },
 
     {
