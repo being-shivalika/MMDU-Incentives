@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import Card from "../Ui/Card";
 import Badge from "../Ui/Badge";
 import Input from "../Ui/Input";
@@ -50,7 +49,7 @@ const SubmissionForm = ({
     third: "Publisher Link",
     fourth: "Journal Website",
   },
-  formData = { authors: [] },
+  formData = { authors: [] }, // Changed back to generic 'authors'
   handleInputChange,
   handleAddAuthor,
   handleRemoveAuthor,
@@ -58,17 +57,16 @@ const SubmissionForm = ({
   onDraft,
   children,
 }) => {
-  const [isMMDUAuthor, setIsMMDUAuthor] = useState(false);
+  const [isMMDUAuthor, setIsMMDUAuthor] = useState(true); 
+  
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [externalAuthorName, setExternalAuthorName] = useState("");
 
   const filteredFaculty = dummyFaculty.filter((faculty) => {
     const search = nameFilter.toLowerCase();
-
     const matchesDepartment =
       selectedDepartment === "" || faculty.department === selectedDepartment;
-
     const matchesSearch =
       search === "" ||
       faculty.name.toLowerCase().includes(search) ||
@@ -80,12 +78,11 @@ const SubmissionForm = ({
   const handleAddExternalAuthor = () => {
     if (!externalAuthorName.trim()) return;
 
-    // Create an author object for non-MMDU authors
     const newAuthor = {
       id: `EXT_${Date.now()}`,
       name: externalAuthorName.trim(),
       department: "External / Other Institution",
-      designation: "External Author",
+      designation: "External Author"
     };
 
     handleAddAuthor(newAuthor);
@@ -93,18 +90,24 @@ const SubmissionForm = ({
   };
 
   return (
-    <Card className="max-w-7xl mx-auto p-8 space-y-2">
+    <Card className="w-full bg-white border border-neutral-200 shadow-sm rounded-xl overflow-hidden p-0">
       {/* HEADER */}
-      <div className="pb-2">
-        <Badge variant="primary">{category}</Badge>
-        <h1 className="mt-3 text-3xl font-semibold">{title}</h1>
+      <div className="px-6 py-5 border-b border-neutral-200 bg-neutral-50/50">
+        <div className="mb-3">
+          <Badge variant="primary">{category}</Badge>
+        </div>
+        <h1 className="text-xl font-bold tracking-tight text-neutral-800">
+          {title}
+        </h1>
       </div>
 
       {/* BASIC INFORMATION */}
-      <section className="space-y-5">
-        <h2 className="text-lg font-semibold">Basic Information</h2>
+      <section className="px-6 py-5 border-b border-neutral-100">
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4">
+          Basic Information
+        </h2>
 
-        <div className="grid md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label={basicFields.title}
             name="title"
@@ -120,19 +123,17 @@ const SubmissionForm = ({
           />
 
           {dropdownOptions.length > 0 && (
-            <div>
-              <label className="text-xs uppercase text-zinc-500">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
                 {basicFields.dropdown}
               </label>
-
               <select
                 name="dropdown"
                 value={formData.dropdown || ""}
                 onChange={handleInputChange}
-                className="border rounded-md px-3 py-1 w-full"
+                className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
               >
-                <option value="">Select</option>
-
+                <option value="">Select an option</option>
                 {dropdownOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
@@ -144,39 +145,59 @@ const SubmissionForm = ({
         </div>
       </section>
 
-      {/* AUTHORS */}
-      <section className="pt-4 space-y-4">
-        <h2 className="text-lg font-semibold">Authors</h2>
-
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={isMMDUAuthor}
-            onChange={(e) => {
-              setIsMMDUAuthor(e.target.checked);
-              setSelectedDepartment("");
-              setNameFilter("");
-              setExternalAuthorName("");
-            }}
-          />
-          <span>Author is from MMDU</span>
-        </label>
+{/* AUTHORS */}
+      <section className="px-6 py-5 border-b border-neutral-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+            Authors Details
+          </h2>
+          
+          {/* AFFILIATION TOGGLE */}
+          <div className="flex items-center p-1 bg-neutral-100 rounded-lg w-fit">
+            <button
+              type="button"
+              onClick={() => {
+                setIsMMDUAuthor(true);
+                setExternalAuthorName("");
+              }}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                isMMDUAuthor
+                  ? "bg-white text-neutral-800 shadow-sm"
+                  : "text-neutral-500 hover:text-neutral-800"
+              }`}
+            >
+              MMDU Faculty
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsMMDUAuthor(false);
+                setSelectedDepartment("");
+                setNameFilter("");
+              }}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                !isMMDUAuthor
+                  ? "bg-white text-neutral-800 shadow-sm"
+                  : "text-neutral-500 hover:text-neutral-800"
+              }`}
+            >
+              External Author
+            </button>
+          </div>
+        </div>
 
         {isMMDUAuthor ? (
-          /* MMDU AUTHOR FLOW */
-          <>
-            <div>
-              <label className="block text-xs uppercase text-zinc-500 mb-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
                 Department
               </label>
-
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="border rounded-md px-3 py-2 w-1/2"
+                className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
               >
                 <option value="">All Departments</option>
-
                 {departments.map((department) => (
                   <option key={department} value={department}>
                     {department}
@@ -185,46 +206,48 @@ const SubmissionForm = ({
               </select>
             </div>
 
-            <Input
-              label="Search Authors"
-              placeholder="Search by Name or Employee ID"
-              value={nameFilter}
-              onChange={(e) => setNameFilter(e.target.value)}
-            />
-
-            {nameFilter && (
-              <Card className="p-0 max-h-72 overflow-y-auto">
-                {filteredFaculty.length > 0 ? (
-                  filteredFaculty.map((faculty) => (
-                    <button
-                      key={faculty.id}
-                      type="button"
-                      onClick={() => {
-                        handleAddAuthor(faculty);
-                        setNameFilter("");
-                      }}
-                      className="w-full p-3 text-left hover:bg-zinc-50 border-b last:border-b-0"
-                    >
-                      <p className="font-medium">{faculty.name}</p>
-
-                      <p className="text-xs text-zinc-500">
-                        {faculty.department} • {faculty.designation} •{" "}
-                        {faculty.id}
-                      </p>
-                    </button>
-                  ))
-                ) : (
-                  <p className="p-4 text-sm text-zinc-500">No faculty found.</p>
-                )}
-              </Card>
-            )}
-          </>
+            <div className="relative">
+              <Input
+                label={formData.authors?.length > 0 ? "Search & Add Co-Author" : "Search & Add First Author"}
+                placeholder="Search by Name or Employee ID"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+              />
+              {nameFilter && (
+                <div className="absolute top-full left-0 z-10 w-full mt-1 max-h-48 overflow-y-auto rounded-lg border border-neutral-200 bg-white shadow-lg">
+                  {filteredFaculty.length > 0 ? (
+                    filteredFaculty.map((faculty) => (
+                      <button
+                        key={faculty.id}
+                        type="button"
+                        onClick={() => {
+                          handleAddAuthor(faculty);
+                          setNameFilter("");
+                        }}
+                        className="flex w-full flex-col items-start border-b border-neutral-100 px-3 py-2 text-left transition-colors hover:bg-neutral-50 last:border-0"
+                      >
+                        <span className="text-sm font-semibold text-neutral-800">
+                          {faculty.name}
+                        </span>
+                        <span className="text-xs font-medium text-neutral-500">
+                          {faculty.department} • {faculty.designation}
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="px-3 py-2 text-sm text-neutral-500 text-center">
+                      No faculty found.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         ) : (
-          /* EXTERNAL AUTHOR FLOW */
-          <div className="flex gap-3 items-end">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
             <div className="flex-1">
               <Input
-                label="Author Name"
+                label={formData.authors?.length > 0 ? "Add External Co-Author" : "Add External First Author"}
                 placeholder="Enter author's full name"
                 value={externalAuthorName}
                 onChange={(e) => setExternalAuthorName(e.target.value)}
@@ -241,51 +264,61 @@ const SubmissionForm = ({
         )}
 
         {/* SELECTED AUTHORS LIST */}
-        <div className="flex flex-wrap gap-3">
-          {(formData.authors || []).map((author) => (
-            <div
-              key={author.id}
-              className="border rounded-xl p-4 w-64 relative"
-            >
-              <button
-                type="button"
-                onClick={() => handleRemoveAuthor(author.id)}
-                className="absolute top-2 right-3 text-zinc-400 hover:text-red-500"
+        {formData.authors?.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-5 pt-5 border-t border-neutral-100">
+            {formData.authors.map((author, index) => (
+              <div
+                key={author.id}
+                className="group relative flex flex-col justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-3 pr-8 transition-colors hover:border-neutral-300"
               >
-                ×
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveAuthor(author.id)}
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-800"
+                  aria-label="Remove author"
+                >
+                  <span className="text-lg leading-none font-medium">×</span>
+                </button>
 
-              <p className="font-medium">{author.name}</p>
+                {/* AUTOMATIC ROLE ASSIGNMENT BASED ON POSITION */}
+                <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 w-fit px-1.5 py-0.5 rounded ${
+                  index === 0 ? "bg-amber-100 text-amber-800" : "bg-neutral-200 text-neutral-700"
+                }`}>
+                  {index === 0 ? "First Author" : "Co-Author"}
+                </span>
 
-              <p className="text-xs text-zinc-500">{author.designation}</p>
-
-              <p className="text-xs text-zinc-400">{author.department}</p>
-            </div>
-          ))}
-        </div>
+                <div className="flex items-center gap-2 mb-0.5 mt-1">
+                  <p className="text-sm font-semibold text-neutral-800 truncate">
+                    {author.name}
+                  </p>
+                  {author.id.startsWith("EXT_") ? (
+                    <span className="text-[9px] bg-neutral-200 text-neutral-600 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Ext</span>
+                  ) : (
+                    <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">MMDU</span>
+                  )}
+                </div>
+                <p className="text-xs text-neutral-500 truncate">
+                  {author.designation} • {author.department}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* VERIFICATION LINKS */}
-      <section className="pt-6 space-y-2">
-        <h2 className="text-lg font-semibold">Verification Links</h2>
+      <section className="px-6 py-5 border-b border-neutral-100">
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4">
+          Verification Links
+        </h2>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label={verificationLabels.first}
             type={
               verificationLabels.first.toLowerCase().match(/(link|url|website)/)
                 ? "url"
                 : "text"
-            }
-            pattern={
-              verificationLabels.first.toLowerCase().match(/(link|url|website)/)
-                ? "https://.*"
-                : undefined
-            }
-            title={
-              verificationLabels.first.toLowerCase().match(/(link|url|website)/)
-                ? "Must be a valid HTTPS URL (e.g., https://example.com)"
-                : undefined
             }
             placeholder={
               verificationLabels.first.toLowerCase().match(/(link|url|website)/)
@@ -300,30 +333,12 @@ const SubmissionForm = ({
           <Input
             label={verificationLabels.second}
             type={
-              verificationLabels.second
-                .toLowerCase()
-                .match(/(link|url|website)/)
+              verificationLabels.second.toLowerCase().match(/(link|url|website)/)
                 ? "url"
                 : "text"
             }
-            pattern={
-              verificationLabels.second
-                .toLowerCase()
-                .match(/(link|url|website)/)
-                ? "https://.*"
-                : undefined
-            }
-            title={
-              verificationLabels.second
-                .toLowerCase()
-                .match(/(link|url|website)/)
-                ? "Must be a valid HTTPS URL (e.g., https://example.com)"
-                : undefined
-            }
             placeholder={
-              verificationLabels.second
-                .toLowerCase()
-                .match(/(link|url|website)/)
+              verificationLabels.second.toLowerCase().match(/(link|url|website)/)
                 ? "https://..."
                 : "Enter detail"
             }
@@ -335,18 +350,23 @@ const SubmissionForm = ({
       </section>
 
       {/* PAGE SPECIFIC */}
-      <section className="pt-6">{children}</section>
+      {children && (
+        <section className="px-6 py-5 border-b border-neutral-100">
+          {children}
+        </section>
+      )}
 
       {/* ACTIONS */}
-      <div className="pt-6 flex justify-between">
-        <Button variant="outline" onClick={onDraft}>
+      <div className="px-6 py-4 bg-neutral-50 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+        <Button type="button" variant="outline" onClick={onDraft} className="w-full sm:w-auto bg-white">
           Save Draft
         </Button>
 
-        <div className="flex gap-3">
-          <Button variant="secondary">Preview</Button>
-
-          <Button variant="primary" onClick={onSubmit}>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Button type="button" variant="secondary" className="w-full sm:w-auto bg-white">
+            Preview
+          </Button>
+          <Button type="button" variant="primary" onClick={onSubmit} className="w-full sm:w-auto">
             Submit
           </Button>
         </div>

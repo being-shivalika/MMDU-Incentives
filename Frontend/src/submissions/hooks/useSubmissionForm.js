@@ -20,8 +20,13 @@ export const useSubmissionForm = (typeId, submissionId = null) => {
     reset,
     formState: { errors }
   } = useForm({
-    defaultValues: {}
+    defaultValues: {
+      coAuthors: [] // Ensure coAuthors array exists by default for the backend
+    }
   });
+
+  // 1. ADAPTER: Expose current state as `formData` for the UI forms
+  const formData = watch();
 
   // Load appropriate schema dynamically at runtime
   useEffect(() => {
@@ -29,7 +34,7 @@ export const useSubmissionForm = (typeId, submissionId = null) => {
       const targetSchema = SchemaRegistry.get(typeConfig.schemaKey);
       setSchema(targetSchema);
     }
-  }, [typeId]);
+  }, [typeId, typeConfig?.schemaKey]);
 
   // Load existing data if editing or resubmitting
   useEffect(() => {
@@ -45,26 +50,52 @@ export const useSubmissionForm = (typeId, submissionId = null) => {
     }
   }, [submissionId, reset]);
 
+  // 2. ADAPTER: Create a standard onChange handler for our custom Input components
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setValue(name, type === "checkbox" ? checked : value, { 
+      shouldDirty: true, 
+      shouldValidate: true 
+    });
+  };
+
+  // 3. ADAPTER: Create array mutators for the coAuthors list
+  const handleAddAuthor = (newAuthor) => {
+    const currentAuthors = watch("coAuthors") || [];
+    setValue("coAuthors", [...currentAuthors, newAuthor], { shouldDirty: true });
+  };
+
+  const handleRemoveAuthor = (authorId) => {
+    const currentAuthors = watch("coAuthors") || [];
+    setValue(
+      "coAuthors",
+      currentAuthors.filter((a) => a.id !== authorId),
+      { shouldDirty: true }
+    );
+  };
+
   const submitForm = async (data, isDraft = false) => {
     setSubmitting(true);
     setSuccess(false);
+    
     try {
+      // 4. PAYLOAD FIX: Inject category and subtype for the backend Policy Engine
+      const payload = {
+        typeId,
+        category: typeConfig?.category || "", // e.g., 'research_publications'
+        subtype: typeConfig?.subtype || "",   // e.g., 'journal'
+        metadata: data,                       // includes title, domain, coAuthors, etc.
+        status: isDraft ? "DRAFT" : "DEPARTMENT_REVIEW"
+      };
+
       if (submissionId) {
-        await submissionsApi.update(submissionId, {
-          typeId,
-          metadata: data,
-          status: isDraft ? "DRAFT" : "DEPARTMENT_REVIEW"
-        });
+        await submissionsApi.update(submissionId, payload);
       } else {
-        await submissionsApi.create({
-          typeId,
-          metadata: data,
-          status: isDraft ? "DRAFT" : "DEPARTMENT_REVIEW"
-        });
+        await submissionsApi.create(payload);
       }
       setSuccess(true);
     } catch (err) {
-      console.error(err);
+      console.error("Submission failed:", err);
     } finally {
       setSubmitting(false);
     }
@@ -72,14 +103,19 @@ export const useSubmissionForm = (typeId, submissionId = null) => {
 
   return {
     schema,
-    control,
-    watch,
-    setValue,
-    errors,
     loading,
     submitting,
     success,
-    handleSubmit: (onValid) => handleSubmit((data) => submitForm(data, false)),
-    handleSaveDraft: () => handleSubmit((data) => submitForm(data, true))()
+    errors,
+    
+    // UI Form Adapters
+    formData,
+    handleInputChange,
+    handleAddAuthor,
+    handleRemoveAuthor,
+    
+    // Submit Handlers
+    onSubmit: handleSubmit((data) => submitForm(data, false)),
+    onDraft: handleSubmit((data) => submitForm(data, true))
   };
 };

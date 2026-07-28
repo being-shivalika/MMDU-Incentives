@@ -4,7 +4,7 @@ import useAuth from "../../../hooks/useAuth";
 import Card from "../../../components/Ui/Card";
 import Badge from "../../../components/Ui/Badge";
 import { LineChart } from "../../../components/charts/DashboardCharts";
-import { FileText, ArrowRight, HelpCircle } from "lucide-react";
+import { FileText, ArrowRight, HelpCircle, Inbox } from "lucide-react";
 import dayjs from "dayjs";
 import StatsRow from "./components/StatsRow";
 import WelcomeHero from "./components/WelcomeHero";
@@ -32,10 +32,7 @@ const ApplicantsDashboard = () => {
     fetchSubmissions();
   }, []);
 
-  // User submissions
   const mySubmissions = submissions;
-
-  const drafts = mySubmissions.filter((s) => s.status === "draft");
 
   const pending = mySubmissions.filter((s) =>
     ["pending_hod", "pending_rpc", "pending_accounts"].includes(s.status),
@@ -73,30 +70,25 @@ const ApplicantsDashboard = () => {
     switch (status) {
       case "released":
         return <Badge variant="success">Disbursed</Badge>;
-
       case "pending_hod":
         return <Badge variant="warning">HOD Review</Badge>;
-
       case "pending_rpc":
         return <Badge variant="info">RPC Verification</Badge>;
-
       case "pending_accounts":
         return <Badge variant="purple">Accounts Release</Badge>;
-
       case "returned_hod":
       case "returned_rpc":
         return <Badge variant="danger">Returned</Badge>;
-
       case "draft":
         return <Badge variant="default">Draft</Badge>;
-
       default:
         return <Badge variant="default">{status}</Badge>;
     }
   };
 
   return (
-    <div className="space-y-6 text-left">
+    <div className="space-y-6 max-w-7xl mx-auto p-4 md:p-6 text-left">
+      {/* Welcome Hero Section */}
       <WelcomeHero
         userName={user?.name}
         userDesignation={user?.designation}
@@ -104,6 +96,7 @@ const ApplicantsDashboard = () => {
         onNewClaim={() => navigate("/teacher/submission/publication")}
       />
 
+      {/* Stats Overview */}
       <StatsRow
         mySubmissionsCount={mySubmissions.length}
         pendingCount={pending.length}
@@ -113,119 +106,132 @@ const ApplicantsDashboard = () => {
         totalProcessingIncentive={totalProcessingIncentive}
       />
 
+      {/* Charts & Circulars Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <h1>My Research Submissions Output Trend</h1>
-
-          <div className="h-56 flex items-center justify-center p-4">
+        <Card className="lg:col-span-2 p-6 bg-white border border-neutral-200 rounded-2xl shadow-sm space-y-4">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-900">
+            My Research Submissions Output Trend
+          </h2>
+          <div className="h-60 flex items-center justify-center p-2">
             <LineChart data={chartData} />
           </div>
         </Card>
 
-        <Card className="flex flex-col justify-between">
-          <div className="border-b border-brand-gray-100">
-            <h2>University Research Bulletins</h2>
+        <Card className="flex flex-col justify-between p-6 bg-white border border-neutral-200 rounded-2xl shadow-sm">
+          <div className="border-b border-neutral-100 pb-3 mb-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-900">
+              University Research Bulletins
+            </h2>
           </div>
 
-          <div className="p-0 overflow-y-auto max-h-48 flex-1">
+          <div className="overflow-y-auto max-h-48 flex-1 space-y-2">
             {circulars.length === 0 ? (
-              <div className="p-5 text-sm text-gray-400 text-center">
+              <div className="py-8 text-xs text-neutral-400 text-center font-medium">
                 No announcements available
               </div>
             ) : (
               circulars.slice(0, 4).map((circ) => (
-                <div key={circ.id} className="p-3 border-b">
-                  <div className="flex justify-between">
+                <div key={circ.id} className="p-3 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-neutral-400 uppercase">
                     <span>{circ.category}</span>
-
                     <span>{dayjs(circ.date).format("MMM DD")}</span>
                   </div>
-
-                  <h4>{circ.title}</h4>
+                  <h4 className="text-xs font-bold text-neutral-900">{circ.title}</h4>
                 </div>
               ))
             )}
           </div>
 
-          <div className="p-3 border-t text-center">
+          <div className="pt-4 mt-3 border-t border-neutral-100 text-center">
             <Link
               to="/policies"
-              className="text-xs font-bold uppercase flex justify-center gap-1"
+              className="text-xs font-bold uppercase tracking-wider text-neutral-900 hover:text-neutral-600 flex justify-center items-center gap-1.5 transition-colors"
             >
               View Policies
-              <ArrowRight className="h-3 w-3" />
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </Card>
       </div>
 
+      {/* Submissions Ledger & Policies Info */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <div className="flex justify-between">
-            <h1>Recent Research Submissions</h1>
-
+        <Card className="lg:col-span-2 p-6 bg-white border border-neutral-200 rounded-2xl shadow-sm space-y-4">
+          <div className="flex justify-between items-center border-b border-neutral-100 pb-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-900">
+              Recent Research Submissions
+            </h2>
             <Link
               to="/teacher/submissions"
-              className="text-xs font-bold uppercase"
+              className="text-xs font-bold uppercase tracking-wider text-neutral-900 hover:text-neutral-600 transition-colors"
             >
               See Ledger
             </Link>
           </div>
 
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr>
-                <th>Category</th>
-
-                <th>Title</th>
-
-                <th>Date</th>
-
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {mySubmissions.length === 0 ? (
-                <tr>
-                  <td colSpan="4" className="text-center p-6 text-gray-400">
-                    No submissions yet
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-neutral-200 text-neutral-400 uppercase font-bold tracking-wider">
+                  <th className="pb-3 font-semibold">Category</th>
+                  <th className="pb-3 font-semibold">Title</th>
+                  <th className="pb-3 font-semibold">Date</th>
+                  <th className="pb-3 font-semibold">Status</th>
                 </tr>
-              ) : (
-                mySubmissions.slice(0, 3).map((claim) => (
-                  <tr key={claim.id}>
-                    <td>{claim.category}</td>
-
-                    <td>{claim.title}</td>
-
-                    <td>{dayjs(claim.dateSubmitted).format("MMM DD YYYY")}</td>
-
-                    <td>{getStatusBadge(claim.status)}</td>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {mySubmissions.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-12 text-neutral-400">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <Inbox className="h-6 w-6 text-neutral-300" />
+                        <span className="text-xs font-medium">No submissions yet</span>
+                      </div>
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  mySubmissions.slice(0, 3).map((claim) => (
+                    <tr key={claim.id} className="hover:bg-neutral-50/50 transition-colors">
+                      <td className="py-3 font-semibold text-neutral-700">{claim.category}</td>
+                      <td className="py-3 font-bold text-neutral-950 max-w-[240px] truncate">{claim.title}</td>
+                      <td className="py-3 text-neutral-500 font-medium">{dayjs(claim.dateSubmitted).format("MMM DD YYYY")}</td>
+                      <td className="py-3">{getStatusBadge(claim.status)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </Card>
 
-        <Card>
-          <div className="flex gap-2 items-center">
-            <HelpCircle />
+        <Card className="p-6 bg-white border border-neutral-200 rounded-2xl shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex gap-2 items-center text-neutral-950 pb-3 border-b border-neutral-100">
+              <HelpCircle className="h-5 w-5 text-neutral-500" />
+              <h2 className="text-sm font-bold uppercase tracking-wider">Incentive Guidelines</h2>
+            </div>
 
-            <span>Incentive Policy Guidelines</span>
+            <div className="text-xs mt-4 space-y-3 text-neutral-600 font-medium leading-relaxed">
+              <p className="flex items-start gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 mt-1.5 flex-shrink-0" />
+                <span><strong className="text-neutral-900">Journals:</strong> SCI/SCIE indexed publications</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 mt-1.5 flex-shrink-0" />
+                <span><strong className="text-neutral-900">Patents:</strong> Verified granted patents</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 mt-1.5 flex-shrink-0" />
+                <span><strong className="text-neutral-900">Startups:</strong> Incubated entities</span>
+              </p>
+            </div>
           </div>
 
-          <div className="text-sm mt-4 space-y-3">
-            <p>• Journals: SCI/SCIE indexed publications</p>
-
-            <p>• Patents: Verified granted patents</p>
-
-            <p>• Startups: Incubated entities</p>
-          </div>
-
-          <Link to="/policies" className="block mt-5 text-xs font-bold">
-            Read Policy Document
+          <Link 
+            to="/policies" 
+            className="block mt-6 pt-4 border-t border-neutral-100 text-xs font-bold uppercase tracking-wider text-neutral-950 hover:text-neutral-600 transition-colors text-center"
+          >
+            Read Policy Document &rarr;
           </Link>
         </Card>
       </div>
