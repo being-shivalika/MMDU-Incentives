@@ -416,14 +416,14 @@ const SubmissionForm = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label={verificationLabels.first}
+            label={labels.first}
             type={
-              verificationLabels.first.toLowerCase().match(/(link|url|website)/)
+              labels.first.toLowerCase().match(/(link|url|website)/)
                 ? "url"
                 : "text"
             }
             placeholder={
-              verificationLabels.first.toLowerCase().match(/(link|url|website)/)
+              labels.first.toLowerCase().match(/(link|url|website)/)
                 ? "https://..."
                 : "Enter detail"
             }
@@ -433,7 +433,7 @@ const SubmissionForm = ({
           />
 
           <Input
-            label={verificationLabels.second}
+            label={labels.second}
             type={
               verificationLabels.second
                 .toLowerCase()
