@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSubmissionById } from "../../../services/submissionService";
-import { 
-  ArrowLeft, 
-  ExternalLink, 
-  FileText, 
-  CheckCircle2, 
-  Clock, 
+import {
+  ArrowLeft,
+  ExternalLink,
+  FileText,
+  CheckCircle2,
+  Clock,
   Wallet,
   Activity,
   AlertCircle,
   Edit,
-  Loader2
+  Loader2,
 } from "lucide-react";
 
 // --- Helper Functions ---
@@ -22,10 +22,14 @@ const formatString = (str) => {
 
 const getStatusStyle = (status) => {
   const safeStatus = status?.toUpperCase() || "";
-  if (safeStatus.includes("DRAFT")) return "bg-neutral-100 text-neutral-600 border-neutral-200";
-  if (safeStatus.includes("REVIEW") || safeStatus.includes("PENDING")) return "bg-amber-50 text-amber-700 border-amber-200";
-  if (safeStatus.includes("APPROVED") || safeStatus.includes("VERIFIED")) return "bg-green-50 text-green-700 border-green-200";
-  if (safeStatus.includes("REJECTED") || safeStatus.includes("REVISION")) return "bg-red-50 text-red-700 border-red-200";
+  if (safeStatus.includes("DRAFT"))
+    return "bg-neutral-100 text-neutral-600 border-neutral-200";
+  if (safeStatus.includes("REVIEW") || safeStatus.includes("PENDING"))
+    return "bg-amber-50 text-amber-700 border-amber-200";
+  if (safeStatus.includes("APPROVED") || safeStatus.includes("VERIFIED"))
+    return "bg-green-50 text-green-700 border-green-200";
+  if (safeStatus.includes("REJECTED") || safeStatus.includes("REVISION"))
+    return "bg-red-50 text-red-700 border-red-200";
   return "bg-neutral-100 text-neutral-600 border-neutral-200";
 };
 
@@ -37,17 +41,23 @@ const formatKey = (key) => {
     fourthVerification: "Supporting Document",
     dropdown: "Publication Type",
   };
-  return keyMap[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+  return (
+    keyMap[key] ||
+    key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())
+  );
 };
 
 const renderValue = (value) => {
   if (!value) return <span className="text-neutral-400">N/A</span>;
-  if (typeof value === 'string' && value.includes("http")) {
-    const cleanUrl = value.replace(/\[.*\]\(/, '').replace(/\)/, '').trim();
+  if (typeof value === "string" && value.includes("http")) {
+    const cleanUrl = value
+      .replace(/\[.*\]\(/, "")
+      .replace(/\)/, "")
+      .trim();
     return (
-      <a 
-        href={cleanUrl} 
-        target="_blank" 
+      <a
+        href={cleanUrl}
+        target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline break-all"
       >
@@ -56,7 +66,11 @@ const renderValue = (value) => {
       </a>
     );
   }
-  return <span className="text-neutral-800 font-medium break-words">{value.toString()}</span>;
+  return (
+    <span className="text-neutral-800 font-medium break-words">
+      {value.toString()}
+    </span>
+  );
 };
 
 // --- Main Component ---
@@ -85,7 +99,9 @@ const ApplicantSubmissionDetails = () => {
     return (
       <div className="flex flex-col justify-center items-center h-[70vh] gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
-        <p className="text-sm font-medium text-neutral-500">Loading submission details...</p>
+        <p className="text-sm font-medium text-neutral-500">
+          Loading submission details...
+        </p>
       </div>
     );
   }
@@ -96,7 +112,9 @@ const ApplicantSubmissionDetails = () => {
         <div className="h-16 w-16 bg-red-50 rounded-full flex items-center justify-center border border-red-100">
           <AlertCircle className="h-8 w-8 text-red-500" />
         </div>
-        <h1 className="text-xl font-bold text-neutral-800">Submission Not Found</h1>
+        <h1 className="text-xl font-bold text-neutral-800">
+          Submission Not Found
+        </h1>
         <button
           onClick={() => navigate(-1)}
           className="text-sm font-semibold text-neutral-600 hover:text-neutral-800 transition-colors"
@@ -120,13 +138,17 @@ const ApplicantSubmissionDetails = () => {
   } = submission;
 
   const isRejected = status === "Rejected" || status === "Revision Requested";
-  const lastReturnHistory = isRejected && workflowHistory
-    ? [...workflowHistory].reverse().find((h) => h.action === "Rejected" || h.action === "Revision Requested")
-    : null;
+  const lastReturnHistory =
+    isRejected && workflowHistory
+      ? [...workflowHistory]
+          .reverse()
+          .find(
+            (h) => h.action === "Rejected" || h.action === "Revision Requested",
+          )
+      : null;
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-      
       {/* HEADER SECTION */}
       <div className="space-y-4">
         <button
@@ -153,12 +175,14 @@ const ApplicantSubmissionDetails = () => {
               {title || "Untitled Submission"}
             </h1>
           </div>
-          
+
           <div className="flex flex-col items-end gap-3 flex-shrink-0 pt-1">
-            <span className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md border ${getStatusStyle(status)}`}>
+            <span
+              className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md border ${getStatusStyle(status)}`}
+            >
               {status || "Unknown Status"}
             </span>
-            
+
             {isRejected && (
               <button
                 onClick={() => navigate(`/applicant/submissions/${id}/edit`)}
@@ -181,9 +205,12 @@ const ApplicantSubmissionDetails = () => {
               Action Required: {status}
             </h3>
             <p className="text-sm text-red-800 leading-relaxed">
-              Returned by <span className="font-bold">{lastReturnHistory.level}</span> ({lastReturnHistory.by}).
+              Returned by{" "}
+              <span className="font-bold">{lastReturnHistory.level}</span> (
+              {lastReturnHistory.by}).
               <br />
-              <span className="font-semibold mt-1 block">Remarks:</span> {lastReturnHistory.remarks || "No specific remarks provided."}
+              <span className="font-semibold mt-1 block">Remarks:</span>{" "}
+              {lastReturnHistory.remarks || "No specific remarks provided."}
             </p>
           </div>
         </div>
@@ -191,10 +218,8 @@ const ApplicantSubmissionDetails = () => {
 
       {/* MAIN GRID LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
         {/* LEFT COLUMN - MAIN DETAILS */}
         <div className="lg:col-span-2 space-y-6">
-          
           {/* PUBLICATION DETAILS */}
           {publicationDetails && (
             <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
@@ -206,7 +231,7 @@ const ApplicantSubmissionDetails = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
                   {Object.entries(publicationDetails).map(([key, value]) => {
-                    // Skip verification links if they are nested objects/arrays to handle separately, 
+                    // Skip verification links if they are nested objects/arrays to handle separately,
                     // though renderValue handles strings fine.
                     if (key === "verificationLinks") return null;
                     return (
@@ -214,9 +239,7 @@ const ApplicantSubmissionDetails = () => {
                         <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                           {formatKey(key)}
                         </span>
-                        <div className="text-sm">
-                          {renderValue(value)}
-                        </div>
+                        <div className="text-sm">{renderValue(value)}</div>
                       </div>
                     );
                   })}
@@ -227,17 +250,19 @@ const ApplicantSubmissionDetails = () => {
 
           {/* VERIFICATION LINKS COMPONENT INTEGRATION */}
           {publicationDetails?.verificationLinks?.length > 0 && (
-             <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm p-6">
-               <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4">
-                  Verification Links
-                </h2>
-                {/* Assuming your existing component handles the rendering nicely. If not, map them here manually using renderValue */}
-               <div className="space-y-3">
-                 {publicationDetails.verificationLinks.map((link, idx) => (
-                   <div key={idx} className="text-sm">{renderValue(link)}</div>
-                 ))}
-               </div>
-             </div>
+            <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm p-6">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4">
+                Verification Links
+              </h2>
+              {/* Assuming your existing component handles the rendering nicely. If not, map them here manually using renderValue */}
+              <div className="space-y-3">
+                {publicationDetails.verificationLinks.map((link, idx) => (
+                  <div key={idx} className="text-sm">
+                    {renderValue(link)}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* REVIEW HISTORY (Only showing remarks from workflow) */}
@@ -248,23 +273,34 @@ const ApplicantSubmissionDetails = () => {
               </h2>
             </div>
             <div className="p-0">
-              {workflowHistory && workflowHistory.some(h => h.remarks) ? (
+              {workflowHistory && workflowHistory.some((h) => h.remarks) ? (
                 <ul className="divide-y divide-neutral-100">
-                  {workflowHistory.filter((h) => h.remarks).map((hist, idx) => (
-                    <li key={idx} className="p-5 hover:bg-neutral-50 transition-colors">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
-                          {hist.level} <span className="text-neutral-400 mx-1">•</span> {hist.action}
-                        </span>
-                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-                          {new Date(hist.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </span>
-                      </div>
-                      <p className="text-sm text-neutral-600 leading-relaxed bg-neutral-100/50 p-3 rounded-lg border border-neutral-100">
-                        "{hist.remarks}"
-                      </p>
-                    </li>
-                  ))}
+                  {workflowHistory
+                    .filter((h) => h.remarks)
+                    .map((hist, idx) => (
+                      <li
+                        key={idx}
+                        className="p-5 hover:bg-neutral-50 transition-colors"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                            {hist.level}{" "}
+                            <span className="text-neutral-400 mx-1">•</span>{" "}
+                            {hist.action}
+                          </span>
+                          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                            {new Date(hist.date).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-neutral-600 leading-relaxed bg-neutral-100/50 p-3 rounded-lg border border-neutral-100">
+                          "{hist.remarks}"
+                        </p>
+                      </li>
+                    ))}
                 </ul>
               ) : (
                 <div className="p-6 text-center text-sm font-medium text-neutral-400">
@@ -277,7 +313,6 @@ const ApplicantSubmissionDetails = () => {
 
         {/* RIGHT COLUMN - STATUS & WORKFLOW */}
         <div className="lg:col-span-1 space-y-6">
-          
           {/* INCENTIVE STATUS */}
           {incentiveInfo && (
             <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
@@ -289,31 +324,48 @@ const ApplicantSubmissionDetails = () => {
               </div>
               <div className="p-5 space-y-4">
                 <div className="flex justify-between items-center py-1">
-                  <span className="text-xs font-semibold text-neutral-500">Category</span>
+                  <span className="text-xs font-semibold text-neutral-500">
+                    Category
+                  </span>
                   <span className="text-xs font-bold text-neutral-800 text-right max-w-[150px] truncate">
                     {formatString(incentiveInfo.incentiveCategory)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3">
-                  <span className="text-xs font-semibold text-neutral-500">Eligibility</span>
+                  <span className="text-xs font-semibold text-neutral-500">
+                    Eligibility
+                  </span>
                   <span className="flex items-center gap-1.5 text-xs font-bold text-neutral-800">
-                    {incentiveInfo.eligibleIncentive?.toString().toLowerCase().includes("yes") || incentiveInfo.eligibleIncentive === true ? (
-                      <><CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> Yes</>
+                    {incentiveInfo.eligibleIncentive
+                      ?.toString()
+                      .toLowerCase()
+                      .includes("yes") ||
+                    incentiveInfo.eligibleIncentive === true ? (
+                      <>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />{" "}
+                        Yes
+                      </>
                     ) : (
-                      <span className="text-neutral-500">{incentiveInfo.eligibleIncentive || "No"}</span>
+                      <span className="text-neutral-500">
+                        {incentiveInfo.eligibleIncentive || "No"}
+                      </span>
                     )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3">
-                  <span className="text-xs font-semibold text-neutral-500">Estimated Amount</span>
+                  <span className="text-xs font-semibold text-neutral-500">
+                    Estimated Amount
+                  </span>
                   <span className="text-sm font-black text-neutral-800">
-                    {incentiveInfo.estimatedAmount?.toString().includes("₹") 
-                      ? incentiveInfo.estimatedAmount 
+                    {incentiveInfo.estimatedAmount?.toString().includes("₹")
+                      ? incentiveInfo.estimatedAmount
                       : `₹${incentiveInfo.estimatedAmount || 0}`}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3">
-                  <span className="text-xs font-semibold text-neutral-500">Claim Status</span>
+                  <span className="text-xs font-semibold text-neutral-500">
+                    Claim Status
+                  </span>
                   <span className="text-[9px] font-bold uppercase tracking-wider bg-neutral-100 text-neutral-700 px-2 py-1 rounded">
                     {incentiveInfo.claimStatus || "Pending"}
                   </span>
@@ -330,18 +382,26 @@ const ApplicantSubmissionDetails = () => {
                 Workflow Progress
               </h2>
             </div>
-            
+
             <div className="p-5">
               <div className="mb-6 space-y-1">
                 <p className="text-xs text-neutral-500 flex justify-between">
                   <span>Current Stage:</span>
-                  <span className="font-bold text-neutral-800">{currentLevel || "N/A"}</span>
+                  <span className="font-bold text-neutral-800">
+                    {currentLevel || "N/A"}
+                  </span>
                 </p>
                 <p className="text-xs text-neutral-500 flex justify-between">
                   <span>Last Updated:</span>
                   <span className="font-bold text-neutral-800">
                     {workflowHistory?.length > 0
-                      ? new Date(workflowHistory[workflowHistory.length - 1].date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })
+                      ? new Date(
+                          workflowHistory[workflowHistory.length - 1].date,
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
                       : "N/A"}
                   </span>
                 </p>
@@ -349,39 +409,60 @@ const ApplicantSubmissionDetails = () => {
 
               {/* TIMELINE UI REFINED */}
               <div className="relative border-l border-neutral-200 ml-2 space-y-6">
-                {workflowHistory && workflowHistory.map((stage, idx) => {
-                  const isLast = idx === workflowHistory.length - 1;
-                  const isApproved = stage.action === "Approved" || stage.action === "Submitted";
-                  const isRejected = stage.action.includes("Reject") || stage.action.includes("Revision");
-                  
-                  let dotColor = "bg-neutral-300 border-white"; // default past step
-                  if (isLast) {
-                    if (isApproved) dotColor = "bg-blue-600 border-white shadow-[0_0_0_3px_rgba(37,99,235,0.2)]";
-                    else if (isRejected) dotColor = "bg-red-600 border-white shadow-[0_0_0_3px_rgba(220,38,38,0.2)]";
-                    else dotColor = "bg-amber-500 border-white shadow-[0_0_0_3px_rgba(245,158,11,0.2)]";
-                  }
+                {workflowHistory &&
+                  workflowHistory.map((stage, idx) => {
+                    const isLast = idx === workflowHistory.length - 1;
+                    const isApproved =
+                      stage.action === "Approved" ||
+                      stage.action === "Submitted";
+                    const isRejected =
+                      stage.action.includes("Reject") ||
+                      stage.action.includes("Revision");
 
-                  return (
-                    <div key={idx} className="relative pl-6">
-                      {/* Timeline Dot */}
-                      <div className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 ${dotColor}`}></div>
-                      
-                      <div className="space-y-0.5">
-                        <p className={`text-xs font-bold uppercase tracking-wider ${isLast ? 'text-neutral-800' : 'text-neutral-500'}`}>
-                          {stage.level} <span className="lowercase font-medium text-neutral-400">({stage.action})</span>
-                        </p>
-                        <p className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-                          <Clock className="h-2.5 w-2.5" />
-                          {new Date(stage.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </p>
+                    let dotColor = "bg-neutral-300 border-white"; // default past step
+                    if (isLast) {
+                      if (isApproved)
+                        dotColor =
+                          "bg-blue-600 border-white shadow-[0_0_0_3px_rgba(37,99,235,0.2)]";
+                      else if (isRejected)
+                        dotColor =
+                          "bg-red-600 border-white shadow-[0_0_0_3px_rgba(220,38,38,0.2)]";
+                      else
+                        dotColor =
+                          "bg-amber-500 border-white shadow-[0_0_0_3px_rgba(245,158,11,0.2)]";
+                    }
+
+                    return (
+                      <div key={idx} className="relative pl-6">
+                        {/* Timeline Dot */}
+                        <div
+                          className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 ${dotColor}`}
+                        ></div>
+
+                        <div className="space-y-0.5">
+                          <p
+                            className={`text-xs font-bold uppercase tracking-wider ${isLast ? "text-neutral-800" : "text-neutral-500"}`}
+                          >
+                            {stage.level}{" "}
+                            <span className="lowercase font-medium text-neutral-400">
+                              ({stage.action})
+                            </span>
+                          </p>
+                          <p className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                            <Clock className="h-2.5 w-2.5" />
+                            {new Date(stage.date).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
