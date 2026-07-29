@@ -2,9 +2,6 @@ import Sidebar from "../../../../components/Navigation/Sidebar";
 
 import {
   LayoutDashboard,
-  FileClock,
-  History,
-  FolderSearch,
 } from "lucide-react";
 
 import { ROUTES } from "../../../../constants/routes";
@@ -18,11 +15,6 @@ const DepartmentReviewSidebar = ({ role = "hod", children, ...props }) => {
       label: "Dashboard",
       icon: LayoutDashboard,
       end: true,
-    },
-    {
-      path: ROUTES?.DEPARTMENT_REVIEW_QUEUE || "/department-review/queue",
-      label: "Department Queue",
-      icon: FileClock,
     },
   ];
 

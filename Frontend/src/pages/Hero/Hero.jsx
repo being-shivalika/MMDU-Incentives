@@ -51,12 +51,12 @@ const Hero = () => {
             alt="Student"
             className="h-full w-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#fafafa] via-[#fafafa]/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#fafafa] to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-r from-[#fafafa] via-[#fafafa]/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-[#fafafa] to-transparent" />
         </div>
 
         {/* Content Container */}
-        <div className="relative z-10 mx-auto flex w-full max-w-[1500px] flex-col px-5 pb-12 pt-14 sm:px-8 sm:pt-16 lg:min-h-180 lg:justify-center lg:px-10 lg:pb-48 lg:pt-16 xl:px-12">
+        <div className="relative z-10 mx-auto flex w-full max-w-375 flex-col px-5 pb-12 pt-14 sm:px-8 sm:pt-16 lg:min-h-180 lg:justify-center lg:px-10 lg:pb-48 lg:pt-16 xl:px-12">
           {/* Main Copy */}
           <div className="relative z-10 w-full lg:w-[50%] xl:w-[48%]">
             {/* Badge / Tagline */}
@@ -77,17 +77,7 @@ const Hero = () => {
             <p className="mt-5 max-w-lg text-sm leading-7 text-gray-500 sm:text-[15px]">
               Submit, review and track research through one connected platform.
             </p>
-
-            {/* Call to Action */}
-            <div className="mt-7 flex flex-wrap items-center gap-4">
-              <a
-                href="#workflow"
-                className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#1a1a1a] px-6 py-3.5 text-sm font-semibold text-white transition duration-200 hover:bg-[#cba430]"
-              >
-                Explore RPMS
-                <ArrowRight size={17} strokeWidth={2} />
-              </a>
-            </div>
+           
           </div>
 
           {/* Mobile / Tablet Image */}
@@ -97,12 +87,12 @@ const Hero = () => {
               alt="Student"
               className="h-85 w-full object-cover object-center sm:h-110 md:h-125"
             />
-            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#fafafa] via-[#fafafa]/50 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-[#fafafa] via-[#fafafa]/50 to-transparent" />
           </div>
         </div>
 
         {/* Floating Feature Strip - Desktop */}
-        <div className="absolute bottom-6 left-1/2 z-30 hidden w-[calc(100%-40px)] max-w-[1440px] -translate-x-1/2 lg:block">
+        <div className="absolute bottom-6 left-1/2 z-30 hidden w-[calc(100%-40px)] max-w-360 -translate-x-1/2 lg:block">
           <div className="grid grid-cols-[1fr_1fr_1fr_245px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
             <FeatureItem
               icon={FileText}
@@ -151,7 +141,7 @@ const Hero = () => {
         id="workflow"
         className="w-full bg-white px-5 py-16 font-['Poppins'] sm:px-8 sm:py-20 lg:px-10 lg:py-24"
       >
-        <div className="mx-auto max-w-[1440px]">
+        <div className="mx-auto max-w-360">
           <div className="text-center">
             <h2 className="text-[30px] font-semibold tracking-[-0.03em] text-[#111111] sm:text-[36px] lg:text-[40px]">
               Research Made Simple
@@ -168,7 +158,7 @@ const Hero = () => {
                   key={step.number}
                   className="group flex cursor-pointer flex-col items-center text-center"
                 >
-                  <div className="flex h-[78px] w-[78px] items-center justify-center rounded-full border border-gray-200 bg-white text-[18px] font-semibold text-gray-300 shadow-lg transition-all duration-300 group-hover:border-[#cba430] group-hover:text-[#cba430] sm:h-[82px] sm:w-[82px]">
+                  <div className="flex h-19.5 w-19.5 items-center justify-center rounded-full border border-gray-200 bg-white text-[18px] font-semibold text-gray-300 shadow-lg transition-all duration-300 group-hover:border-[#cba430] group-hover:text-[#cba430] sm:h-20.5 sm:w-20.5">
                     {step.number}
                   </div>
 
@@ -180,7 +170,7 @@ const Hero = () => {
                     {step.title}
                   </h3>
 
-                  <p className="mt-2 max-w-[230px] text-[12px] leading-[1.6] text-gray-600 sm:text-[13px]">
+                  <p className="mt-2 max-w-57.5 text-[12px] leading-[1.6] text-gray-600 sm:text-[13px]">
                     {step.description}
                   </p>
                 </div>
@@ -196,12 +186,12 @@ const Hero = () => {
 /* FEATURE ITEM COMPONENT */
 const FeatureItem = ({ icon: Icon, title, description }) => {
   return (
-    <div className="flex min-h-[155px] flex-col justify-center border-b border-gray-200 px-6 py-6 sm:px-7 lg:border-b-0 lg:border-r lg:px-7">
+    <div className="flex min-h-38.75 flex-col justify-center border-b border-gray-200 px-6 py-6 sm:px-7 lg:border-b-0 lg:border-r lg:px-7">
       <Icon size={17} strokeWidth={1.8} className="text-[#cba430]" />
       <h3 className="mt-4 text-[14px] font-semibold text-[#111111] xl:text-[15px]">
         {title}
       </h3>
-      <p className="mt-2 max-w-[250px] text-[11px] leading-[1.6] text-gray-600 xl:text-[12px]">
+      <p className="mt-2 max-w-62.5 text-[11px] leading-[1.6] text-gray-600 xl:text-[12px]">
         {description}
       </p>
     </div>
@@ -211,7 +201,7 @@ const FeatureItem = ({ icon: Icon, title, description }) => {
 /* QUICK OVERVIEW COMPONENT */
 const QuickOverview = () => {
   return (
-    <div className="min-h-[180px] bg-[#050505] px-6 py-6 text-white lg:min-h-[155px] lg:px-6 lg:py-5">
+    <div className="min-h-45 bg-[#050505] px-6 py-6 text-white lg:min-h-38.75 lg:px-6 lg:py-5">
       <p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#d5aa19]">
         Quick Overview
       </p>
