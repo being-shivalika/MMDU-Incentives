@@ -113,7 +113,7 @@ const SubmissionForm = ({
       {/* BASIC INFORMATION */}
       <section className="px-6 py-5 border-b border-neutral-100">
         <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4">
-          Basic Information
+          Basic Informations
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -196,11 +196,10 @@ const SubmissionForm = ({
                         setIsMMDUAuthor(true);
                         setExternalAuthorName("");
                       }}
-                      className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all text-center ${
-                        isMMDUAuthor
+                      className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all text-center ${isMMDUAuthor
                           ? "bg-white text-neutral-800 shadow-sm"
                           : "text-neutral-500 hover:text-neutral-800"
-                      }`}
+                        }`}
                     >
                       MMDU Faculty
                     </button>
@@ -211,11 +210,10 @@ const SubmissionForm = ({
                         setSelectedDepartment("");
                         setNameFilter("");
                       }}
-                      className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all text-center ${
-                        !isMMDUAuthor
+                      className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all text-center ${!isMMDUAuthor
                           ? "bg-white text-neutral-800 shadow-sm"
                           : "text-neutral-500 hover:text-neutral-800"
-                      }`}
+                        }`}
                     >
                       External Author
                     </button>
@@ -346,11 +344,10 @@ const SubmissionForm = ({
                       >
                         <td className="py-2.5 px-2">
                           <span
-                            className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                              index === 0
+                            className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${index === 0
                                 ? "bg-amber-100 text-amber-800"
                                 : "bg-neutral-200 text-neutral-700"
-                            }`}
+                              }`}
                           >
                             {index === 0 ? "1st" : `#${index + 1}`}
                           </span>
