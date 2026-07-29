@@ -12,6 +12,7 @@ const PublicationForm = ({
     <SubmissionForm
       title="Publication Submission"
       category="Publication"
+      showResearchSection={true}
       basicFields={{
         title: "Publication Title",
         domain: "Research Area",

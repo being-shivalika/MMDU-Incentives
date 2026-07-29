@@ -37,6 +37,7 @@ const dummyFaculty = [
 const SubmissionForm = ({
   title,
   category,
+  showResearchSection = false,
   basicFields = {
     title: "Research Title",
     domain: "Research Domain",
@@ -83,6 +84,7 @@ const SubmissionForm = ({
   });
 
   const handleAddExternalAuthor = () => {
+    if (!externalAuthorName.trim() || isMaxAuthorsReached) return;
     if (!externalAuthorName.trim() || isMaxAuthorsReached) return;
 
     const newAuthor = {
@@ -414,14 +416,14 @@ const SubmissionForm = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label={verificationLabels.first}
+            label={labels.first}
             type={
-              verificationLabels.first.toLowerCase().match(/(link|url|website)/)
+              labels.first.toLowerCase().match(/(link|url|website)/)
                 ? "url"
                 : "text"
             }
             placeholder={
-              verificationLabels.first.toLowerCase().match(/(link|url|website)/)
+              labels.first.toLowerCase().match(/(link|url|website)/)
                 ? "https://..."
                 : "Enter detail"
             }
@@ -431,7 +433,7 @@ const SubmissionForm = ({
           />
 
           <Input
-            label={verificationLabels.second}
+            label={labels.second}
             type={
               verificationLabels.second
                 .toLowerCase()
@@ -450,6 +452,43 @@ const SubmissionForm = ({
             value={formData.secondVerification || ""}
             onChange={handleInputChange}
           />
+
+          {showResearchSection && (
+            <>
+              <div>
+                <label className="text-xs uppercase text-zinc-500 block mb-1">
+                  Quartile
+                </label>
+                <select
+                  name="quartile"
+                  value={formData?.quartile || ""}
+                  onChange={handleInputChange}
+                  className="rounded-md px-3 py-2 w-full text-sm bg-zinc-50"
+                >
+                  <option value="">Select Quartile</option>
+                  <option value="Q1">Q1</option>
+                  <option value="Q2">Q2</option>
+                  <option value="Q3">Q3</option>
+                  <option value="Q4">Q4</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs uppercase text-zinc-500 block mb-1">
+                  Impact Factor
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="impactFactor"
+                  placeholder="e.g. 5.4"
+                  value={formData?.impactFactor || ""}
+                  onChange={handleInputChange}
+                  className="rounded-md px-3 py-2 w-full text-sm bg-zinc-50"
+                />
+              </div>
+            </>
+          )}
         </div>
       </section>
 
