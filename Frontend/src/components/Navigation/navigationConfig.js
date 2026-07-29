@@ -36,6 +36,7 @@ export const ROLE_TO_NAV_KEY = {
   director: "director",
   rd_cell: "rpc",
   rpc: "rpc",
+  rpc_cell: "rpc",
   accounts: "accounts",
   registrar: "registrar",
   vc: "vc",

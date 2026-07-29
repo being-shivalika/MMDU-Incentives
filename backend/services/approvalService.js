@@ -101,6 +101,14 @@ export const processTransition = async (submissionId, actionType, user, comment,
     throw error;
   }
   
+  // Strict Global Security Rule: Only HOD, RPC, and Admin can approve/reject
+  const allowedApprovers = ['hod', 'rd_cell', 'rpc_cell', 'admin'];
+  if (!allowedApprovers.includes(user.role)) {
+    const error = new Error(`Role '${user.role}' is strictly forbidden from executing workflow approval transitions.`);
+    error.statusCode = 403;
+    throw error;
+  }
+  
   const currentStatus = claim.status;
   
   // 2. Get stage config — check if it's a regular stage, returned state, or unknown
@@ -114,8 +122,12 @@ export const processTransition = async (submissionId, actionType, user, comment,
   
   // 3. Validate user role matches required role
   if (stageConfig.requiredRole && stageConfig.requiredRole !== user.role) {
+    // Treat rd_cell and rpc_cell as equivalent for stage actions
+    const isEquivalentRpcRole = (stageConfig.requiredRole === 'rpc_cell' && user.role === 'rd_cell') || 
+                                (stageConfig.requiredRole === 'rd_cell' && user.role === 'rpc_cell');
+
     // Also allow admin to perform any action
-    if (user.role !== 'admin') {
+    if (!isEquivalentRpcRole && user.role !== 'admin') {
       const error = new Error(`Role '${user.role}' is not authorized to act on claims in '${currentStatus}' status. Required: '${stageConfig.requiredRole}'`);
       error.statusCode = 403;
       throw error;
