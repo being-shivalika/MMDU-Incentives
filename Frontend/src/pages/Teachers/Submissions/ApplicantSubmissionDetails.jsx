@@ -1,10 +1,65 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Badge from "../../../components/Ui/Badge";
-import Card from "../../../components/Ui/Card";
-import VerificationLinks from "../../../components/Ui/VerificationLinks";
 import { getSubmissionById } from "../../../services/submissionService";
+import { 
+  ArrowLeft, 
+  ExternalLink, 
+  FileText, 
+  CheckCircle2, 
+  Clock, 
+  Wallet,
+  Activity,
+  AlertCircle,
+  Edit,
+  Loader2
+} from "lucide-react";
 
+// --- Helper Functions ---
+const formatString = (str) => {
+  if (!str) return "N/A";
+  return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const getStatusStyle = (status) => {
+  const safeStatus = status?.toUpperCase() || "";
+  if (safeStatus.includes("DRAFT")) return "bg-neutral-100 text-neutral-600 border-neutral-200";
+  if (safeStatus.includes("REVIEW") || safeStatus.includes("PENDING")) return "bg-amber-50 text-amber-700 border-amber-200";
+  if (safeStatus.includes("APPROVED") || safeStatus.includes("VERIFIED")) return "bg-green-50 text-green-700 border-green-200";
+  if (safeStatus.includes("REJECTED") || safeStatus.includes("REVISION")) return "bg-red-50 text-red-700 border-red-200";
+  return "bg-neutral-100 text-neutral-600 border-neutral-200";
+};
+
+const formatKey = (key) => {
+  const keyMap = {
+    firstVerification: "Primary Link (DOI/ISBN)",
+    secondVerification: "Secondary Link (Scopus/Indexing)",
+    thirdVerification: "Additional Link",
+    fourthVerification: "Supporting Document",
+    dropdown: "Publication Type",
+  };
+  return keyMap[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+};
+
+const renderValue = (value) => {
+  if (!value) return <span className="text-neutral-400">N/A</span>;
+  if (typeof value === 'string' && value.includes("http")) {
+    const cleanUrl = value.replace(/\[.*\]\(/, '').replace(/\)/, '').trim();
+    return (
+      <a 
+        href={cleanUrl} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline break-all"
+      >
+        <span className="line-clamp-1">{cleanUrl}</span>
+        <ExternalLink className="h-3 w-3 flex-shrink-0" />
+      </a>
+    );
+  }
+  return <span className="text-neutral-800 font-medium break-words">{value.toString()}</span>;
+};
+
+// --- Main Component ---
 const ApplicantSubmissionDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -23,278 +78,310 @@ const ApplicantSubmissionDetails = () => {
         setLoading(false);
       }
     };
-
     fetchSubmissionDetails();
   }, [id]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-xl text-gray-500 animate-pulse">
-          Loading submission details...
-        </p>
+      <div className="flex flex-col justify-center items-center h-[70vh] gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+        <p className="text-sm font-medium text-neutral-500">Loading submission details...</p>
       </div>
     );
   }
 
   if (!submission) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-red-600">
-          Submission not found
-        </h1>
+      <div className="flex flex-col justify-center items-center h-[70vh] gap-4">
+        <div className="h-16 w-16 bg-red-50 rounded-full flex items-center justify-center border border-red-100">
+          <AlertCircle className="h-8 w-8 text-red-500" />
+        </div>
+        <h1 className="text-xl font-bold text-neutral-800">Submission Not Found</h1>
         <button
           onClick={() => navigate(-1)}
-          className="mt-4 text-blue-600 hover:underline"
+          className="text-sm font-semibold text-neutral-600 hover:text-neutral-800 transition-colors"
         >
-          Go Back
+          &larr; Go Back
         </button>
       </div>
     );
   }
 
   const {
-    generalInfo,
+    title,
+    category,
+    submissionType,
+    type,
     publicationDetails,
     incentiveInfo,
-    permissions,
     workflowHistory,
-    reviews,
     status,
     currentLevel,
   } = submission;
 
-  const getBadgeVariant = (status) => {
-    if (!status) return "neutral";
-    if (status === "Approved") return "success";
-    if (status === "Rejected") return "danger";
-    if (status.includes("Pending")) return "info";
-    if (status.includes("Revision")) return "warning";
-    return "neutral";
-  };
-
-  const handleEdit = () => {
-    // Navigate to the edit page
-    navigate(`/applicant/submissions/${id}/edit`);
-  };
-
   const isRejected = status === "Rejected" || status === "Revision Requested";
-
-  // Find the latest rejection/revision remark from history
-  const lastReturnHistory =
-    isRejected && workflowHistory
-      ? [...workflowHistory]
-          .reverse()
-          .find(
-            (h) => h.action === "Rejected" || h.action === "Revision Requested",
-          )
-      : null;
+  const lastReturnHistory = isRejected && workflowHistory
+    ? [...workflowHistory].reverse().find((h) => h.action === "Rejected" || h.action === "Revision Requested")
+    : null;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <button
-            onClick={() => navigate("/applicant/submissions")}
-            className="text-blue-600 hover:underline mb-2 flex items-center text-sm"
-          >
-            &larr; Back to Submissions
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {submission.title}
-          </h1>
-          <p className="text-gray-500 mt-1">
-            {submission.submissionType || submission.type} •{" "}
-            {submission.category}
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <Badge
-            variant={getBadgeVariant(status)}
-            className="text-sm px-3 py-1"
-          >
-            {status}
-          </Badge>
-          {isRejected && (
-            <button
-              onClick={handleEdit}
-              className="mt-2 px-4 py-2 bg-amber-600 text-white text-sm rounded hover:bg-amber-700 transition"
-            >
-              Reopen & Edit
-            </button>
-          )}
+    <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+      
+      {/* HEADER SECTION */}
+      <div className="space-y-4">
+        <button
+          onClick={() => navigate("/applicant/submissions")}
+          className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-800 font-semibold transition-colors w-fit"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Submissions
+        </button>
+
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-neutral-150 pb-6">
+          <div className="space-y-2 flex-1">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+              <FileText className="h-3.5 w-3.5 text-neutral-400" />
+              <span>{formatString(category)}</span>
+              {(submissionType || type) && (
+                <>
+                  <span className="text-neutral-300">•</span>
+                  <span>{formatString(submissionType || type)}</span>
+                </>
+              )}
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-800 leading-tight">
+              {title || "Untitled Submission"}
+            </h1>
+          </div>
+          
+          <div className="flex flex-col items-end gap-3 flex-shrink-0 pt-1">
+            <span className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md border ${getStatusStyle(status)}`}>
+              {status || "Unknown Status"}
+            </span>
+            
+            {isRejected && (
+              <button
+                onClick={() => navigate(`/applicant/submissions/${id}/edit`)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-neutral-800 text-white text-xs font-bold rounded-lg hover:bg-neutral-800 transition shadow-sm"
+              >
+                <Edit className="h-3.5 w-3.5" />
+                Reopen & Edit
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Rejection Alert */}
+      {/* REJECTION / REVISION ALERT */}
       {isRejected && lastReturnHistory && (
-        <div
-          className={`border-l-4 p-4 rounded-md shadow-sm ${status === "Rejected" ? "bg-red-50 border-red-500 text-red-800" : "bg-orange-50 border-orange-500 text-orange-800"}`}
-        >
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium">Submission {status}</h3>
-              <div className="mt-2 text-sm">
-                <p>
-                  <strong>Action by:</strong> {lastReturnHistory.level} (
-                  {lastReturnHistory.by})
-                </p>
-                {lastReturnHistory.remarks && (
-                  <p className="mt-1">
-                    <strong>Remarks:</strong> {lastReturnHistory.remarks}
-                  </p>
-                )}
-              </div>
-            </div>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-4">
+          <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-red-900 uppercase tracking-wide">
+              Action Required: {status}
+            </h3>
+            <p className="text-sm text-red-800 leading-relaxed">
+              Returned by <span className="font-bold">{lastReturnHistory.level}</span> ({lastReturnHistory.by}).
+              <br />
+              <span className="font-semibold mt-1 block">Remarks:</span> {lastReturnHistory.remarks || "No specific remarks provided."}
+            </p>
           </div>
         </div>
       )}
 
+      {/* MAIN GRID LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* LEFT COLUMN - MAIN DETAILS */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Publication / Claim Details (Dynamic) */}
+          
+          {/* PUBLICATION DETAILS */}
           {publicationDetails && (
-            <Card className="p-6 shadow-sm border border-gray-100">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
-                Publication / Claim Details
+            <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50">
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                  Publication / Claim Details
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+                  {Object.entries(publicationDetails).map(([key, value]) => {
+                    // Skip verification links if they are nested objects/arrays to handle separately, 
+                    // though renderValue handles strings fine.
+                    if (key === "verificationLinks") return null;
+                    return (
+                      <div key={key} className="space-y-1.5 overflow-hidden">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                          {formatKey(key)}
+                        </span>
+                        <div className="text-sm">
+                          {renderValue(value)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* VERIFICATION LINKS COMPONENT INTEGRATION */}
+          {publicationDetails?.verificationLinks?.length > 0 && (
+             <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm p-6">
+               <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4">
+                  Verification Links
+                </h2>
+                {/* Assuming your existing component handles the rendering nicely. If not, map them here manually using renderValue */}
+               <div className="space-y-3">
+                 {publicationDetails.verificationLinks.map((link, idx) => (
+                   <div key={idx} className="text-sm">{renderValue(link)}</div>
+                 ))}
+               </div>
+             </div>
+          )}
+
+          {/* REVIEW HISTORY (Only showing remarks from workflow) */}
+          <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                Review Remarks
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
-                {Object.entries(publicationDetails).map(([key, value]) => {
-                  if (key === "verificationLinks") return null;
+            </div>
+            <div className="p-0">
+              {workflowHistory && workflowHistory.some(h => h.remarks) ? (
+                <ul className="divide-y divide-neutral-100">
+                  {workflowHistory.filter((h) => h.remarks).map((hist, idx) => (
+                    <li key={idx} className="p-5 hover:bg-neutral-50 transition-colors">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                          {hist.level} <span className="text-neutral-400 mx-1">•</span> {hist.action}
+                        </span>
+                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                          {new Date(hist.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-neutral-600 leading-relaxed bg-neutral-100/50 p-3 rounded-lg border border-neutral-100">
+                        "{hist.remarks}"
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="p-6 text-center text-sm font-medium text-neutral-400">
+                  No review remarks available yet.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN - STATUS & WORKFLOW */}
+        <div className="lg:col-span-1 space-y-6">
+          
+          {/* INCENTIVE STATUS */}
+          {incentiveInfo && (
+            <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50 flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-neutral-500" />
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                  Incentive Status
+                </h2>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-xs font-semibold text-neutral-500">Category</span>
+                  <span className="text-xs font-bold text-neutral-800 text-right max-w-[150px] truncate">
+                    {formatString(incentiveInfo.incentiveCategory)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3">
+                  <span className="text-xs font-semibold text-neutral-500">Eligibility</span>
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-neutral-800">
+                    {incentiveInfo.eligibleIncentive?.toString().toLowerCase().includes("yes") || incentiveInfo.eligibleIncentive === true ? (
+                      <><CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> Yes</>
+                    ) : (
+                      <span className="text-neutral-500">{incentiveInfo.eligibleIncentive || "No"}</span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3">
+                  <span className="text-xs font-semibold text-neutral-500">Estimated Amount</span>
+                  <span className="text-sm font-black text-neutral-800">
+                    {incentiveInfo.estimatedAmount?.toString().includes("₹") 
+                      ? incentiveInfo.estimatedAmount 
+                      : `₹${incentiveInfo.estimatedAmount || 0}`}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3">
+                  <span className="text-xs font-semibold text-neutral-500">Claim Status</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider bg-neutral-100 text-neutral-700 px-2 py-1 rounded">
+                    {incentiveInfo.claimStatus || "Pending"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* WORKFLOW TRACKING TIMELINE */}
+          <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50 flex items-center gap-2">
+              <Activity className="h-4 w-4 text-neutral-500" />
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                Workflow Progress
+              </h2>
+            </div>
+            
+            <div className="p-5">
+              <div className="mb-6 space-y-1">
+                <p className="text-xs text-neutral-500 flex justify-between">
+                  <span>Current Stage:</span>
+                  <span className="font-bold text-neutral-800">{currentLevel || "N/A"}</span>
+                </p>
+                <p className="text-xs text-neutral-500 flex justify-between">
+                  <span>Last Updated:</span>
+                  <span className="font-bold text-neutral-800">
+                    {workflowHistory?.length > 0
+                      ? new Date(workflowHistory[workflowHistory.length - 1].date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })
+                      : "N/A"}
+                  </span>
+                </p>
+              </div>
+
+              {/* TIMELINE UI REFINED */}
+              <div className="relative border-l border-neutral-200 ml-2 space-y-6">
+                {workflowHistory && workflowHistory.map((stage, idx) => {
+                  const isLast = idx === workflowHistory.length - 1;
+                  const isApproved = stage.action === "Approved" || stage.action === "Submitted";
+                  const isRejected = stage.action.includes("Reject") || stage.action.includes("Revision");
+                  
+                  let dotColor = "bg-neutral-300 border-white"; // default past step
+                  if (isLast) {
+                    if (isApproved) dotColor = "bg-blue-600 border-white shadow-[0_0_0_3px_rgba(37,99,235,0.2)]";
+                    else if (isRejected) dotColor = "bg-red-600 border-white shadow-[0_0_0_3px_rgba(220,38,38,0.2)]";
+                    else dotColor = "bg-amber-500 border-white shadow-[0_0_0_3px_rgba(245,158,11,0.2)]";
+                  }
+
                   return (
-                    <div key={key}>
-                      <span className="block text-sm text-gray-500 capitalize">
-                        {key.replace(/([A-Z])/g, " $1").trim()}
-                      </span>
-                      <span className="font-medium text-gray-800">
-                        {value?.toString() || "N/A"}
-                      </span>
+                    <div key={idx} className="relative pl-6">
+                      {/* Timeline Dot */}
+                      <div className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 ${dotColor}`}></div>
+                      
+                      <div className="space-y-0.5">
+                        <p className={`text-xs font-bold uppercase tracking-wider ${isLast ? 'text-neutral-800' : 'text-neutral-500'}`}>
+                          {stage.level} <span className="lowercase font-medium text-neutral-400">({stage.action})</span>
+                        </p>
+                        <p className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                          <Clock className="h-2.5 w-2.5" />
+                          {new Date(stage.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            </Card>
-          )}
-
-          {/* Verification Links */}
-          {publicationDetails?.verificationLinks?.length > 0 && (
-            <VerificationLinks links={publicationDetails.verificationLinks} />
-          )}
-
-          {/* Review History Details */}
-          <Card className="p-6 shadow-sm border border-gray-100 bg-gray-50">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
-              Review Remarks
-            </h2>
-            <div className="space-y-4">
-              {workflowHistory && workflowHistory.length > 0 ? (
-                workflowHistory
-                  .filter((h) => h.remarks)
-                  .map((hist, idx) => (
-                    <div key={idx} className="bg-white p-4 rounded border">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-800">
-                          {hist.level} - {hist.action}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(hist.date).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 text-sm">{hist.remarks}</p>
-                    </div>
-                  ))
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  No remarks available yet.
-                </p>
-              )}
             </div>
-          </Card>
-        </div>
+          </div>
 
-        <div className="space-y-6">
-          {/* Incentive Information */}
-          {incentiveInfo && (
-            <Card className="p-6 shadow-sm border border-green-100 bg-green-50">
-              <h2 className="text-lg font-semibold mb-4 text-green-900 border-b border-green-200 pb-2">
-                Incentive Status
-              </h2>
-              <div className="space-y-3">
-                <div className="flex justify-between border-b border-green-200 pb-2">
-                  <span className="text-sm text-green-800">Category</span>
-                  <span className="font-medium text-green-900">
-                    {incentiveInfo.incentiveCategory}
-                  </span>
-                </div>
-                <div className="flex justify-between border-b border-green-200 pb-2">
-                  <span className="text-sm text-green-800">Eligibility</span>
-                  <span className="font-medium text-green-900">
-                    {incentiveInfo.eligibleIncentive}
-                  </span>
-                </div>
-                <div className="flex justify-between border-b border-green-200 pb-2">
-                  <span className="text-sm text-green-800">
-                    Estimated Amount
-                  </span>
-                  <span className="font-bold text-green-900">
-                    {incentiveInfo.estimatedAmount}
-                  </span>
-                </div>
-                <div className="flex justify-between pt-1">
-                  <span className="text-sm text-green-800">Claim Status</span>
-                  <span className="font-medium text-green-900 bg-green-200 px-2 py-0.5 rounded text-xs">
-                    {incentiveInfo.claimStatus}
-                  </span>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Workflow Tracking */}
-          <Card className="p-6 shadow-sm border border-gray-100">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
-              Workflow Progress
-            </h2>
-            <div className="mb-4">
-              <p className="text-sm text-gray-500">
-                Current Stage:{" "}
-                <span className="font-medium text-gray-900">
-                  {currentLevel}
-                </span>
-              </p>
-              <p className="text-sm text-gray-500">
-                Last Updated:{" "}
-                <span className="font-medium text-gray-900">
-                  {workflowHistory?.length > 0
-                    ? new Date(
-                        workflowHistory[workflowHistory.length - 1].date,
-                      ).toLocaleDateString()
-                    : "N/A"}
-                </span>
-              </p>
-            </div>
-
-            {/* Timeline UI */}
-            <div className="relative border-l-2 border-gray-200 ml-3 mt-6 space-y-6">
-              {workflowHistory &&
-                workflowHistory.map((stage, idx) => (
-                  <div key={idx} className="relative pl-6">
-                    <div
-                      className={`absolute -left-1.5 top-1.5 h-3 w-3 rounded-full border-2 border-white ${stage.action === "Approved" || stage.action === "Submitted" ? "bg-blue-600" : stage.action.includes("Reject") ? "bg-red-600" : "bg-orange-500"}`}
-                    ></div>
-                    <div>
-                      <p className={`text-sm font-medium text-gray-900`}>
-                        {stage.level}: {stage.action}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(stage.date).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </Card>
         </div>
       </div>
     </div>

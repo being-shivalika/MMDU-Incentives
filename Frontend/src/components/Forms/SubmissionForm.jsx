@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import Card from "../Ui/Card";
 import Badge from "../Ui/Badge";
 import Input from "../Ui/Input";
@@ -45,8 +44,13 @@ const SubmissionForm = ({
     dropdown: "",
   },
   dropdownOptions = [],
-  verificationLabels = {},
-  formData = { authors: [] },
+  verificationLabels = {
+    first: "DOI",
+    second: "Scopus Link",
+    third: "Publisher Link",
+    fourth: "Journal Website",
+  },
+  formData = { authors: [] }, // Changed back to generic 'authors'
   handleInputChange,
   handleAddAuthor,
   handleRemoveAuthor,
@@ -54,7 +58,8 @@ const SubmissionForm = ({
   onDraft,
   children,
 }) => {
-  const [isMMDUAuthor, setIsMMDUAuthor] = useState(false);
+  const [isMMDUAuthor, setIsMMDUAuthor] = useState(true); 
+  
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [externalAuthorName, setExternalAuthorName] = useState("");
@@ -93,7 +98,7 @@ const SubmissionForm = ({
       id: `EXT_${Date.now()}`,
       name: externalAuthorName.trim(),
       department: "External / Other Institution",
-      designation: "External Author",
+      designation: "External Author"
     };
 
     handleAddAuthor(newAuthor);
@@ -101,18 +106,24 @@ const SubmissionForm = ({
   };
 
   return (
-    <Card className="max-w-6xl mx-auto p-6 space-y-2 relative border-none shadow-none">
+    <Card className="w-full bg-white border border-neutral-200 shadow-sm rounded-xl overflow-hidden p-0">
       {/* HEADER */}
-      <div>
-        <Badge variant="primary">{category}</Badge>
-        <h1 className="mt-2 text-2xl font-semibold">{title}</h1>
+      <div className="px-6 py-5 border-b border-neutral-200 bg-neutral-50/50">
+        <div className="mb-3">
+          <Badge variant="primary">{category}</Badge>
+        </div>
+        <h1 className="text-xl font-bold tracking-tight text-neutral-800">
+          {title}
+        </h1>
       </div>
 
       {/* BASIC INFORMATION */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold mb-1">Basic Information</h2>
+      <section className="px-6 py-5 border-b border-neutral-100">
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4">
+          Basic Information
+        </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label={basicFields.title}
             name="title"
@@ -128,19 +139,17 @@ const SubmissionForm = ({
           />
 
           {dropdownOptions.length > 0 && (
-            <div>
-              <label className="text-xs uppercase text-zinc-500 block mb-1">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
                 {basicFields.dropdown}
               </label>
-
               <select
                 name="dropdown"
                 value={formData.dropdown || ""}
                 onChange={handleInputChange}
-                className="rounded-md px-3 py-2 w-full text-sm bg-zinc-50"
+                className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
               >
-                <option value="">Select</option>
-
+                <option value="">Select an option</option>
                 {dropdownOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
@@ -152,271 +161,180 @@ const SubmissionForm = ({
         </div>
       </section>
 
-      {/* RESEARCH INFORMATION */}
-      {showResearchSection && (
-        <section className="space-y-3">
-          <h2 className="text-base font-semibold mb-1">Research Information</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            <Input
-              label="Journal / Conference Name"
-              name="journalName"
-              value={formData.journalName || ""}
-              onChange={handleInputChange}
-            />
-
-            <Input
-              label="Publisher"
-              name="publisher"
-              value={formData.publisher || ""}
-              onChange={handleInputChange}
-            />
-
-            <Input
-              label="ISSN / ISBN"
-              name="issn"
-              value={formData.issn || ""}
-              onChange={handleInputChange}
-            />
-
-            <Input
-              type="date"
-              label="Publication Date"
-              name="publicationDate"
-              value={formData.publicationDate || ""}
-              onChange={handleInputChange}
-            />
-          </div>
-        </section>
-      )}
-
-      {/* AUTHORS SECTION */}
-      <section className="space-y-4">
-        {/* TOP HEADER: TOTAL AUTHORS QUESTION */}
-        <div className="flex flex-wrap items-center justify-start gap-6">
-          <div>
-            <h2 className="text-base font-semibold">Authors</h2>
-            <p className="text-xs text-zinc-500">
-              Specify author count and add details sequentially.
-            </p>
-          </div>
-
-          <div className="w-50 ">
-            <Input
-              type="number"
-              min="1"
-              label="Total No. of Authors"
-              name="totalAuthorsCount"
-              placeholder="e.g. 3"
-              value={formData.totalAuthorsCount || ""}
-              onChange={handleInputChange}
-            />
+{/* AUTHORS */}
+      <section className="px-6 py-5 border-b border-neutral-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+            Authors Details
+          </h2>
+          
+          {/* AFFILIATION TOGGLE */}
+          <div className="flex items-center p-1 bg-neutral-100 rounded-lg w-fit">
+            <button
+              type="button"
+              onClick={() => {
+                setIsMMDUAuthor(true);
+                setExternalAuthorName("");
+              }}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                isMMDUAuthor
+                  ? "bg-white text-neutral-800 shadow-sm"
+                  : "text-neutral-500 hover:text-neutral-800"
+              }`}
+            >
+              MMDU Faculty
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsMMDUAuthor(false);
+                setSelectedDepartment("");
+                setNameFilter("");
+              }}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                !isMMDUAuthor
+                  ? "bg-white text-neutral-800 shadow-sm"
+                  : "text-neutral-500 hover:text-neutral-800"
+              }`}
+            >
+              External Author
+            </button>
           </div>
         </div>
 
-        {/* TWO-COLUMN LAYOUT: TABULAR LIST (LEFT) | ADD AUTHOR CONTROLS (RIGHT) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* LEFT SIDE: TABULAR LIST OF AUTHORS */}
-          <div className="lg:col-span-6 space-y-2">
-            <span className="text-xs font-semibold uppercase text-zinc-500">
-              Added Authors ({currentAuthors.length}
-              {formData.totalAuthorsCount
-                ? ` / ${formData.totalAuthorsCount}`
-                : ""}
-              )
-            </span>
+        {isMMDUAuthor ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
+                Department
+              </label>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
+              >
+                <option value="">All Departments</option>
+                {departments.map((department) => (
+                  <option key={department} value={department}>
+                    {department}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <div className="max-h-72 overflow-y-auto bg-zinc-50 rounded-lg p-2">
-              <table className="w-full text-left text-sm">
-                <thead className="text-xs text-zinc-400 uppercase">
-                  <tr>
-                    <th className="py-2 px-3 w-10">#</th>
-                    <th className="py-2 px-3">Name</th>
-                    <th className="py-2 px-3">Department / Inst.</th>
-                    <th className="py-2 px-3 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-200/60">
-                  {currentAuthors.length > 0 ? (
-                    currentAuthors.map((author, index) => (
-                      <tr key={author.id}>
-                        <td className="py-2.5 px-3 font-semibold text-zinc-400 text-xs">
-                          #{index + 1}
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <p className="font-medium text-zinc-800 text-sm">
-                            {author.name}
-                          </p>
-                          <span className="text-[10px] text-zinc-400 block">
-                            {author.designation}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 text-xs text-zinc-500">
-                          {author.department}
-                        </td>
-                        <td className="py-2.5 px-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveAuthor(author.id)}
-                            className="text-zinc-400 hover:text-red-500 text-base leading-none"
-                            title="Remove author"
-                          >
-                            ×
-                          </button>
-                        </td>
-                      </tr>
+            <div className="relative">
+              <Input
+                label={formData.authors?.length > 0 ? "Search & Add Co-Author" : "Search & Add First Author"}
+                placeholder="Search by Name or Employee ID"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+              />
+              {nameFilter && (
+                <div className="absolute top-full left-0 z-10 w-full mt-1 max-h-48 overflow-y-auto rounded-lg border border-neutral-200 bg-white shadow-lg">
+                  {filteredFaculty.length > 0 ? (
+                    filteredFaculty.map((faculty) => (
+                      <button
+                        key={faculty.id}
+                        type="button"
+                        onClick={() => {
+                          handleAddAuthor(faculty);
+                          setNameFilter("");
+                        }}
+                        className="flex w-full flex-col items-start border-b border-neutral-100 px-3 py-2 text-left transition-colors hover:bg-neutral-50 last:border-0"
+                      >
+                        <span className="text-sm font-semibold text-neutral-800">
+                          {faculty.name}
+                        </span>
+                        <span className="text-xs font-medium text-neutral-500">
+                          {faculty.department} • {faculty.designation}
+                        </span>
+                      </button>
                     ))
                   ) : (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="py-8 text-center text-xs text-zinc-400"
-                      >
-                        No authors added yet.
-                      </td>
-                    </tr>
+                    <p className="px-3 py-2 text-sm text-neutral-500 text-center">
+                      No faculty found.
+                    </p>
                   )}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* RIGHT SIDE: AUTHOR SELECTION & FILTERS */}
-          <div className="lg:col-span-6 space-y-4 bg-zinc-50 p-4 rounded-lg">
-            {isMaxAuthorsReached ? (
-              <div className="py-6 text-center text-xs text-amber-600 bg-amber-50 rounded-md border border-amber-200">
-                All the Authors ({formData.totalAuthorsCount}) are added. To add
-                an author increase total count to add more.
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase text-zinc-600">
-                    Author #{nextAuthorNumber} Details
-                  </span>
-
-                  {/* MMDU AUTHOR CHECKBOX */}
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-600">
-                    <input
-                      type="checkbox"
-                      checked={isMMDUAuthor}
-                      onChange={(e) => {
-                        setIsMMDUAuthor(e.target.checked);
-                        setSelectedDepartment("");
-                        setNameFilter("");
-                        setExternalAuthorName("");
-                      }}
-                    />
-                    Author is from MMDU
-                  </label>
-                </div>
-
-                {/* IF MMDU -> SHOW DEPARTMENT FILTER & SEARCH */}
-                {isMMDUAuthor ? (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs uppercase text-zinc-500 mb-1">
-                        Department
-                      </label>
-                      <select
-                        value={selectedDepartment}
-                        onChange={(e) => setSelectedDepartment(e.target.value)}
-                        className="rounded-md px-3 py-2 w-full text-sm bg-white"
-                      >
-                        <option value="">All Departments</option>
-                        {departments.map((dept) => (
-                          <option key={dept} value={dept}>
-                            {dept}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="relative">
-                      <Input
-                        label="Search Faculty"
-                        placeholder="Search by Name or ID..."
-                        value={nameFilter}
-                        onChange={(e) => setNameFilter(e.target.value)}
-                      />
-
-                      {nameFilter && (
-                        <div className="max-h-40 overflow-y-auto absolute left-0 right-0 top-full mt-1 z-20 bg-white shadow-md rounded-md">
-                          {filteredFaculty.length > 0 ? (
-                            filteredFaculty.map((faculty) => (
-                              <button
-                                key={faculty.id}
-                                type="button"
-                                onClick={() => {
-                                  if (!isMaxAuthorsReached) {
-                                    handleAddAuthor(faculty);
-                                    setNameFilter("");
-                                  }
-                                }}
-                                className="w-full p-2.5 text-left hover:bg-zinc-100 text-xs text-zinc-800"
-                              >
-                                <p className="font-medium">{faculty.name}</p>
-                                <p className="text-[10px] text-zinc-500">
-                                  {faculty.department} • {faculty.id}
-                                </p>
-                              </button>
-                            ))
-                          ) : (
-                            <p className="p-3 text-xs text-zinc-400">
-                              No faculty found.
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  /* IF EXTERNAL -> SHOW SIMPLE NAME INPUT */
-                  <div className="space-y-3">
-                    <Input
-                      label={`Author #${nextAuthorNumber} Name`}
-                      placeholder="Enter full name"
-                      value={externalAuthorName}
-                      onChange={(e) => setExternalAuthorName(e.target.value)}
-                    />
-
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="w-full"
-                      onClick={handleAddExternalAuthor}
-                      disabled={isMaxAuthorsReached}
-                    >
-                      Add Author #{nextAuthorNumber}
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+            <div className="flex-1">
+              <Input
+                label={formData.authors?.length > 0 ? "Add External Co-Author" : "Add External First Author"}
+                placeholder="Enter author's full name"
+                value={externalAuthorName}
+                onChange={(e) => setExternalAuthorName(e.target.value)}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleAddExternalAuthor}
+            >
+              Add Author
+            </Button>
           </div>
-        </div>
+        )}
+
+        {/* SELECTED AUTHORS LIST */}
+        {formData.authors?.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-5 pt-5 border-t border-neutral-100">
+            {formData.authors.map((author, index) => (
+              <div
+                key={author.id}
+                className="group relative flex flex-col justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-3 pr-8 transition-colors hover:border-neutral-300"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleRemoveAuthor(author.id)}
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-800"
+                  aria-label="Remove author"
+                >
+                  <span className="text-lg leading-none font-medium">×</span>
+                </button>
+
+                {/* AUTOMATIC ROLE ASSIGNMENT BASED ON POSITION */}
+                <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 w-fit px-1.5 py-0.5 rounded ${
+                  index === 0 ? "bg-amber-100 text-amber-800" : "bg-neutral-200 text-neutral-700"
+                }`}>
+                  {index === 0 ? "First Author" : "Co-Author"}
+                </span>
+
+                <div className="flex items-center gap-2 mb-0.5 mt-1">
+                  <p className="text-sm font-semibold text-neutral-800 truncate">
+                    {author.name}
+                  </p>
+                  {author.id.startsWith("EXT_") ? (
+                    <span className="text-[9px] bg-neutral-200 text-neutral-600 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Ext</span>
+                  ) : (
+                    <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">MMDU</span>
+                  )}
+                </div>
+                <p className="text-xs text-neutral-500 truncate">
+                  {author.designation} • {author.department}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* VERIFICATION & METRICS */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold mb-1">
-          {showResearchSection
-            ? "Verification Links & Metrics"
-            : "Verification Links"}
+      {/* VERIFICATION LINKS */}
+      <section className="px-6 py-5 border-b border-neutral-100">
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4">
+          Verification Links
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label={labels.first}
             type={
               labels.first.toLowerCase().match(/(link|url|website)/)
                 ? "url"
                 : "text"
-            }
-            pattern={
-              labels.first.toLowerCase().match(/(link|url|website)/)
-                ? "https://.*"
-                : undefined
             }
             placeholder={
               labels.first.toLowerCase().match(/(link|url|website)/)
@@ -431,17 +349,12 @@ const SubmissionForm = ({
           <Input
             label={labels.second}
             type={
-              labels.second.toLowerCase().match(/(link|url|website)/)
+              verificationLabels.second.toLowerCase().match(/(link|url|website)/)
                 ? "url"
                 : "text"
             }
-            pattern={
-              labels.second.toLowerCase().match(/(link|url|website)/)
-                ? "https://.*"
-                : undefined
-            }
             placeholder={
-              labels.second.toLowerCase().match(/(link|url|website)/)
+              verificationLabels.second.toLowerCase().match(/(link|url|website)/)
                 ? "https://..."
                 : "Enter detail"
             }
@@ -489,19 +402,24 @@ const SubmissionForm = ({
         </div>
       </section>
 
-      {/* CHILDREN */}
-      <section className="space-y-3">{children}</section>
+      {/* PAGE SPECIFIC */}
+      {children && (
+        <section className="px-6 py-5 border-b border-neutral-100">
+          {children}
+        </section>
+      )}
 
       {/* ACTIONS */}
-      <div className="sticky bottom-0 bg-white py-4 flex justify-between z-10">
-        <Button variant="outline" onClick={onDraft}>
+      <div className="px-6 py-4 bg-neutral-50 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+        <Button type="button" variant="outline" onClick={onDraft} className="w-full sm:w-auto bg-white">
           Save Draft
         </Button>
 
-        <div className="flex gap-3">
-          <Button variant="secondary">Preview</Button>
-
-          <Button variant="primary" onClick={onSubmit}>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Button type="button" variant="secondary" className="w-full sm:w-auto bg-white">
+            Preview
+          </Button>
+          <Button type="button" variant="primary" onClick={onSubmit} className="w-full sm:w-auto">
             Submit
           </Button>
         </div>

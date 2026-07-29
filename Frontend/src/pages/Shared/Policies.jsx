@@ -39,7 +39,7 @@ const mockPolicies = [
 
 const Policies = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto p-4 md:p-6 text-left">
       <PageHeader
         title="Research Policies & Guidelines"
         subtitle="Important documents, frameworks, and incentive structures."
@@ -48,13 +48,13 @@ const Policies = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Important Notice Card */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-3 bg-indigo-50 rounded-xl p-6 border border-indigo-100 flex items-start gap-4">
-          <div className="p-3 bg-indigo-100 rounded-lg text-indigo-700 shrink-0">
-            <ShieldCheck size={24} />
+        <div className="col-span-1 md:col-span-2 lg:col-span-3 bg-neutral-50 rounded-2xl p-6 border border-neutral-200 shadow-sm flex items-start gap-4">
+          <div className="p-3 bg-white rounded-xl text-neutral-950 border border-neutral-200 shrink-0 shadow-sm">
+            <ShieldCheck size={22} />
           </div>
-          <div>
-            <h3 className="font-semibold text-indigo-900 text-lg">Policy Update Notice</h3>
-            <p className="text-indigo-700 mt-1">
+          <div className="space-y-1">
+            <h3 className="font-bold text-neutral-950 text-base tracking-tight">Policy Update Notice</h3>
+            <p className="text-sm text-neutral-600 leading-relaxed font-medium">
               The University Research Incentive Policy has been updated for the academic year 2024-2025.
               Key changes include revised incentive slabs for Q1 journals and new support for student-led startups.
               Please review the latest document below.
@@ -64,28 +64,35 @@ const Policies = () => {
 
         {/* Policy Cards */}
         {mockPolicies.map((policy) => (
-          <div key={policy.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col h-full">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2 bg-gray-50 rounded-lg text-gray-500">
-                <FileText size={20} />
+          <div 
+            key={policy.id} 
+            className="group bg-white rounded-xl p-6 shadow-sm border border-neutral-200 transition-all duration-200 hover:border-neutral-950 hover:shadow-md flex flex-col h-full justify-between"
+          >
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <div className="p-2 bg-neutral-50 rounded-lg text-neutral-600 border border-neutral-100">
+                  <FileText size={18} />
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-neutral-100 text-neutral-700 rounded border border-neutral-200 uppercase tracking-wider">
+                  v{policy.version}
+                </span>
               </div>
-              <span className="text-xs font-medium px-2 py-1 bg-gray-100 text-gray-600 rounded">
-                v{policy.version}
-              </span>
+              
+              <h3 className="font-bold text-neutral-950 text-base mb-2 line-clamp-2 leading-snug">
+                {policy.title}
+              </h3>
+              
+              <p className="text-xs text-neutral-500 mb-6 leading-relaxed line-clamp-3">
+                {policy.description}
+              </p>
             </div>
             
-            <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{policy.title}</h3>
-            
-            <p className="text-sm text-gray-500 mb-4 flex-grow line-clamp-3">
-              {policy.description}
-            </p>
-            
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-              <div className="text-xs text-gray-400">
+            <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 Updated: {policy.date}
               </div>
-              <button className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
-                <Download size={16} />
+              <button className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-950 hover:text-neutral-600 transition-colors cursor-pointer">
+                <Download size={14} />
                 Download
               </button>
             </div>
