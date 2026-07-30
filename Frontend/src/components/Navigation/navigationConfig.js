@@ -66,7 +66,7 @@ export const navigationConfig = {
 
   teacher: [
     {
-      path: "/teacher",
+      path: "/applicant",
       label: "Dashboard",
       icon: LayoutDashboard,
     },
@@ -78,45 +78,40 @@ export const navigationConfig = {
 
       subItems: [
         {
-          path: "/teacher/submission/publication",
+          path: "/applicant/submissions/create/publication",
           label: "Publication",
         },
 
         {
-          path: "/teacher/submission/patent",
+          path: "/applicant/submissions/create/patent",
           label: "Patent",
         },
 
         {
-          path: "/teacher/submission/book",
+          path: "/applicant/submissions/create/book",
           label: "Book & Chapters",
         },
 
         {
-          path: "/teacher/submission/project",
-          label: "Projects",
+          path: "/applicant/submissions/create/startup",
+          label: "Projects & Startup",
         },
 
         {
-          path: "/teacher/submission/consultancy",
-          label: "Consultancy",
-        },
-
-        {
-          path: "/teacher/submission/award",
-          label: "Awards",
+          path: "/applicant/submissions/create/copyright",
+          label: "Copyright & Claims",
         },
       ],
     },
 
     {
-      path: "/teacher/submissions",
+      path: "/applicant/submissions",
       label: "My Submissions",
       icon: FileSpreadsheet,
     },
 
     {
-      path: "/teacher/drafts",
+      path: "/applicant/drafts",
       label: "Drafts",
       icon: FileClock,
     },
@@ -136,7 +131,7 @@ export const navigationConfig = {
 
   student: [
     {
-      path: "/student",
+      path: "/applicant",
       label: "Dashboard",
       icon: LayoutDashboard,
     },
@@ -148,30 +143,30 @@ export const navigationConfig = {
 
       subItems: [
         {
-          path: "/student/submission/publication",
+          path: "/applicant/submissions/create/publication",
           label: "Publication",
         },
 
         {
-          path: "/student/submission/patent",
+          path: "/applicant/submissions/create/patent",
           label: "Patent",
         },
 
         {
-          path: "/student/submission/project",
-          label: "Projects",
+          path: "/applicant/submissions/create/startup",
+          label: "Projects & Startup",
         },
       ],
     },
 
     {
-      path: "/student/submissions",
+      path: "/applicant/submissions",
       label: "My Submissions",
       icon: FileSpreadsheet,
     },
 
     {
-      path: "/student/drafts",
+      path: "/applicant/drafts",
       label: "Drafts",
       icon: FileClock,
     },

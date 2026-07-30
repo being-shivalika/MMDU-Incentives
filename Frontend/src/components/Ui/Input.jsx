@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const Input = React.forwardRef(
   ({ label, error, className = "", type = "text", ...props }, ref) => {

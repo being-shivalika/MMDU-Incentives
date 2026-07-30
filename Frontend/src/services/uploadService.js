@@ -1,11 +1,13 @@
 import { getStoredToken } from './api';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export const uploadDocument = async (claimId, file) => {
   const token = getStoredToken();
   const formData = new FormData();
   formData.append('document', file);
 
-  const response = await fetch(`/api/uploads/${claimId}`, {
+  const response = await fetch(`${API_URL}/api/uploads/${claimId}`, {
     method: 'POST',
     headers: {
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -22,7 +24,7 @@ export const uploadDocument = async (claimId, file) => {
 
 export const getClaimDocuments = async (claimId) => {
   const token = getStoredToken();
-  const response = await fetch(`/api/uploads/${claimId}`, {
+  const response = await fetch(`${API_URL}/api/uploads/${claimId}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -37,7 +39,7 @@ export const getClaimDocuments = async (claimId) => {
 
 export const deleteDocument = async (documentId) => {
   const token = getStoredToken();
-  const response = await fetch(`/api/uploads/${documentId}`, {
+  const response = await fetch(`${API_URL}/api/uploads/${documentId}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

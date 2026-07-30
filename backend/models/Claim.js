@@ -35,6 +35,24 @@ const claimSchema = new mongoose.Schema({
   paidAmount: { type: Number, default: 0 },
   currency: { type: String, default: 'INR' },
   
+  // Author Incentive Division (Research Promotion Policy 2026)
+  totalIncentive: { type: Number, default: 0 },
+  mmduAuthorCount: { type: Number, default: 1 },
+  individualShare: { type: Number, default: 0 },
+  authorPayments: [{
+    name: { type: String },
+    employeeId: { type: String },
+    department: { type: String },
+    institution: { type: String },
+    isMmdu: { type: Boolean, default: true },
+    payableAmount: { type: Number, default: 0 },
+    paymentStatus: { type: String, enum: ['HELD', 'READY_FOR_RELEASE', 'RELEASED', 'PAID'], default: 'HELD' }
+  }],
+
+  // Second Publication Hold Rule
+  isHeld: { type: Boolean, default: false },
+  heldReason: { type: String, default: null },
+  
   // Policy snapshot
   policySnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
   researchScore: { type: Number, default: 0 },

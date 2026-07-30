@@ -21,7 +21,7 @@ export default function Timeline({ history = [], className }) {
   const getIconBg = (status) => {
     switch (status) {
       case "approved":
-      case "completed":np
+      case "completed":
         return "bg-emerald-50 border-emerald-200";
       case "returned":
         return "bg-amber-50 border-amber-200";

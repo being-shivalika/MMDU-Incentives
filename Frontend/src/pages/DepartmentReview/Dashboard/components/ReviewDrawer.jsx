@@ -528,49 +528,55 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
             </section>
 
             {/* Reviewer Remarks */}
+            {submission.permissions?.canApprove && (
+              <section>
+                <h3 className="font-semibold mb-3">Reviewer Remarks</h3>
 
-            <section>
-              <h3 className="font-semibold mb-3">Reviewer Remarks</h3>
-
-              <textarea
-                rows={5}
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                placeholder="Enter remarks for approval, revision request, or rejection..."
-                className="w-full border rounded-xl p-4 resize-none focus:outline-none focus:ring-2 focus:ring-black"
-              />
-            </section>
+                <textarea
+                  rows={4}
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  placeholder="Enter remarks for approval, revision request, or rejection..."
+                  className="w-full border rounded-xl p-4 resize-none focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                />
+              </section>
+            )}
           </div>
 
           {/* Footer */}
+          {submission.permissions?.canApprove ? (
+            <div className="sticky bottom-0 bg-white border-t px-6 py-5">
+              <div className="grid grid-cols-3 gap-3">
+                <ActionButton
+                  defaultText="Approve"
+                  activeText="Approved"
+                  icon={Check}
+                  className="bg-black text-white"
+                  onClick={() => handleAction("Approve")}
+                />
 
-          <div className="sticky bottom-0 bg-white border-t px-6 py-5">
-            <div className="grid grid-cols-3 gap-3">
-              <ActionButton
-                defaultText="Approve"
-                activeText="Approved"
-                icon={Check}
-                className="bg-black text-white"
-                onClick={() => handleAction("Approve")}
-              />
+                <ActionButton
+                  defaultText="Request Revision"
+                  activeText="Revision Requested"
+                  icon={CornerUpLeft}
+                  variant="warning"
+                  onClick={() => handleAction("Request Revision")}
+                />
 
-              <ActionButton
-                defaultText="Request Revision"
-                activeText="Revision Requested"
-                icon={CornerUpLeft}
-                variant="warning"
-                onClick={() => handleAction("Request Revision")}
-              />
-
-              <ActionButton
-                defaultText="Reject"
-                activeText="Rejected"
-                icon={XCircle}
-                variant="danger"
-                onClick={() => handleAction("Reject")}
-              />
+                <ActionButton
+                  defaultText="Reject"
+                  activeText="Rejected"
+                  icon={XCircle}
+                  variant="danger"
+                  onClick={() => handleAction("Reject")}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
+              View Only Mode — Effective Approver: {submission.effectiveApprover?.label || 'Assigned Desk'}
+            </div>
+          )}
         </div>
       </div>
     </div>

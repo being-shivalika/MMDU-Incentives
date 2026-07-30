@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const Card = React.forwardRef(
   ({ children, className = "", hoverable = false, onClick, ...props }, ref) => {

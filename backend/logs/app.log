@@ -16,3 +16,8 @@
 2026-07-25T17:08:48.718Z warn: Email not configured. Would have sent to faculty@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Approved by Director
 2026-07-25T17:08:48.942Z warn: Email not configured. Would have sent to director@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Your Approval Processed
 2026-07-25T17:09:21.852Z warn: Email not configured. Would have sent to faculty@mmdu.ac.in: [RPMS] Claim RPMS-2026-0005 — Payment Released ₹0
+2026-07-29T19:44:19.063Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0024 — Approved by Dr. Amit Verma
+2026-07-29T19:44:19.152Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0024 — Your Approval Processed
+2026-07-29T19:45:30.976Z warn: No policy rule found for research_publications/journal_publication/OTHER
+2026-07-29T19:45:31.454Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0024 — Approved by R&D Cell Coordinator
+2026-07-29T19:45:31.533Z warn: Email not configured. Would have sent to rd@mmdu.ac.in: [RPMS] Claim RPMS-2026-0024 — Your Approval Processed

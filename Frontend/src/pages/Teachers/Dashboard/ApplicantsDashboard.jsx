@@ -22,7 +22,7 @@ const ApplicantsDashboard = () => {
     const fetchSubmissions = async () => {
       try {
         const res = await getSubmissions();
-        setSubmissions(res.claims || []);
+        setSubmissions(res.data || res.claims || []);
       } catch (err) {
         console.error("Failed to load submissions", err);
       } finally {
@@ -93,7 +93,7 @@ const ApplicantsDashboard = () => {
         userName={user?.name}
         userDesignation={user?.designation}
         userDepartment={user?.department}
-        onNewClaim={() => navigate("/teacher/submission/publication")}
+        onNewClaim={() => navigate("/applicant/submissions/create/publication")}
       />
 
       {/* Stats Overview */}
@@ -162,7 +162,7 @@ const ApplicantsDashboard = () => {
               Recent Research Submissions
             </h2>
             <Link
-              to="/teacher/submissions"
+              to="/applicant/submissions"
               className="text-xs font-bold uppercase tracking-wider text-neutral-900 hover:text-neutral-600 transition-colors"
             >
               See Ledger

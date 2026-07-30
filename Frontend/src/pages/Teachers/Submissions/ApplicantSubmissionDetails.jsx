@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSubmissionById } from "../../../services/submissionService";
+import WorkflowProgressTracker from "../../../components/Ui/WorkflowProgressTracker";
 import {
   ArrowLeft,
   ExternalLink,
@@ -216,6 +217,13 @@ const ApplicantSubmissionDetails = () => {
         </div>
       )}
 
+      {/* DYNAMIC WORKFLOW PROGRESS DIAGRAM */}
+      <WorkflowProgressTracker 
+        workflowProgress={submission.workflowProgress} 
+        isHeld={submission.isHeld} 
+        heldReason={submission.heldReason} 
+      />
+
       {/* MAIN GRID LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN - MAIN DETAILS */}
@@ -283,10 +291,19 @@ const ApplicantSubmissionDetails = () => {
                         className="p-5 hover:bg-neutral-50 transition-colors"
                       >
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
-                            {hist.level}{" "}
-                            <span className="text-neutral-400 mx-1">•</span>{" "}
-                            {hist.action}
+                          <span className="text-xs font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-2">
+                            <span>{hist.level}</span>
+                            <span className="text-neutral-400">•</span>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              (hist.isRejected || hist.action?.includes('Reject')) ? 'bg-red-100 text-red-700 border border-red-300 flex items-center gap-1' :
+                              (hist.isReturned || hist.action?.includes('Revision')) ? 'bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1' :
+                              'text-neutral-600'
+                            }`}>
+                              {(hist.isRejected || hist.isReturned || hist.action?.includes('Reject') || hist.action?.includes('Revision')) && (
+                                <span className="h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse inline-block"></span>
+                              )}
+                              {hist.action}
+                            </span>
                           </span>
                           <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
                             {new Date(hist.date).toLocaleDateString("en-GB", {
@@ -354,20 +371,36 @@ const ApplicantSubmissionDetails = () => {
                 </div>
                 <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3">
                   <span className="text-xs font-semibold text-neutral-500">
-                    Estimated Amount
+                    Total Incentive
                   </span>
-                  <span className="text-sm font-black text-neutral-800">
-                    {incentiveInfo.estimatedAmount?.toString().includes("₹")
-                      ? incentiveInfo.estimatedAmount
-                      : `₹${incentiveInfo.estimatedAmount || 0}`}
+                  <span className="text-sm font-bold text-neutral-800">
+                    ₹{submission.totalIncentive || submission.approvedAmount || submission.calculatedAmount || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3">
+                  <span className="text-xs font-semibold text-neutral-500">
+                    MMDU Authors
+                  </span>
+                  <span className="text-xs font-bold text-neutral-800">
+                    {submission.mmduAuthorCount || 1} Author(s)
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3 bg-blue-50/50 p-2 rounded-lg">
+                  <span className="text-xs font-bold text-blue-900">
+                    Your Payable Share
+                  </span>
+                  <span className="text-sm font-black text-blue-900">
+                    ₹{submission.userShare || submission.individualShare || submission.approvedAmount || 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-t border-neutral-100 pt-3">
                   <span className="text-xs font-semibold text-neutral-500">
                     Claim Status
                   </span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-neutral-100 text-neutral-700 px-2 py-1 rounded">
-                    {incentiveInfo.claimStatus || "Pending"}
+                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded ${
+                    submission.isHeld ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-neutral-100 text-neutral-700'
+                  }`}>
+                    {submission.isHeld ? 'Payment Held (1st Pub)' : (incentiveInfo.claimStatus || "Pending")}
                   </span>
                 </div>
               </div>
@@ -412,24 +445,18 @@ const ApplicantSubmissionDetails = () => {
                 {workflowHistory &&
                   workflowHistory.map((stage, idx) => {
                     const isLast = idx === workflowHistory.length - 1;
-                    const isApproved =
-                      stage.action === "Approved" ||
-                      stage.action === "Submitted";
-                    const isRejected =
+                    const isRejectedOrReturned =
+                      stage.isRejected ||
+                      stage.isReturned ||
                       stage.action.includes("Reject") ||
-                      stage.action.includes("Revision");
+                      stage.action.includes("Revision") ||
+                      stage.action.includes("Return");
 
-                    let dotColor = "bg-neutral-300 border-white"; // default past step
-                    if (isLast) {
-                      if (isApproved)
-                        dotColor =
-                          "bg-blue-600 border-white shadow-[0_0_0_3px_rgba(37,99,235,0.2)]";
-                      else if (isRejected)
-                        dotColor =
-                          "bg-red-600 border-white shadow-[0_0_0_3px_rgba(220,38,38,0.2)]";
-                      else
-                        dotColor =
-                          "bg-amber-500 border-white shadow-[0_0_0_3px_rgba(245,158,11,0.2)]";
+                    let dotColor = "bg-green-500 border-white"; // past approved step
+                    if (isRejectedOrReturned) {
+                      dotColor = "bg-red-600 border-white ring-4 ring-red-100 shadow-[0_0_8px_rgba(220,38,38,0.8)] animate-pulse";
+                    } else if (isLast) {
+                      dotColor = "bg-blue-600 border-white ring-4 ring-blue-100 shadow-[0_0_0_3px_rgba(37,99,235,0.2)]";
                     }
 
                     return (
@@ -441,12 +468,21 @@ const ApplicantSubmissionDetails = () => {
 
                         <div className="space-y-0.5">
                           <p
-                            className={`text-xs font-bold uppercase tracking-wider ${isLast ? "text-neutral-800" : "text-neutral-500"}`}
+                            className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                              isRejectedOrReturned
+                                ? "text-red-700 font-extrabold"
+                                : isLast
+                                ? "text-neutral-800"
+                                : "text-neutral-500"
+                            }`}
                           >
-                            {stage.level}{" "}
+                            <span>{stage.level}</span>
                             <span className="lowercase font-medium text-neutral-400">
                               ({stage.action})
                             </span>
+                            {isRejectedOrReturned && (
+                              <span className="h-2 w-2 rounded-full bg-red-600 animate-ping inline-block"></span>
+                            )}
                           </p>
                           <p className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
                             <Clock className="h-2.5 w-2.5" />

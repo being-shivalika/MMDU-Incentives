@@ -7,6 +7,7 @@ import * as researchScoreService from './researchScoreService.js';
 import * as transactionService from './transactionService.js';
 import * as notificationService from './notificationService.js';
 import * as emailService from './emailService.js';
+import { getEffectiveApprover, getClaimPermissions } from './hierarchyService.js';
 import { createAuditLog } from './auditService.js';
 import { AUDIT_ACTIONS } from '../constants/auditActions.js';
 import { CLAIM_STATUSES } from '../constants/claimStatuses.js';
@@ -21,69 +22,91 @@ import logger from '../utils/logger.js';
  */
 export const buildWorkflowProgress = async (claim, approvalHistory = []) => {
   try {
-    const orderedStages = await workflowConfigService.getOrderedStages();
-    const stageLabels = orderedStages.map(s => s.shortLabel);
-    const totalSteps = stageLabels.length;
+    const effectiveApprover = await getEffectiveApprover(claim.department, claim.institute);
     
     const isRejected = claim.status === CLAIM_STATUSES.REJECTED;
     const isReturned = claim.status === CLAIM_STATUSES.RETURNED;
     const isCompleted = claim.status === CLAIM_STATUSES.COMPLETED;
     
-    // Find current stage index
-    let currentStageIndex = orderedStages.findIndex(s => s.stageKey === claim.status);
+    const isEligiblePayout = (claim.totalIncentive > 0 || claim.approvedAmount > 0 || claim.calculatedAmount > 0) && !claim.isHeld;
+    const finalStepLabel = isEligiblePayout ? 'Account Credited Money' : 'Completed';
+    const firstStepLabel = claim.applicantRole === 'student' ? 'Student' : 'Faculty';
     
-    // Handle special states
-    if (isCompleted) currentStageIndex = totalSteps; // Past all stages
+    const stepsConfig = [
+      { id: 'DRAFT', key: 'DRAFT', label: firstStepLabel, role: 'faculty' },
+      { id: 'DEPARTMENT_REVIEW', key: 'DEPARTMENT_REVIEW', label: `Dept Approval (${effectiveApprover.label})`, role: effectiveApprover.role },
+      { id: 'RPC_VERIFICATION', key: 'RPC_VERIFICATION', label: 'R & D Cell', role: 'rpc_cell' },
+      { id: 'ACCOUNTS_PROCESSING', key: 'ACCOUNTS_PROCESSING', label: 'Finance & Accounts', role: 'accounts' },
+      { id: 'COMPLETED', key: 'COMPLETED', label: finalStepLabel, role: 'accounts' }
+    ];
+
+    const totalSteps = stepsConfig.length;
+    let activeIndex = stepsConfig.findIndex(s => s.key === claim.status);
+
+    if (isCompleted) activeIndex = totalSteps - 1;
     if (isRejected || isReturned) {
-      // Find the last stage that had an action in approval history
-      const lastApproval = [...approvalHistory].reverse().find(h => 
-        orderedStages.some(s => s.stageKey === h.fromStatus)
-      );
-      if (lastApproval) {
-        currentStageIndex = orderedStages.findIndex(s => s.stageKey === lastApproval.fromStatus);
+      const lastHistory = [...approvalHistory].reverse().find(h => h.fromStatus && h.fromStatus !== 'NEW');
+      if (lastHistory) {
+        const foundIdx = stepsConfig.findIndex(s => s.key === lastHistory.fromStatus);
+        if (foundIdx >= 0) activeIndex = foundIdx;
       }
     }
-    
-    const currentStep = Math.min(currentStageIndex + 1, totalSteps);
+    if (activeIndex < 0) activeIndex = 0;
+
+    const currentStep = activeIndex + 1;
     const percentage = isCompleted ? 100 : Math.round((currentStep / totalSteps) * 100);
-    
-    // Determine completed vs pending
-    const completedStages = stageLabels.slice(0, currentStageIndex);
-    const pendingStages = isCompleted ? [] : stageLabels.slice(currentStageIndex);
-    
+
+    const steps = stepsConfig.map((s, idx) => {
+      let stepStatus = 'pending';
+      if (isCompleted || idx < activeIndex) stepStatus = 'completed';
+      else if (idx === activeIndex) {
+        if (isRejected) stepStatus = 'rejected';
+        else if (isReturned) stepStatus = 'returned';
+        else stepStatus = 'active';
+      }
+
+      const historyMatch = [...approvalHistory].reverse().find(h => h.toStatus === s.key || h.fromStatus === s.key);
+      return {
+        ...s,
+        status: stepStatus,
+        actionDate: historyMatch ? historyMatch.date : null,
+        actorName: historyMatch ? historyMatch.actionByName : null
+      };
+    });
+
     let statusLabel = 'Under Review';
     if (isCompleted) statusLabel = 'Completed & Disbursed';
     else if (isRejected) statusLabel = 'Rejected';
     else if (isReturned) statusLabel = 'Returned for Correction';
     else if (claim.status === CLAIM_STATUSES.DRAFT) statusLabel = 'Draft';
-    
-    const currentStage = currentStageIndex >= 0 && currentStageIndex < totalSteps
-      ? stageLabels[currentStageIndex]
-      : (isCompleted ? 'Completed' : claim.status);
-    
+
     return {
-      currentStage,
+      currentStage: stepsConfig[activeIndex]?.label || claim.status,
       currentStep,
       totalSteps,
       percentage,
       statusLabel,
       isRejected,
       isReturned,
-      completedStages,
-      pendingStages
+      effectiveApproverRole: effectiveApprover.role,
+      effectiveApproverLabel: effectiveApprover.label,
+      isFallbackRouting: effectiveApprover.isFallback,
+      fallbackReason: effectiveApprover.fallbackReason,
+      completedStages: steps.filter(s => s.status === 'completed').map(s => s.label),
+      pendingStages: steps.filter(s => s.status === 'pending').map(s => s.label),
+      steps
     };
   } catch (error) {
     logger.error('Failed to build workflow progress:', error.message);
     return {
       currentStage: claim.status,
       currentStep: 0,
-      totalSteps: 0,
+      totalSteps: 5,
       percentage: 0,
       statusLabel: claim.status,
       isRejected: false,
       isReturned: false,
-      completedStages: [],
-      pendingStages: []
+      steps: []
     };
   }
 };
@@ -101,37 +124,39 @@ export const processTransition = async (submissionId, actionType, user, comment,
     throw error;
   }
   
-  // Strict Global Security Rule: Only HOD, RPC, and Admin can approve/reject
-  const allowedApprovers = ['hod', 'rd_cell', 'rpc_cell', 'admin'];
-  if (!allowedApprovers.includes(user.role)) {
-    const error = new Error(`Role '${user.role}' is strictly forbidden from executing workflow approval transitions.`);
+  // 2. Validate permissions dynamically based on effective approver hierarchy
+  const permissions = await getClaimPermissions(claim, user);
+  const genericAction = (actionType || '').toLowerCase().trim();
+  const isForwardAction = genericAction.includes('approve') || genericAction.includes('submit') || genericAction.includes('forward') || genericAction.includes('release');
+  const isRejectAction = genericAction.includes('reject') || genericAction.includes('withdraw');
+  const isReturnAction = genericAction.includes('return') || genericAction.includes('revision');
+
+  if (isForwardAction && !permissions.canApprove && !permissions.canReleasePayment && !permissions.canSubmit) {
+    const error = new Error(`User with role '${user.role}' is not the effective approver for stage '${claim.status}'.`);
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (isRejectAction && !permissions.canReject) {
+    const error = new Error(`User with role '${user.role}' is not authorized to reject claim in stage '${claim.status}'.`);
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (isReturnAction && !permissions.canReturn) {
+    const error = new Error(`User with role '${user.role}' is not authorized to return claim in stage '${claim.status}'.`);
     error.statusCode = 403;
     throw error;
   }
   
   const currentStatus = claim.status;
   
-  // 2. Get stage config — check if it's a regular stage, returned state, or unknown
+  // 3. Get stage config
   let stageConfig = await workflowConfigService.getStageConfig(currentStatus);
-  
   if (!stageConfig) {
     const error = new Error(`No workflow configuration found for status '${currentStatus}'`);
     error.statusCode = 400;
     throw error;
-  }
-  
-  // 3. Validate user role matches required role
-  if (stageConfig.requiredRole && stageConfig.requiredRole !== user.role) {
-    // Treat rd_cell and rpc_cell as equivalent for stage actions
-    const isEquivalentRpcRole = (stageConfig.requiredRole === 'rpc_cell' && user.role === 'rd_cell') || 
-                                (stageConfig.requiredRole === 'rd_cell' && user.role === 'rpc_cell');
-
-    // Also allow admin to perform any action
-    if (!isEquivalentRpcRole && user.role !== 'admin') {
-      const error = new Error(`Role '${user.role}' is not authorized to act on claims in '${currentStatus}' status. Required: '${stageConfig.requiredRole}'`);
-      error.statusCode = 403;
-      throw error;
-    }
   }
   
   // 4. Find action definition
@@ -139,12 +164,11 @@ export const processTransition = async (submissionId, actionType, user, comment,
   let actionDef = (stageConfig.allowedActions || []).find(a => a.type === actualActionType);
   
   if (!actionDef) {
-    const genericType = actualActionType.toLowerCase().trim();
-    if (genericType === 'approve' || genericType === 'approved') {
+    if (isForwardAction) {
       actionDef = (stageConfig.allowedActions || []).find(a => a.isForward);
-    } else if (genericType === 'reject' || genericType === 'rejected') {
+    } else if (isRejectAction) {
       actionDef = (stageConfig.allowedActions || []).find(a => a.isTerminal && !a.isForward);
-    } else if (genericType === 'return' || genericType === 'returned' || genericType === 'request_revision' || genericType === 'revision requested' || genericType === 'revision') {
+    } else if (isReturnAction) {
       actionDef = (stageConfig.allowedActions || []).find(a => !a.isForward && !a.isTerminal);
     }
     
@@ -154,21 +178,19 @@ export const processTransition = async (submissionId, actionType, user, comment,
   }
 
   if (!actionDef) {
-    const error = new Error(`Action '${actionType}' is not allowed in status '${currentStatus}'`);
-    error.statusCode = 400;
-    throw error;
+    actionDef = { type: actionType, isForward: isForwardAction, isTerminal: isRejectAction, targetStage: isRejectAction ? CLAIM_STATUSES.REJECTED : isReturnAction ? CLAIM_STATUSES.RETURNED : CLAIM_STATUSES.COMPLETED };
+    actualActionType = actionType;
   }
   
-  // 5. MANDATORY rejection reason
+  // 5. MANDATORY rejection / return remarks check
   if (actionDef.isTerminal && !actionDef.isForward) {
-    // This is a rejection
     if (!comment || comment.trim() === '') {
       const error = new Error('Rejection reason is mandatory and cannot be empty');
       error.statusCode = 400;
       throw error;
     }
   }
-  // Also check for RETURN actions
+
   if (!actionDef.isForward && !actionDef.isTerminal) {
     if (!comment || comment.trim() === '') {
       const error = new Error('Remarks are required when returning a claim');
@@ -182,14 +204,11 @@ export const processTransition = async (submissionId, actionType, user, comment,
   if (actionDef.targetStage) {
     targetStatus = actionDef.targetStage;
   } else if (actionDef.isTerminal) {
-    targetStatus = actualActionType.includes('REJECT') || actualActionType.includes('WITHDRAW') 
-      ? CLAIM_STATUSES.REJECTED 
-      : CLAIM_STATUSES.COMPLETED;
+    targetStatus = isRejectAction ? CLAIM_STATUSES.REJECTED : CLAIM_STATUSES.COMPLETED;
   } else if (actionDef.isForward) {
     const nextStage = await workflowConfigService.getNextStage(currentStatus);
     targetStatus = nextStage ? nextStage.stageKey : CLAIM_STATUSES.COMPLETED;
   } else {
-    // Return/backward
     targetStatus = CLAIM_STATUSES.RETURNED;
   }
   
@@ -197,22 +216,58 @@ export const processTransition = async (submissionId, actionType, user, comment,
   const targetStageConfig = await workflowConfigService.getStageConfig(targetStatus);
   const newDesk = targetStageConfig?.requiredRole || null;
   
-  // 8. Determine step name for history
+  // 8. Step name
   const stepName = getStepName(actualActionType, user.role);
-  const actionLabel = actionDef.isForward ? 'approved' : 
-                     (actionDef.isTerminal ? 'rejected' : 'returned');
   
-  // === SPECIAL ACTIONS ===
+  // === SPECIAL ACTIONS: Policy Calculation & Second Publication Payment Rule ===
   
-  // Policy calculation on APPROVE_INCENTIVE
-  if (actualActionType === 'APPROVE_INCENTIVE') {
+  // Calculate policy and author split when forwarding to/from RPC
+  if (actualActionType === 'APPROVE_INCENTIVE' || targetStatus === 'ACCOUNTS_PROCESSING' || currentStatus === 'RPC_VERIFICATION') {
     const policyResult = await policyEngine.calculateIncentive(claim);
+    
+    claim.totalIncentive = policyResult.totalIncentive || policyResult.amount;
+    claim.mmduAuthorCount = policyResult.mmduAuthorCount || 1;
+    claim.individualShare = policyResult.individualShare || policyResult.amount;
+    claim.authorPayments = policyResult.authorPayments || [];
     claim.calculatedAmount = policyResult.amount;
     claim.approvedAmount = incentiveAmount || policyResult.amount;
     claim.policySnapshot = policyResult.policySnapshot;
     claim.researchScore = policyResult.scorePoints;
+
+    // ENFORCE SECOND PUBLICATION RULE (Database-backed)
+    const priorEligibleCount = await Claim.countDocuments({
+      applicant: claim.applicant,
+      status: { $in: ['RPC_VERIFICATION', 'ACCOUNTS_PROCESSING', 'COMPLETED'] },
+      _id: { $ne: claim._id }
+    });
+
+    if (priorEligibleCount === 0) {
+      // 1st Eligible Publication: Payment remains held until 2nd publication
+      claim.isHeld = true;
+      claim.heldReason = '1st eligible publication — Incentive recorded. Payment held until 2nd publication per Research Promotion Policy 2026.';
+      if (claim.authorPayments && claim.authorPayments.length > 0) {
+        claim.authorPayments.forEach(p => { p.paymentStatus = 'HELD'; });
+      }
+    } else {
+      // 2nd or subsequent Eligible Publication: Release payment!
+      claim.isHeld = false;
+      claim.heldReason = null;
+      if (claim.authorPayments && claim.authorPayments.length > 0) {
+        claim.authorPayments.forEach(p => { p.paymentStatus = 'READY_FOR_RELEASE'; });
+      }
+
+      // Unhold all prior held claims for this applicant!
+      const heldClaims = await Claim.find({ applicant: claim.applicant, isHeld: true });
+      for (const heldClaim of heldClaims) {
+        heldClaim.isHeld = false;
+        heldClaim.heldReason = null;
+        if (heldClaim.authorPayments && heldClaim.authorPayments.length > 0) {
+          heldClaim.authorPayments.forEach(p => { p.paymentStatus = 'READY_FOR_RELEASE'; });
+        }
+        await heldClaim.save();
+      }
+    }
     
-    // Store research score
     await researchScoreService.calculateAndStoreScore(claim, policyResult);
     
     await createAuditLog({
@@ -220,16 +275,28 @@ export const processTransition = async (submissionId, actionType, user, comment,
       entity: 'Claim',
       entityId: claim._id,
       performedBy: user._id,
-      details: { calculatedAmount: policyResult.amount, approvedAmount: claim.approvedAmount, policySnapshot: policyResult.policySnapshot },
+      details: {
+        totalIncentive: claim.totalIncentive,
+        individualShare: claim.individualShare,
+        mmduAuthorCount: claim.mmduAuthorCount,
+        isHeld: claim.isHeld
+      },
       ipAddress
     });
   }
   
   // Transaction creation on RELEASE_PAYMENT
-  if (actualActionType === 'RELEASE_PAYMENT') {
-    const amount = incentiveAmount || claim.approvedAmount || claim.calculatedAmount;
+  if (actualActionType === 'RELEASE_PAYMENT' || (currentStatus === 'ACCOUNTS_PROCESSING' && isForwardAction)) {
+    const amount = incentiveAmount || claim.individualShare || claim.approvedAmount || claim.calculatedAmount;
     claim.releasedAmount = amount;
+    claim.paidAmount = amount;
     
+    if (claim.authorPayments && claim.authorPayments.length > 0) {
+      claim.authorPayments.forEach(p => {
+        if (p.isMmdu) p.paymentStatus = 'RELEASED';
+      });
+    }
+
     const transaction = await transactionService.releasePayment(claim, amount, user._id, comment);
     claim.paymentDetails = {
       transactionId: transaction.voucherNumber,
@@ -242,7 +309,7 @@ export const processTransition = async (submissionId, actionType, user, comment,
   claim.status = targetStatus;
   claim.currentDesk = newDesk;
   
-  // 10. Build and store workflow progress
+  // 10. Build workflow progress
   const approvalHistory = await ApprovalHistory.find({ claim: claim._id }).sort({ date: 1 });
   claim.workflowProgress = await buildWorkflowProgress(claim, approvalHistory);
   

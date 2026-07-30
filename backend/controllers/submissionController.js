@@ -2,6 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 import * as claimService from '../services/claimService.js';
 import * as approvalService from '../services/approvalService.js';
+import { getClaimPermissions, getEffectiveApprover } from '../services/hierarchyService.js';
 import ApprovalHistory from '../models/ApprovalHistory.js';
 
 /**
@@ -28,7 +29,7 @@ export const listSubmissions = asyncHandler(async (req, res) => {
   const result = await claimService.listClaims(filters, pagination, req.user);
   
   // Transform claims for frontend compatibility
-  const data = result.claims.map(claim => transformClaimForResponse(claim));
+  const data = await Promise.all(result.claims.map(claim => transformClaimForResponse(claim, null, req.user)));
   
   return successResponse(res, 'Claims retrieved successfully', data);
 });
@@ -46,7 +47,7 @@ export const createSubmission = asyncHandler(async (req, res) => {
   claim.workflowProgress = await approvalService.buildWorkflowProgress(claim, approvalHistory);
   await claim.save();
   
-  const data = transformClaimForResponse(claim, approvalHistory);
+  const data = await transformClaimForResponse(claim, approvalHistory, req.user);
   return successResponse(res, 'Claim created successfully', data, 201);
 });
 
@@ -57,7 +58,7 @@ export const createSubmission = asyncHandler(async (req, res) => {
  */
 export const getSubmission = asyncHandler(async (req, res) => {
   const { claim, approvalHistory } = await claimService.getClaimById(req.params.id);
-  const data = transformClaimForResponse(claim, approvalHistory);
+  const data = await transformClaimForResponse(claim, approvalHistory, req.user);
   return successResponse(res, 'Claim retrieved successfully', data);
 });
 
@@ -74,7 +75,7 @@ export const updateSubmission = asyncHandler(async (req, res) => {
   claim.workflowProgress = await approvalService.buildWorkflowProgress(claim, approvalHistory);
   await claim.save();
   
-  const data = transformClaimForResponse(claim, approvalHistory);
+  const data = await transformClaimForResponse(claim, approvalHistory, req.user);
   return successResponse(res, 'Claim updated successfully', data);
 });
 
@@ -85,7 +86,7 @@ export const updateSubmission = asyncHandler(async (req, res) => {
  */
 export const saveDraft = asyncHandler(async (req, res) => {
   const claim = await claimService.saveDraft(req.params.id, req.body, req.user);
-  const data = transformClaimForResponse(claim);
+  const data = await transformClaimForResponse(claim, null, req.user);
   return successResponse(res, 'Draft saved successfully', data);
 });
 
@@ -101,11 +102,13 @@ export const deleteSubmission = asyncHandler(async (req, res) => {
 
 /**
  * Transform a claim document into frontend-compatible response format.
- * Maps MongoDB _id to id, aliases metadata as fields, includes approvalHistory.
+ * Maps MongoDB _id to id, aliases metadata as fields, includes approvalHistory and dynamic permissions.
  */
-const transformClaimForResponse = (claim, approvalHistory = null) => {
+const transformClaimForResponse = async (claim, approvalHistory = null, user = null) => {
   const claimObj = claim.toJSON ? claim.toJSON() : claim;
-  
+  const permissions = user ? await getClaimPermissions(claimObj, user) : { canEdit: claimObj.status === 'DRAFT' || claimObj.status === 'RETURNED' };
+  const effectiveApprover = await getEffectiveApprover(claimObj.department, claimObj.institute);
+
   // Mapping currentDesk to currentLevel
   let currentLevel = 'Applicant';
   if (claimObj.currentDesk === 'hod') currentLevel = 'HOD';
@@ -140,6 +143,18 @@ const transformClaimForResponse = (claim, approvalHistory = null) => {
     });
   }
 
+  // Find user's own individual share from authorPayments if applicable
+  let userShare = claimObj.individualShare || claimObj.approvedAmount || claimObj.calculatedAmount || 0;
+  if (user && claimObj.authorPayments && claimObj.authorPayments.length > 0) {
+    const matchedAuthor = claimObj.authorPayments.find(a => 
+      (user.employeeId && a.employeeId === user.employeeId) || 
+      (user.name && a.name && a.name.toLowerCase().includes(user.name.toLowerCase()))
+    );
+    if (matchedAuthor) {
+      userShare = matchedAuthor.payableAmount;
+    }
+  }
+
   return {
     id: claimObj.id || claimObj._id,
     claimNumber: claimObj.claimNumber,
@@ -156,7 +171,14 @@ const transformClaimForResponse = (claim, approvalHistory = null) => {
     creatorRole: claimObj.applicantRole,
     dateSubmitted: claimObj.submissionDate || claimObj.createdAt,
     financialYear: claimObj.financialYear,
-    incentiveAmount: claimObj.approvedAmount || claimObj.calculatedAmount || 0,
+    incentiveAmount: userShare,
+    totalIncentive: claimObj.totalIncentive || claimObj.approvedAmount || claimObj.calculatedAmount || 0,
+    mmduAuthorCount: claimObj.mmduAuthorCount || 1,
+    individualShare: claimObj.individualShare || claimObj.approvedAmount || claimObj.calculatedAmount || 0,
+    userShare: userShare,
+    authorPayments: claimObj.authorPayments || [],
+    isHeld: claimObj.isHeld || false,
+    heldReason: claimObj.heldReason || null,
     calculatedAmount: claimObj.calculatedAmount,
     approvedAmount: claimObj.approvedAmount,
     releasedAmount: claimObj.releasedAmount,
@@ -166,15 +188,47 @@ const transformClaimForResponse = (claim, approvalHistory = null) => {
     fields: claimObj.metadata || {},
     metadata: claimObj.metadata || {},
     workflowProgress: claimObj.workflowProgress || null,
+    effectiveApprover,
+    permissions,
     
     workflowHistory: approvalHistory 
-      ? approvalHistory.map(h => ({
-          level: h.actionByRole === 'hod' ? 'HOD' : h.actionByRole === 'principal' ? 'Principal' : h.actionByRole === 'director' ? 'Director' : h.actionByRole === 'accounts' ? 'Accounts' : 'Applicant',
-          action: h.action.includes('REJECT') ? 'Rejected' : h.action.includes('RETURN') ? 'Revision Requested' : h.action.includes('SUBMIT') ? 'Submitted' : 'Approved',
-          by: h.actionByName,
-          remarks: h.remarks,
-          date: h.date
-        }))
+      ? approvalHistory.map(h => {
+          const role = (h.actionByRole || '').toLowerCase();
+          let levelLabel = 'Faculty';
+
+          if (role === 'student') {
+            levelLabel = 'Student';
+          } else if (role === 'faculty') {
+            levelLabel = 'Faculty';
+          } else if (role === 'hod') {
+            levelLabel = 'HOD';
+          } else if (role === 'principal') {
+            levelLabel = 'Principal';
+          } else if (role === 'director') {
+            levelLabel = 'Director';
+          } else if (role === 'rpc_cell' || role === 'rd_cell' || role === 'rpc') {
+            levelLabel = 'R & D';
+          } else if (role === 'accounts' || role === 'finance') {
+            const hasPayout = (claimObj.totalIncentive > 0 || claimObj.approvedAmount > 0 || userShare > 0) && !claimObj.isHeld && (claimObj.status === 'COMPLETED' || (h.action && h.action.includes('RELEASE')));
+            levelLabel = hasPayout ? 'Account Credited The Money' : 'Completed';
+          } else if (h.action && (h.action.includes('SUBMIT') || h.action.includes('SAVE'))) {
+            levelLabel = claimObj.applicantRole === 'student' ? 'Student' : 'Faculty';
+          }
+
+          const isRejected = h.action && (h.action.includes('REJECT') || h.action.includes('WITHDRAW'));
+          const isReturned = h.action && (h.action.includes('RETURN') || h.action.includes('REVISE') || h.action.includes('CORRECT'));
+          const actionText = isRejected ? 'Rejected' : isReturned ? 'Revision Requested' : (h.action && h.action.includes('SUBMIT')) ? 'Submitted' : 'Approved';
+
+          return {
+            level: levelLabel,
+            action: actionText,
+            isRejected,
+            isReturned,
+            by: h.actionByName,
+            remarks: h.remarks,
+            date: h.date
+          };
+        })
       : [],
     reviewHistory: approvalHistory 
       ? approvalHistory.map(h => ({
@@ -200,10 +254,9 @@ const transformClaimForResponse = (claim, approvalHistory = null) => {
     incentiveInfo: {
       incentiveCategory: claimObj.category,
       eligibleIncentive: 'Yes',
-      estimatedAmount: claimObj.calculatedAmount || claimObj.approvedAmount || 0,
+      estimatedAmount: userShare,
       claimStatus: frontendStatus
     },
-    permissions: { canEdit: claimObj.status === 'DRAFT' || claimObj.status === 'RETURNED' },
     paymentDetails: claimObj.paymentDetails || null,
     createdAt: claimObj.createdAt,
     updatedAt: claimObj.updatedAt

@@ -116,14 +116,31 @@ export const calculateIncentive = async (claim) => {
     };
   }
   
-  let amount = rule.incentiveAmount;
+  let totalIncentive = rule.incentiveAmount;
   
-  // Apply multi-author rules
-  const totalInternalAuthors = countInternalAuthors(claim.metadata);
-  if (totalInternalAuthors > 1 && rule.multiAuthorRule === 'divide_equally') {
-    amount = Math.round(amount / totalInternalAuthors);
-  }
-  // For 'first_author_full' and 'corresponding_author_full', keep full amount
+  // Extract and parse authors from claim metadata
+  const rawAuthors = Array.isArray(claim.metadata?.authors) && claim.metadata.authors.length > 0
+    ? claim.metadata.authors
+    : [{ name: claim.applicantName, department: claim.department, employeeId: '', isMmdu: true }];
+
+  const mmduAuthors = rawAuthors.filter(a => a.isMmdu !== false && a.isMmdu !== 'no' && String(a.isMmdu).toLowerCase() !== 'false');
+  const mmduAuthorCount = Math.max(1, mmduAuthors.length);
+  const individualShare = Math.round(totalIncentive / mmduAuthorCount);
+
+  const authorPayments = rawAuthors.map(author => {
+    const isMmdu = author.isMmdu !== false && author.isMmdu !== 'no' && String(author.isMmdu).toLowerCase() !== 'false';
+    return {
+      name: author.name || 'Author',
+      employeeId: author.employeeId || author.id || '',
+      department: author.department || claim.department,
+      institution: isMmdu ? 'MMDU' : (author.institution || 'External'),
+      isMmdu: isMmdu,
+      payableAmount: isMmdu ? individualShare : 0,
+      paymentStatus: 'HELD'
+    };
+  });
+
+  let amount = individualShare; // Applicant's share of total incentive
   
   // Check annual limits
   if (rule.maxClaimsPerYear > 0) {
@@ -137,6 +154,10 @@ export const calculateIncentive = async (claim) => {
     if (existingClaimsCount >= rule.maxClaimsPerYear) {
       return {
         amount: 0,
+        totalIncentive: 0,
+        mmduAuthorCount,
+        individualShare: 0,
+        authorPayments: [],
         scorePoints: 0,
         policySnapshot: { error: `Annual claim limit (${rule.maxClaimsPerYear}) exceeded`, rule: rule.toObject() },
         policyRule: rule
@@ -167,19 +188,21 @@ export const calculateIncentive = async (claim) => {
   const policySnapshot = {
     ruleId: rule._id,
     condition,
-    baseAmount: rule.incentiveAmount,
+    totalIncentive,
+    mmduAuthorCount,
+    individualShare,
     calculatedAmount: amount,
     currency: 'INR',
-    multiAuthorRule: rule.multiAuthorRule,
-    totalInternalAuthors,
-    maxClaimsPerYear: rule.maxClaimsPerYear,
-    maxAmountPerYear: rule.maxAmountPerYear,
-    applicantType: rule.applicantType,
+    multiAuthorRule: 'divide_equally_mmdu',
     calculatedAt: new Date()
   };
   
   return {
     amount,
+    totalIncentive,
+    mmduAuthorCount,
+    individualShare,
+    authorPayments,
     scorePoints: rule.scorePoints || 0,
     policySnapshot,
     policyRule: rule

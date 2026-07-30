@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 
-import { getSubmissions } from "../../../services/submissionService";
+import { getSubmissions, getSubmissionById } from "../../../services/submissionService";
 import { processTransition } from "../../../services/workflowService";
 import { ROUTES } from "../../../constants/routes";
 
@@ -35,18 +35,25 @@ const SubmissionReviewDetails = () => {
     setLoading(true);
     setError(null);
     try {
-      // Temporary workaround: Fetch all and find the one. 
-      // Replace with getSubmissionById if the backend supports it.
-      const response = await getSubmissions();
-      const allSubmissions = response.data || [];
-      const found = allSubmissions.find((s) => s.id === id);
-      
-      if (!found) {
+      const response = await getSubmissionById(id);
+      const data = response.data || response;
+      if (!data) {
         throw new Error("Submission not found");
       }
-      setSubmission(found);
+      setSubmission(data);
     } catch (err) {
       console.error("Error fetching submission details:", err);
+      try {
+        const responseAll = await getSubmissions();
+        const allSubmissions = responseAll.data || responseAll.claims || [];
+        const found = allSubmissions.find((s) => s.id === id || s._id === id);
+        if (found) {
+          setSubmission(found);
+          return;
+        }
+      } catch {
+        // ignore secondary error
+      }
       setError(err.message || "Failed to load submission details");
     } finally {
       setLoading(false);
@@ -334,37 +341,37 @@ const SubmissionReviewDetails = () => {
       </div>
 
       {/* Sticky Action Panel */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)] z-40">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 justify-end lg:pr-64">
-          <button 
-            disabled={submitting}
-            className="px-6 py-2.5 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50"
-          >
-            Save Analysis
-          </button>
-          <button 
-            disabled={submitting}
-            onClick={() => handleAction("return")}
-            className="px-6 py-2.5 rounded-lg font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors disabled:opacity-50"
-          >
-            Return for Clarification
-          </button>
-          <button 
-            disabled={submitting}
-            onClick={() => handleAction("reject")}
-            className="px-6 py-2.5 rounded-lg font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-colors disabled:opacity-50"
-          >
-            Reject
-          </button>
-          <ActionButton 
-            disabled={submitting}
-            onClick={() => handleAction("approve")}
-            defaultText="FINAL APPROVAL"
-            activeText="Processing..."
-            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 shadow-md"
-          />
+      {submission.permissions?.canApprove ? (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)] z-40">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3 justify-end lg:pr-64">
+            <button 
+              disabled={submitting}
+              onClick={() => handleAction("return")}
+              className="px-6 py-2.5 rounded-lg font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors disabled:opacity-50"
+            >
+              Return for Clarification
+            </button>
+            <button 
+              disabled={submitting}
+              onClick={() => handleAction("reject")}
+              className="px-6 py-2.5 rounded-lg font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-colors disabled:opacity-50"
+            >
+              Reject
+            </button>
+            <ActionButton 
+              disabled={submitting}
+              onClick={() => handleAction("approve")}
+              defaultText="FINAL APPROVAL"
+              activeText="Processing..."
+              className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 shadow-md"
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-50 border-t p-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider z-40">
+          View Only Mode — Effective Approver: {submission.effectiveApprover?.label || 'Assigned Desk'}
+        </div>
+      )}
     </div>
   );
 };

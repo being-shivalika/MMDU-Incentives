@@ -26,7 +26,7 @@ const ApplicantSubmissions = () => {
       setLoading(true);
       try {
         const response = await getSubmissions();
-        setSubmissions(response.data || []);
+        setSubmissions(response.data || response.claims || []);
       } catch (error) {
         console.error("Failed to fetch submissions", error);
       } finally {

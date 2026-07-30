@@ -103,29 +103,30 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t  bg-green-50 p-4 rounded-xl border border-green-200">
-                <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-2">
-                  Financial Information
+              <div className="mt-4 pt-4 bg-green-50 p-4 rounded-xl border border-green-200 space-y-2">
+                <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1">
+                  Financial & Author Split Information (Policy 2026)
                 </p>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-green-800">
-                    Approved Incentive Amount:
-                  </span>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-green-800">Total Publication Incentive:</span>
+                  <span className="font-bold text-green-900">₹{submission.totalIncentive || submission.approvedAmount || 0}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-green-800">MMDU Authors Count:</span>
+                  <span className="font-bold text-green-900">{submission.mmduAuthorCount || 1}</span>
+                </div>
+                <div className="flex justify-between items-center border-t border-green-200 pt-2">
+                  <span className="text-sm font-bold text-green-900">Individual Payable Share:</span>
                   <span className="font-bold text-2xl text-green-900">
-                    ₹
-                    {submission.incentiveAmount ||
-                      submission.approvedAmount ||
-                      0}
+                    ₹{submission.individualShare || submission.userShare || submission.incentiveAmount || 0}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-700">
-                    Recommended by:
-                  </span>
-                  <span className="text-sm font-semibold text-green-800">
-                    RPC / R&D
-                  </span>
-                </div>
+
+                {submission.isHeld && (
+                  <div className="mt-2 p-2.5 bg-amber-100 border border-amber-300 rounded-lg text-xs font-bold text-amber-900">
+                    ⚠️ {submission.heldReason || "Payment held until second eligible publication is approved per policy."}
+                  </div>
+                )}
               </div>
 
               <div className="mt-4">
@@ -145,12 +146,18 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
         </div>
 
         <div className="p-6 border-t bg-gray-50 flex gap-3 flex-wrap">
-          <button
-            onClick={() => handleActionClick("Process Payment")}
-            className="flex-1 bg-green-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <Check className="h-5 w-5" /> Release Payment
-          </button>
+          {(submission.permissions?.canReleasePayment || submission.permissions?.canConfirmPayment) ? (
+            <button
+              onClick={() => handleActionClick("Process Payment")}
+              className="flex-1 bg-green-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <Check className="h-5 w-5" /> Release Payment
+            </button>
+          ) : (
+            <div className="w-full text-center text-xs font-bold text-gray-500 uppercase tracking-wider py-2">
+              View Only Mode — Payment Action Restricted
+            </div>
+          )}
         </div>
       </div>
     </div>

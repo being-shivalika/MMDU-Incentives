@@ -31,6 +31,13 @@ const researchReviewRoutes = [
     showInSidebar: true,
     allowedRoles: [ROLES.RD_CELL, ROLES.RPC_CELL],
   },
+  {
+    path: ROUTES.RESEARCH_REVIEW_DETAILS,
+    element: <SubmissionReviewDetails />,
+    label: "Review Submission Details",
+    showInSidebar: false,
+    allowedRoles: [ROLES.RD_CELL, ROLES.RPC_CELL],
+  },
 ];
 
 export default researchReviewRoutes;
