@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Building2,
   X,
+  Pencil,
 } from "lucide-react";
 
 const departments = [
@@ -92,19 +93,28 @@ const SubmissionForm = ({
   children,
 }) => {
   const currentAuthors = Array.isArray(formData?.authors) ? formData.authors : [];
-  const rawCount = parseInt(formData?.totalAuthorsCount, 10);
-  const totalAuthorsRequired =
-    isNaN(rawCount) || rawCount <= 0 ? 0 : Math.min(rawCount, 10);
+  const [newAuthor, setNewAuthor] = useState({
+    isMmdu: true,
+    name: "",
+    employeeId: "",
+    department: "",
+    designation: "",
+    institution: "MMDU",
+  });
 
+  const [editingIndex, setEditingIndex] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
-  const checkMmduAuthorRequirement = () => {
-    const mmduAuthorExists = activeAuthorSlots.some(
-      (a) => a && a.isMmdu !== false && String(a.name || "").trim() !== ""
-    );
+  const mmduAuthors = currentAuthors.filter(
+    (a) => a && a.isMmdu !== false && String(a.name || "").trim() !== ""
+  );
+  const mmduAuthorCount = mmduAuthors.length;
+  const equalSharePercentage =
+    mmduAuthorCount > 0 ? (100 / mmduAuthorCount).toFixed(1) : "0";
 
-    if (!mmduAuthorExists) {
+  const checkMmduAuthorRequirement = () => {
+    if (mmduAuthorCount === 0) {
       setToastMessage("At least one author must be from MMDU.");
       setTimeout(() => setToastMessage(null), 5000);
       return false;
@@ -122,17 +132,15 @@ const SubmissionForm = ({
     if (onDraft) onDraft(e);
   };
 
-  const getDepartmentSuggestions = (slotIndex) => {
-    const author = currentAuthors[slotIndex] || {};
-    const val = String(author.department || "").toLowerCase().trim();
+  const getDepartmentSuggestions = (deptVal) => {
+    const val = String(deptVal || "").toLowerCase().trim();
     return departments.filter((d) => String(d).toLowerCase().includes(val));
   };
 
-  const getEmpIdSuggestions = (slotIndex) => {
-    const author = currentAuthors[slotIndex] || {};
-    const dept = String(author.department || "").toLowerCase().trim();
-    const empId = String(author.employeeId || author.id || "").toLowerCase().trim();
-    const name = String(author.name || "").toLowerCase().trim();
+  const getEmpIdSuggestions = (authorState) => {
+    const dept = String(authorState?.department || "").toLowerCase().trim();
+    const empId = String(authorState?.employeeId || authorState?.id || "").toLowerCase().trim();
+    const name = String(authorState?.name || "").toLowerCase().trim();
 
     return dummyFaculty.filter((f) => {
       const fDept = String(f.department || "").toLowerCase();
@@ -146,11 +154,10 @@ const SubmissionForm = ({
     });
   };
 
-  const getNameSuggestions = (slotIndex) => {
-    const author = currentAuthors[slotIndex] || {};
-    const dept = String(author.department || "").toLowerCase().trim();
-    const empId = String(author.employeeId || author.id || "").toLowerCase().trim();
-    const name = String(author.name || "").toLowerCase().trim();
+  const getNameSuggestions = (authorState) => {
+    const dept = String(authorState?.department || "").toLowerCase().trim();
+    const empId = String(authorState?.employeeId || authorState?.id || "").toLowerCase().trim();
+    const name = String(authorState?.name || "").toLowerCase().trim();
 
     return dummyFaculty.filter((f) => {
       const fDept = String(f.department || "").toLowerCase();
@@ -164,8 +171,8 @@ const SubmissionForm = ({
     });
   };
 
-  const handleSelectFaculty = (index, faculty) => {
-    handleUpdateAuthorSlot(index, {
+  const handleSelectFacultyToNewAuthor = (faculty) => {
+    setNewAuthor({
       id: faculty.id,
       employeeId: faculty.id,
       name: faculty.name,
@@ -177,61 +184,107 @@ const SubmissionForm = ({
     setActiveDropdown(null);
   };
 
-  // Helper to update a specific author slot index
-  const handleUpdateAuthorSlot = (index, fieldUpdates) => {
-    const newAuthors = [...currentAuthors];
+  const handleEditAuthorIndex = (index) => {
+    const authorToEdit = currentAuthors[index];
+    if (!authorToEdit) return;
+    setEditingIndex(index);
+    setNewAuthor({
+      id: authorToEdit.id || authorToEdit.employeeId || "",
+      employeeId: authorToEdit.employeeId || authorToEdit.id || "",
+      name: authorToEdit.name || "",
+      department: authorToEdit.department || "",
+      designation: authorToEdit.designation || "",
+      institution: authorToEdit.institution || (authorToEdit.isMmdu !== false ? "MMDU" : ""),
+      isMmdu: authorToEdit.isMmdu !== false,
+    });
+  };
 
-    // Ensure array is padded up to index
-    for (let i = 0; i <= index; i++) {
-      if (!newAuthors[i]) {
-        newAuthors[i] = {
-          id: `AUTH_${i + 1}_${Date.now()}`,
-          isMmdu: true,
-          name: "",
-          employeeId: "",
-          department: "",
-          designation: "",
-          institution: "MMDU",
-        };
-      }
+  const handleCancelEdit = () => {
+    setEditingIndex(null);
+    setNewAuthor({
+      isMmdu: true,
+      name: "",
+      employeeId: "",
+      department: "",
+      designation: "",
+      institution: "MMDU",
+    });
+    setActiveDropdown(null);
+  };
+
+  const handleAddAuthorSubmit = () => {
+    if (!newAuthor.name || !newAuthor.name.trim()) {
+      setToastMessage("Please enter or select author name before submitting.");
+      setTimeout(() => setToastMessage(null), 4000);
+      return;
     }
 
-    newAuthors[index] = {
-      ...newAuthors[index],
-      ...fieldUpdates,
+    const authorObj = {
+      id: newAuthor.employeeId || newAuthor.id || `AUTH_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      employeeId: newAuthor.employeeId || "",
+      name: newAuthor.name.trim(),
+      department: newAuthor.department || (newAuthor.isMmdu ? "MMDU" : newAuthor.institution || "External"),
+      designation: newAuthor.designation || "",
+      institution: newAuthor.isMmdu ? "MMDU" : newAuthor.institution || "External",
+      isMmdu: newAuthor.isMmdu !== false,
     };
+
+    let updated;
+    if (editingIndex !== null) {
+      updated = [...currentAuthors];
+      updated[editingIndex] = authorObj;
+    } else {
+      updated = [...currentAuthors, authorObj];
+      if (handleAddAuthor) {
+        handleAddAuthor(authorObj);
+      }
+    }
 
     if (handleInputChange) {
       handleInputChange({
         target: {
           name: "authors",
-          value: newAuthors.slice(0, totalAuthorsRequired > 0 ? totalAuthorsRequired : newAuthors.length),
+          value: updated,
         },
       });
     }
+
+    // Reset editing and form state
+    setEditingIndex(null);
+    setNewAuthor({
+      isMmdu: true,
+      name: "",
+      employeeId: "",
+      department: "",
+      designation: "",
+      institution: "MMDU",
+    });
+    setActiveDropdown(null);
   };
 
-  // Calculate active author slots safely
-  const activeAuthorSlots = Array.from({ length: totalAuthorsRequired }).map(
-    (_, i) =>
-      currentAuthors[i] || {
-        id: `AUTH_${i + 1}`,
-        isMmdu: true,
-        name: "",
-        employeeId: "",
-        department: "",
-        designation: "",
-        institution: "MMDU",
-      }
-  );
+  const handleRemoveAuthorIndex = (indexToRemove) => {
+    const targetAuthor = currentAuthors[indexToRemove];
+    const updated = currentAuthors.filter((_, i) => i !== indexToRemove);
 
-  const mmduAuthors = activeAuthorSlots.filter(
-    (a) => a && a.isMmdu !== false && String(a.name || "").trim() !== ""
-  );
+    if (editingIndex === indexToRemove) {
+      handleCancelEdit();
+    } else if (editingIndex !== null && editingIndex > indexToRemove) {
+      setEditingIndex(editingIndex - 1);
+    }
 
-  const mmduAuthorCount = mmduAuthors.length;
-  const equalSharePercentage =
-    mmduAuthorCount > 0 ? (100 / mmduAuthorCount).toFixed(1) : "0";
+    if (handleInputChange) {
+      handleInputChange({
+        target: {
+          name: "authors",
+          value: updated,
+        },
+      });
+    }
+
+    if (handleRemoveAuthor && targetAuthor) {
+      handleRemoveAuthor(targetAuthor.id || targetAuthor.employeeId);
+    }
+  };
 
   return (
     <Card className="relative w-full bg-white border border-neutral-200 shadow-sm rounded-xl overflow-hidden p-0">
@@ -305,370 +358,434 @@ const SubmissionForm = ({
 
       {/* DYNAMIC AUTHORS SECTION */}
       <section className="px-6 py-5 border-b border-neutral-100 bg-neutral-50/30">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
             <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-2">
               <Users size={18} className="text-blue-600" />
               Authors & Contributors Details
             </h2>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Specify total authors to unlock detail fields. Money slips are generated only for MMDU authors.
+              Add authors using the field below. Money slips are generated only for MMDU authors.
             </p>
           </div>
 
-          {totalAuthorsRequired > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200/60">
-                {totalAuthorsRequired} Authors Unlocked
+          {currentAuthors.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200/60">
+                {currentAuthors.length} Author{currentAuthors.length > 1 ? "s" : ""} Added
               </span>
+              {mmduAuthorCount > 0 && (
+                <span className="text-xs font-semibold px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200/60">
+                  {mmduAuthorCount} MMDU ({equalSharePercentage}% Share Each)
+                </span>
+              )}
             </div>
           )}
         </div>
 
-        {/* INPUT FOR NUMBER OF AUTHORS */}
-        <div className="bg-white border border-neutral-200/90 rounded-xl p-4 shadow-sm mb-6">
-          <div className="max-w-md">
-            <Input
-              type="number"
-              min="1"
-              max="10"
-              label="TOTAL NO. OF AUTHORS REQUIRED"
-              name="totalAuthorsCount"
-              placeholder="Enter number of authors (e.g. 3)"
-              value={formData.totalAuthorsCount || ""}
-              onChange={handleInputChange}
-            />
-            <p className="text-[11px] text-neutral-400 mt-1">
-              Entering the number of authors will unlock exact fields below for each author.
-            </p>
-          </div>
-        </div>
+        {/* 1. ADDED AUTHOR TILES (DISPLAYED TO THE TOP OF THE FIELD) */}
+        <div className="mb-5">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 block">
+            Added Authors ({currentAuthors.length})
+          </label>
 
-        {/* UNLOCKED AUTHOR CARDS */}
-        {totalAuthorsRequired === 0 ? (
-          <div className="p-8 text-center bg-white border border-dashed border-neutral-300 rounded-xl">
-            <Users className="mx-auto text-neutral-300 mb-2" size={36} />
-            <h3 className="text-sm font-semibold text-neutral-700">No Author Fields Unlocked Yet</h3>
-            <p className="text-xs text-neutral-500 mt-1">
-              Please enter the <strong>Total No. of Authors Required</strong> above to unlock the details form for each author.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {Array.from({ length: totalAuthorsRequired }).map((_, index) => {
-              const author = currentAuthors[index] || {
-                isMmdu: true,
-                name: "",
-                employeeId: "",
-                department: "",
-                designation: "",
-                institution: "MMDU",
-              };
-
-              const isMmdu = author.isMmdu !== false;
-
-              return (
-                <div
-                  key={index}
-                  className="bg-white border border-neutral-200/90 rounded-xl overflow-hidden shadow-sm transition-all hover:border-neutral-300"
-                >
-                  {/* SLOT HEADER */}
-                  <div className="px-5 py-3 border-b border-neutral-100 bg-neutral-50/80 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-neutral-800 text-white uppercase tracking-wider">
+          {currentAuthors.length === 0 ? (
+            <div className="p-6 text-center bg-white border border-dashed border-neutral-300 rounded-xl">
+              <Users className="mx-auto text-neutral-300 mb-2" size={32} />
+              <p className="text-xs font-semibold text-neutral-700">No Authors Added Yet</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                Use the single author field below to add MMDU faculty or external authors.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {currentAuthors.map((author, index) => {
+                const isMmdu = author.isMmdu !== false;
+                return (
+                  <div
+                    key={author.id || index}
+                    className="bg-white border border-neutral-200/90 rounded-xl p-3.5 shadow-sm hover:border-neutral-300 transition-all flex flex-col justify-between relative group"
+                  >
+                    {/* Tile Header */}
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-neutral-800 text-white uppercase tracking-wider">
                         {index === 0 ? "1st Author (Primary)" : `Author #${index + 1}`}
                       </span>
-                      <span className="text-xs font-medium text-neutral-600">
-                        {author.name ? author.name : `Pending Information`}
-                      </span>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                      {isMmdu ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <UserCheck size={12} /> MMDU Author (Money Slip Eligible)
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-600 border border-neutral-200">
-                          <UserX size={12} /> External Author (No Money Share)
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                      <div className="flex items-center gap-1.5">
+                        {isMmdu ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <UserCheck size={11} /> MMDU
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                            <UserX size={11} /> External
+                          </span>
+                        )}
 
-                  {/* SLOT CONTENT */}
-                  <div className="p-5 space-y-4">
-                    {/* AFFILIATION QUESTION */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block">
-                        Is this Author from MMDU?
-                      </label>
-                      <div className="grid grid-cols-2 gap-3 max-w-md">
                         <button
                           type="button"
-                          onClick={() =>
-                            handleUpdateAuthorSlot(index, {
-                              isMmdu: true,
-                              institution: "MMDU",
-                            })
-                          }
-                          className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                            isMmdu
-                              ? "bg-blue-50 border-blue-600 text-blue-700 shadow-sm"
-                              : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                          onClick={() => handleEditAuthorIndex(index)}
+                          title="Edit Author Details"
+                          className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                            editingIndex === index
+                              ? "bg-amber-100 text-amber-700 font-bold"
+                              : "text-neutral-400 hover:text-blue-600 hover:bg-blue-50"
                           }`}
                         >
-                          <Building2 size={14} /> Yes, MMDU Faculty / Staff
+                          <Pencil size={13} />
                         </button>
+
                         <button
                           type="button"
-                          onClick={() =>
-                            handleUpdateAuthorSlot(index, {
-                              isMmdu: false,
-                              employeeId: "",
-                              institution: author.institution === "MMDU" ? "" : author.institution,
-                            })
-                          }
-                          className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                            !isMmdu
-                              ? "bg-amber-50 border-amber-600 text-amber-800 shadow-sm"
-                              : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50"
-                          }`}
+                          onClick={() => handleRemoveAuthorIndex(index)}
+                          title="Remove Author"
+                          className="p-1 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                         >
-                          <UserX size={14} /> No, External Author
+                          <X size={14} />
                         </button>
                       </div>
                     </div>
 
-                    {/* MMDU FACULTY SELECTION (MANUAL TYPING + AUTOFILL) */}
-                    {isMmdu ? (
-                      <div className="space-y-4 bg-neutral-50/70 p-4 rounded-xl border border-neutral-200/80">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-neutral-700 uppercase tracking-wider flex items-center gap-1.5">
-                            <Building2 size={15} className="text-blue-600" /> MMDU Faculty Selection
+                    {/* Information Tile Details */}
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold text-neutral-800 truncate">
+                        {author.name || "Unnamed Author"}
+                      </h4>
+
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-neutral-500">
+                        {(author.employeeId || author.id) && (
+                          <span className="font-mono font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
+                            ID: {author.employeeId || author.id}
                           </span>
+                        )}
+                        <span className="truncate">
+                          {author.department || (isMmdu ? "MMDU" : author.institution || "External")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-                          {(author.name || author.employeeId || author.department) && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleUpdateAuthorSlot(index, {
-                                  department: "",
-                                  employeeId: "",
-                                  name: "",
-                                  designation: "",
-                                })
-                              }
-                              className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:underline"
-                            >
-                              Clear / Reset Fields
-                            </button>
-                          )}
-                        </div>
+        {/* 2. SINGLE FIELD TO ADD / EDIT MULTIPLE AUTHORS */}
+        <div className="bg-white border border-neutral-200/90 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100">
+            <div className="flex items-center gap-2">
+              {editingIndex !== null ? (
+                <>
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                    <Pencil size={15} className="text-amber-600" /> Editing Author #{editingIndex + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="text-[11px] font-semibold text-neutral-500 hover:text-neutral-800 underline ml-2 cursor-pointer"
+                  >
+                    Cancel Edit
+                  </button>
+                </>
+              ) : (
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-700 flex items-center gap-2">
+                  <Building2 size={16} className="text-blue-600" /> Add Author Field
+                </span>
+              )}
+            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {/* 1. TEACHER DEPARTMENT */}
-                          <div className="relative">
-                            <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
-                              1. Teacher Department
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Type or select Department..."
-                              value={author.department || ""}
-                              onFocus={() => setActiveDropdown({ slotIndex: index, field: "dept" })}
-                              onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
-                              onChange={(e) => {
-                                handleUpdateAuthorSlot(index, { department: e.target.value });
-                              }}
-                              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 outline-none transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-                            />
-                            {activeDropdown?.slotIndex === index && activeDropdown?.field === "dept" && (
-                              <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-40 overflow-y-auto divide-y divide-neutral-100">
-                                {getDepartmentSuggestions(index).map((d) => (
-                                  <button
-                                    key={d}
-                                    type="button"
-                                    onMouseDown={() => {
-                                      handleUpdateAuthorSlot(index, { department: d });
-                                      setActiveDropdown(null);
-                                    }}
-                                    className="w-full text-left px-3 py-2 text-xs text-neutral-800 hover:bg-blue-50 font-medium"
-                                  >
-                                    {d}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+            {/* Affiliation Mode Selector */}
+            <div className="flex items-center bg-neutral-100 p-1 rounded-lg">
+              <button
+                type="button"
+                onClick={() =>
+                  setNewAuthor((prev) => ({
+                    ...prev,
+                    isMmdu: true,
+                    institution: "MMDU",
+                  }))
+                }
+                className={`px-3 py-1 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                  newAuthor.isMmdu
+                    ? "bg-white text-blue-700 shadow-sm"
+                    : "text-neutral-600 hover:text-neutral-900"
+                }`}
+              >
+                <Building2 size={13} /> MMDU Faculty / Staff
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setNewAuthor((prev) => ({
+                    ...prev,
+                    isMmdu: false,
+                    employeeId: "",
+                    institution: "",
+                  }))
+                }
+                className={`px-3 py-1 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                  !newAuthor.isMmdu
+                    ? "bg-white text-amber-700 shadow-sm"
+                    : "text-neutral-600 hover:text-neutral-900"
+                }`}
+              >
+                <UserX size={13} /> External Author
+              </button>
+            </div>
+          </div>
 
-                          {/* 2. TEACHER ROLL NO / EMP ID */}
-                          <div className="relative">
-                            <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
-                              2. Teacher Roll No / Emp ID
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Type or select Roll No / Emp ID..."
-                              value={author.employeeId || ""}
-                              onFocus={() => setActiveDropdown({ slotIndex: index, field: "empId" })}
-                              onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
-                              onChange={(e) => {
-                                const typedId = e.target.value;
-                                const matched = dummyFaculty.find(
-                                  (f) => f.id.toLowerCase() === typedId.toLowerCase().trim()
-                                );
-                                if (matched) {
-                                  handleSelectFaculty(index, matched);
-                                } else {
-                                  handleUpdateAuthorSlot(index, { employeeId: typedId });
-                                }
-                              }}
-                              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-mono font-bold text-neutral-800 outline-none transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-                            />
-                            {activeDropdown?.slotIndex === index && activeDropdown?.field === "empId" && (
-                              <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y divide-neutral-100">
-                                {getEmpIdSuggestions(index).length > 0 ? (
-                                  getEmpIdSuggestions(index).map((f) => (
-                                    <button
-                                      key={f.id}
-                                      type="button"
-                                      onMouseDown={() => handleSelectFaculty(index, f)}
-                                      className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center justify-between"
-                                    >
-                                      <div>
-                                        <span className="text-xs font-mono font-bold text-blue-700 block">
-                                          {f.id}
-                                        </span>
-                                        <span className="text-[11px] text-neutral-600">
-                                          {f.name} • {f.department}
-                                        </span>
-                                      </div>
-                                      <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-semibold">
-                                        Autofill
-                                      </span>
-                                    </button>
-                                  ))
-                                ) : (
-                                  <p className="px-3 py-2 text-xs text-neutral-400 text-center">
-                                    No matching Roll No / Emp ID. You can type manually.
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
+          {/* Form Inputs for Single Author Entry */}
+          {newAuthor.isMmdu ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Department */}
+              <div className="relative">
+                <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
+                  1. Teacher Department
+                </label>
+                <input
+                  type="text"
+                  placeholder="Type or select Department..."
+                  value={newAuthor.department || ""}
+                  onFocus={() => setActiveDropdown({ field: "dept" })}
+                  onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
+                  onChange={(e) =>
+                    setNewAuthor((prev) => ({ ...prev, department: e.target.value }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddAuthorSubmit();
+                    }
+                  }}
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 outline-none transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                />
+                {activeDropdown?.field === "dept" && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-40 overflow-y-auto divide-y divide-neutral-100">
+                    {getDepartmentSuggestions(newAuthor.department).map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onMouseDown={() => {
+                          setNewAuthor((prev) => ({ ...prev, department: d }));
+                          setActiveDropdown(null);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs text-neutral-800 hover:bg-blue-50 font-medium cursor-pointer"
+                      >
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                          {/* 3. TEACHER NAME */}
-                          <div className="relative">
-                            <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
-                              3. Teacher Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Type or select Teacher Name..."
-                              value={author.name || ""}
-                              onFocus={() => setActiveDropdown({ slotIndex: index, field: "name" })}
-                              onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
-                              onChange={(e) => {
-                                const typedName = e.target.value;
-                                const matched = dummyFaculty.find(
-                                  (f) => f.name.toLowerCase() === typedName.toLowerCase().trim()
-                                );
-                                if (matched) {
-                                  handleSelectFaculty(index, matched);
-                                } else {
-                                  handleUpdateAuthorSlot(index, { name: typedName });
-                                }
-                              }}
-                              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-800 outline-none transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-                            />
-                            {activeDropdown?.slotIndex === index && activeDropdown?.field === "name" && (
-                              <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y divide-neutral-100">
-                                {getNameSuggestions(index).length > 0 ? (
-                                  getNameSuggestions(index).map((f) => (
-                                    <button
-                                      key={f.id}
-                                      type="button"
-                                      onMouseDown={() => handleSelectFaculty(index, f)}
-                                      className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center justify-between"
-                                    >
-                                      <div>
-                                        <span className="text-xs font-bold text-neutral-800 block">
-                                          {f.name}
-                                        </span>
-                                        <span className="text-[11px] text-neutral-500">
-                                          Emp ID: {f.id} • {f.department}
-                                        </span>
-                                      </div>
-                                      <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-semibold">
-                                        Autofill
-                                      </span>
-                                    </button>
-                                  ))
-                                ) : (
-                                  <p className="px-3 py-2 text-xs text-neutral-400 text-center">
-                                    No matching Teacher Name. You can type manually.
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* VERIFICATION & MATCH STATUS NOTICE */}
-                        {author.name && author.employeeId && (
-                          <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-lg flex items-center justify-between gap-2 text-xs text-emerald-800">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                              <span>
-                                <strong>MMDU Faculty Verified:</strong> {author.name} ({author.employeeId}) — {author.department || "MMDU"}
-                              </span>
-                            </div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded">
-                              Incentive Eligible
+              {/* Teacher Roll No / Emp ID */}
+              <div className="relative">
+                <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
+                  2. Teacher Roll No / Emp ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="Type or select Emp ID..."
+                  value={newAuthor.employeeId || ""}
+                  onFocus={() => setActiveDropdown({ field: "empId" })}
+                  onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
+                  onChange={(e) => {
+                    const typedId = e.target.value;
+                    const matched = dummyFaculty.find(
+                      (f) => f.id.toLowerCase() === typedId.toLowerCase().trim()
+                    );
+                    if (matched) {
+                      handleSelectFacultyToNewAuthor(matched);
+                    } else {
+                      setNewAuthor((prev) => ({ ...prev, employeeId: typedId }));
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddAuthorSubmit();
+                    }
+                  }}
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-mono font-bold text-neutral-800 outline-none transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                />
+                {activeDropdown?.field === "empId" && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y divide-neutral-100">
+                    {getEmpIdSuggestions(newAuthor).length > 0 ? (
+                      getEmpIdSuggestions(newAuthor).map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onMouseDown={() => handleSelectFacultyToNewAuthor(f)}
+                          className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center justify-between cursor-pointer"
+                        >
+                          <div>
+                            <span className="text-xs font-mono font-bold text-blue-700 block">
+                              {f.id}
+                            </span>
+                            <span className="text-[11px] text-neutral-600">
+                              {f.name} • {f.department}
                             </span>
                           </div>
-                        )}
-                      </div>
+                          <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-semibold">
+                            Autofill
+                          </span>
+                        </button>
+                      ))
                     ) : (
-                      /* EXTERNAL AUTHOR FORM */
-                      <div className="space-y-3 bg-neutral-50/50 p-4 rounded-lg border border-neutral-200/60">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <Input
-                            label={`Author #${index + 1} Full Name`}
-                            placeholder="e.g. Dr. Suresh Kumar"
-                            value={author.name || ""}
-                            onChange={(e) =>
-                              handleUpdateAuthorSlot(index, { name: e.target.value })
-                            }
-                          />
-
-                          <Input
-                            label="Institution / Organization"
-                            placeholder="e.g. IIT Delhi, Thapar University"
-                            value={author.institution || ""}
-                            onChange={(e) =>
-                              handleUpdateAuthorSlot(index, { institution: e.target.value })
-                            }
-                          />
-
-                          <Input
-                            label="Designation (Optional)"
-                            placeholder="e.g. Professor, Scientist"
-                            value={author.designation || ""}
-                            onChange={(e) =>
-                              handleUpdateAuthorSlot(index, { designation: e.target.value })
-                            }
-                          />
-                        </div>
-                      </div>
+                      <p className="px-3 py-2 text-xs text-neutral-400 text-center">
+                        No matching Emp ID. You can type manually.
+                      </p>
                     )}
                   </div>
-                </div>
-              );
-            })}
+                )}
+              </div>
+
+              {/* Teacher Name */}
+              <div className="relative">
+                <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
+                  3. Teacher Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Type or select Name..."
+                  value={newAuthor.name || ""}
+                  onFocus={() => setActiveDropdown({ field: "name" })}
+                  onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
+                  onChange={(e) => {
+                    const typedName = e.target.value;
+                    const matched = dummyFaculty.find(
+                      (f) => f.name.toLowerCase() === typedName.toLowerCase().trim()
+                    );
+                    if (matched) {
+                      handleSelectFacultyToNewAuthor(matched);
+                    } else {
+                      setNewAuthor((prev) => ({ ...prev, name: typedName }));
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddAuthorSubmit();
+                    }
+                  }}
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-800 outline-none transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                />
+                {activeDropdown?.field === "name" && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y divide-neutral-100">
+                    {getNameSuggestions(newAuthor).length > 0 ? (
+                      getNameSuggestions(newAuthor).map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onMouseDown={() => handleSelectFacultyToNewAuthor(f)}
+                          className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center justify-between cursor-pointer"
+                        >
+                          <div>
+                            <span className="text-xs font-bold text-neutral-800 block">
+                              {f.name}
+                            </span>
+                            <span className="text-[11px] text-neutral-500">
+                              Emp ID: {f.id} • {f.department}
+                            </span>
+                          </div>
+                          <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-semibold">
+                            Autofill
+                          </span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="px-3 py-2 text-xs text-neutral-400 text-center">
+                        No matching Name. You can type manually.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input
+                label="Author Full Name"
+                placeholder="e.g. Dr. Suresh Kumar"
+                value={newAuthor.name || ""}
+                onChange={(e) => setNewAuthor((prev) => ({ ...prev, name: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddAuthorSubmit();
+                  }
+                }}
+              />
+
+              <Input
+                label="Institution / Organization"
+                placeholder="e.g. IIT Delhi, Thapar Univ"
+                value={newAuthor.institution || ""}
+                onChange={(e) =>
+                  setNewAuthor((prev) => ({ ...prev, institution: e.target.value }))
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddAuthorSubmit();
+                  }
+                }}
+              />
+
+              <Input
+                label="Designation (Optional)"
+                placeholder="e.g. Professor, Scientist"
+                value={newAuthor.designation || ""}
+                onChange={(e) =>
+                  setNewAuthor((prev) => ({ ...prev, designation: e.target.value }))
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddAuthorSubmit();
+                  }
+                }}
+              />
+            </div>
+          )}
+
+          {/* Action to Add / Update Author */}
+          <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
+            {newAuthor.name && newAuthor.employeeId && newAuthor.isMmdu ? (
+              <span className="text-xs text-emerald-700 font-medium flex items-center gap-1">
+                <CheckCircle2 size={14} className="text-emerald-600" />
+                Faculty verified: {newAuthor.name} ({newAuthor.employeeId})
+              </span>
+            ) : (
+              <span className="text-[11px] text-neutral-400">
+                {editingIndex !== null
+                  ? `Modify details above and click Update`
+                  : `Fill details above and click Add Author`}
+              </span>
+            )}
+
+            <button
+              type="button"
+              onClick={handleAddAuthorSubmit}
+              className={`px-4 py-2 text-white font-semibold text-xs rounded-lg transition-all shadow-sm hover:shadow flex items-center gap-1.5 cursor-pointer ${
+                editingIndex !== null
+                  ? "bg-amber-600 hover:bg-amber-700"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {editingIndex !== null ? (
+                <>
+                  <CheckCircle2 size={14} /> Update Author Details
+                </>
+              ) : (
+                <>
+                  + Add Author to List
+                </>
+              )}
+            </button>
           </div>
-        )}
+        </div>
       </section>
 
       {/* VERIFICATION LINKS */}
