@@ -36,3 +36,17 @@ export const deleteSubmission = async (id) => {
     method: 'DELETE',
   });
 };
+
+export const markClaimAsPaid = async (id, remarks = '') => {
+  return await apiClient(`/submissions/${id}/pay`, {
+    method: 'PUT',
+    body: JSON.stringify({ remarks }),
+  });
+};
+
+export const markBatchClaimsAsPaid = async (claimIds = [], remarks = '') => {
+  return await apiClient('/submissions/pay-batch', {
+    method: 'POST',
+    body: JSON.stringify({ claimIds, remarks }),
+  });
+};

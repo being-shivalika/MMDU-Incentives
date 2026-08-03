@@ -49,7 +49,7 @@ const ApplicantSubmissions = () => {
   }, []);
 
   const handleCardClick = (submission) => {
-    navigate(`/applicant/submissions/${submission.id}`);
+    navigate(`/applicant/submissions/${submission._id || submission.id}`);
   };
 
   const submissionTypes = [
@@ -57,6 +57,11 @@ const ApplicantSubmissions = () => {
       label: "Journal Publication",
       path: "/applicant/submissions/create/publication",
       icon: BookOpen,
+    },
+    {
+      label: "Conference / Seminar",
+      path: "/applicant/submissions/create/conference",
+      icon: FileText,
     },
     {
       label: "Books & Chapters",
@@ -181,9 +186,9 @@ const ApplicantSubmissions = () => {
       ) : (
         /* SUBMISSIONS GRID */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {submissions.map((submission) => (
+          {submissions.map((submission, idx) => (
             <div
-              key={submission.id}
+              key={submission._id || submission.id || idx}
               className="transition-transform duration-200 hover:-translate-y-1"
             >
               <SubmissionCard

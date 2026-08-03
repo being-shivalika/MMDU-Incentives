@@ -4,6 +4,7 @@ import * as claimService from '../services/claimService.js';
 import * as approvalService from '../services/approvalService.js';
 import { getClaimPermissions, getEffectiveApprover } from '../services/hierarchyService.js';
 import ApprovalHistory from '../models/ApprovalHistory.js';
+import Claim from '../models/Claim.js';
 
 /**
  * @desc List claims with filtering and pagination
@@ -179,6 +180,8 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
     authorPayments: claimObj.authorPayments || [],
     isHeld: claimObj.isHeld || false,
     heldReason: claimObj.heldReason || null,
+    isPaid: claimObj.isPaid || claimObj.paymentStatus === 'PAID' || false,
+    paymentStatus: claimObj.paymentStatus || (claimObj.isPaid ? 'PAID' : 'PENDING_DISBURSEMENT'),
     calculatedAmount: claimObj.calculatedAmount,
     approvedAmount: claimObj.approvedAmount,
     releasedAmount: claimObj.releasedAmount,
@@ -262,3 +265,124 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
     updatedAt: claimObj.updatedAt
   };
 };
+
+/**
+ * @desc Mark single claim as paid in annual disbursement
+ * @route PUT /api/submissions/:id/pay
+ * @access Private (accounts, admin)
+ */
+export const markClaimAsPaid = asyncHandler(async (req, res) => {
+  const claim = await Claim.findById(req.params.id);
+  if (!claim) {
+    return errorResponse(res, 'Claim not found', null, 404);
+  }
+
+  const totalEligible = await Claim.countDocuments({
+    applicant: claim.applicant,
+    status: { $in: ['RPC_VERIFICATION', 'ACCOUNTS_PROCESSING', 'COMPLETED'] }
+  });
+
+  if (totalEligible >= 2) {
+    claim.isHeld = false;
+    claim.heldReason = null;
+  }
+
+  const amount = claim.individualShare || claim.userShare || claim.approvedAmount || claim.totalIncentive || claim.calculatedAmount || claim.incentiveAmount || 0;
+  claim.isPaid = true;
+  claim.paymentStatus = 'PAID';
+  claim.releasedAmount = amount;
+  claim.paidAmount = amount;
+  claim.paymentDetails = {
+    transactionId: `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    dateReleased: new Date().toISOString(),
+    remarks: req.body.remarks || 'Annual Incentive Disbursed & Bank Credited.'
+  };
+
+  if (claim.authorPayments && claim.authorPayments.length > 0) {
+    claim.authorPayments.forEach(p => {
+      if (p.isMmdu) p.paymentStatus = 'PAID';
+    });
+  }
+
+  await claim.save();
+
+  await ApprovalHistory.create({
+    claim: claim._id,
+    step: 'Payment Released',
+    action: 'RELEASE_PAYMENT',
+    fromStatus: claim.status,
+    toStatus: claim.status,
+    actionBy: req.user._id,
+    actionByName: req.user.name,
+    actionByRole: req.user.role,
+    remarks: req.body.remarks || 'Marked as paid in annual disbursement cycle.',
+    date: new Date()
+  });
+
+  const data = await transformClaimForResponse(claim, null, req.user);
+  return successResponse(res, 'Claim marked as paid successfully', data);
+});
+
+/**
+ * @desc Mark multiple claims as paid in batch
+ * @route POST /api/submissions/pay-batch
+ * @access Private (accounts, admin)
+ */
+export const markBatchClaimsAsPaid = asyncHandler(async (req, res) => {
+  const { claimIds, remarks } = req.body;
+  if (!claimIds || !Array.isArray(claimIds) || claimIds.length === 0) {
+    return errorResponse(res, 'claimIds array is required', null, 400);
+  }
+
+  const claims = await Claim.find({ _id: { $in: claimIds } });
+  const updatedClaims = [];
+
+  for (const claim of claims) {
+    const totalEligible = await Claim.countDocuments({
+      applicant: claim.applicant,
+      status: { $in: ['RPC_VERIFICATION', 'ACCOUNTS_PROCESSING', 'COMPLETED'] }
+    });
+
+    if (totalEligible >= 2) {
+      claim.isHeld = false;
+      claim.heldReason = null;
+    }
+
+    const amount = claim.individualShare || claim.userShare || claim.approvedAmount || claim.totalIncentive || claim.calculatedAmount || claim.incentiveAmount || 0;
+    claim.isPaid = true;
+    claim.paymentStatus = 'PAID';
+    claim.releasedAmount = amount;
+    claim.paidAmount = amount;
+    claim.paymentDetails = {
+      transactionId: `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      dateReleased: new Date().toISOString(),
+      remarks: remarks || 'Annual Incentive Disbursed & Bank Credited.'
+    };
+
+    if (claim.authorPayments && claim.authorPayments.length > 0) {
+      claim.authorPayments.forEach(p => {
+        if (p.isMmdu) p.paymentStatus = 'PAID';
+      });
+    }
+
+    await claim.save();
+
+    await ApprovalHistory.create({
+      claim: claim._id,
+      step: 'Payment Released',
+      action: 'RELEASE_PAYMENT',
+      fromStatus: claim.status,
+      toStatus: claim.status,
+      actionBy: req.user._id,
+      actionByName: req.user.name,
+      actionByRole: req.user.role,
+      remarks: remarks || 'Marked as paid in annual disbursement cycle.',
+      date: new Date()
+    });
+
+    const transformed = await transformClaimForResponse(claim, null, req.user);
+    updatedClaims.push(transformed);
+  }
+
+  return successResponse(res, `Successfully marked ${updatedClaims.length} claims as paid`, updatedClaims);
+});

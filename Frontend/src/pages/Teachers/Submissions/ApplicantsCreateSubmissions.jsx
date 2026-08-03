@@ -5,6 +5,7 @@ import ApplicantCreatePatent from "./ApplicantCreatePatent";
 import ApplicantCreateBook from "./ApplicantCreateBook";
 import ApplicantCreateProject from "./ApplicantCreateProject";
 import ApplicantCreateClaim from "./ApplicantCreateClaim";
+import ApplicantCreateConference from "./ApplicantCreateConference";
 
 const FORM_MAP = {
   publication: ApplicantCreatePublication,
@@ -12,6 +13,7 @@ const FORM_MAP = {
   book: ApplicantCreateBook,
   startup: ApplicantCreateProject,
   copyright: ApplicantCreateClaim,
+  conference: ApplicantCreateConference,
 };
 
 const ApplicantsCreateSubmission = () => {

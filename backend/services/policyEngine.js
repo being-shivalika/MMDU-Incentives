@@ -9,17 +9,26 @@ import logger from '../utils/logger.js';
 const determineCondition = (claim) => {
   const { category, subtype, metadata } = claim;
   
-  if (category === 'research_publications') {
-    const indexingTier = metadata?.indexingTier || '';
-    const quartile = metadata?.quartile || '';
+  if (category === 'research_publications' || category === 'conferences') {
+    if (subtype === 'conference' || category === 'conferences') {
+      const indexingTier = metadata?.indexingTier || '';
+      if (indexingTier.includes('IEEE') || indexingTier.includes('ACM') || indexingTier.includes('Scopus')) {
+        return 'IEEE_ACM_SCOPUS';
+      }
+      return 'OTHER_INDEXED';
+    }
+
+    const indexingTier = String(metadata?.indexingTier || '');
+    const quartile = String(metadata?.quartile || '');
     
-    if (indexingTier.includes('SCI')) {
-      if (quartile === 'Q1') return 'Q1_SCI_SCIE';
-      if (quartile === 'Q2') return 'Q2_SCI_SCIE';
+    if (indexingTier.toLowerCase().includes('sci') || quartile.toUpperCase().startsWith('Q')) {
+      if (quartile.toUpperCase() === 'Q1' || indexingTier.includes('Q1')) return 'Q1_SCI_SCIE';
+      if (quartile.toUpperCase() === 'Q2' || indexingTier.includes('Q2')) return 'Q2_SCI_SCIE';
+      if (quartile.toUpperCase() === 'Q3' || quartile.toUpperCase() === 'Q4' || indexingTier.includes('Q3') || indexingTier.includes('Q4')) return 'Q3_Q4_SCI_SCIE';
       return 'Q3_Q4_SCI_SCIE';
     }
-    if (indexingTier.includes('Scopus')) return 'SCOPUS_ONLY';
-    if (indexingTier.includes('UGC')) return 'UGC_CARE';
+    if (indexingTier.toLowerCase().includes('scopus')) return 'SCOPUS_ONLY';
+    if (indexingTier.toLowerCase().includes('ugc')) return 'UGC_CARE';
     return 'OTHER';
   }
   
@@ -73,10 +82,11 @@ const countInternalAuthors = (metadata) => {
  */
 export const calculateIncentive = async (claim) => {
   const condition = determineCondition(claim);
+  const categoryQuery = claim.category === 'conferences' ? { $in: ['conferences', 'research_publications'] } : claim.category;
   
   // Find matching active policy rule
   const policyRule = await PolicyRule.findOne({
-    category: claim.category,
+    category: categoryQuery,
     subtype: claim.subtype,
     condition,
     isActive: true,
@@ -88,7 +98,7 @@ export const calculateIncentive = async (claim) => {
   
   // Also try broader match (condition = 'ANY') if specific not found
   const fallbackRule = !policyRule ? await PolicyRule.findOne({
-    category: claim.category,
+    category: categoryQuery,
     subtype: claim.subtype,
     condition: 'ANY',
     isActive: true
@@ -118,6 +128,38 @@ export const calculateIncentive = async (claim) => {
   
   let totalIncentive = rule.incentiveAmount;
   
+  // Table 1 S.No 1: Q3/Q4 Cumulative Publication Count Tiering
+  // 1-2 pubs: ₹0 | 3-5 pubs: ₹10,000 | 6+ pubs: ₹15,000
+  if (condition === 'Q3_Q4_SCI_SCIE') {
+    const q3q4Count = (await Claim.countDocuments({
+      applicant: claim.applicant,
+      financialYear: claim.financialYear,
+      category: 'research_publications',
+      $or: [
+        { 'metadata.quartile': { $in: ['Q3', 'Q4', 'q3', 'q4', 'Q3/Q4'] } },
+        { 'policySnapshot.condition': 'Q3_Q4_SCI_SCIE' }
+      ],
+      status: { $nin: ['DRAFT', 'REJECTED'] },
+      _id: { $ne: claim._id }
+    })) + 1; // Count including current claim
+
+    if (q3q4Count < 3) {
+      totalIncentive = 0; // Less than 3 Q3/Q4 publications in calendar/financial year = ₹0
+    } else if (q3q4Count >= 6) {
+      totalIncentive = 15000; // 6 and above Q3/Q4 publications = ₹15,000
+    } else {
+      totalIncentive = 10000; // 3 to 5 Q3/Q4 publications = ₹10,000
+    }
+  }
+
+  // Clause d: Conference category — "either registration fees or an incentive whichever is less will be given"
+  if (claim.category === 'conferences' || claim.subtype === 'conference') {
+    const regFee = Number(claim.metadata?.registrationFee || claim.metadata?.registrationAmount || claim.metadata?.fee || claim.metadata?.registrationFees);
+    if (!isNaN(regFee) && regFee > 0) {
+      totalIncentive = Math.min(totalIncentive, regFee);
+    }
+  }
+
   // Extract and parse authors from claim metadata
   const rawAuthors = Array.isArray(claim.metadata?.authors) && claim.metadata.authors.length > 0
     ? claim.metadata.authors

@@ -40,6 +40,10 @@ const ApplicantsSidebar = ({ role = "faculty", children, ...props }) => {
           label: "Journal Publication",
         },
         {
+          path: getSubmissionPath("conference"),
+          label: "Conference / Seminar",
+        },
+        {
           path: getSubmissionPath("book"),
           label: "Book & Chapters",
         },

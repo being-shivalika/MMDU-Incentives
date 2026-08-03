@@ -83,6 +83,11 @@ export const navigationConfig = {
         },
 
         {
+          path: "/applicant/submissions/create/conference",
+          label: "Conference / Seminar",
+        },
+
+        {
           path: "/applicant/submissions/create/patent",
           label: "Patent",
         },
@@ -145,6 +150,11 @@ export const navigationConfig = {
         {
           path: "/applicant/submissions/create/publication",
           label: "Publication",
+        },
+
+        {
+          path: "/applicant/submissions/create/conference",
+          label: "Conference / Seminar",
         },
 
         {

@@ -34,25 +34,55 @@ const ApplicantsDashboard = () => {
 
   const mySubmissions = submissions;
 
-  const pending = mySubmissions.filter((s) =>
-    ["pending_hod", "pending_rpc", "pending_accounts"].includes(s.status),
-  );
+  const isApproved = (s) => {
+    const st = (s?.status || "").toLowerCase();
+    const ost = (s?.originalStatus || "").toLowerCase();
+    return st === "approved" || st === "released" || st === "completed" || ost === "completed";
+  };
 
-  const approved = mySubmissions.filter((s) =>
-    ["released", "approved"].includes(s.status),
-  );
+  const isPending = (s) => {
+    const st = (s?.status || "").toLowerCase();
+    const ost = (s?.originalStatus || "").toLowerCase();
+    return st.includes("pending") || ost === "department_review" || ost === "rpc_verification" || ost === "accounts_processing";
+  };
 
-  const returned = mySubmissions.filter((s) =>
-    ["returned_hod", "returned_rpc"].includes(s.status),
-  );
+  const isReturned = (s) => {
+    const st = (s?.status || "").toLowerCase();
+    const ost = (s?.originalStatus || "").toLowerCase();
+    return st.includes("return") || st.includes("revision") || ost === "returned";
+  };
+
+  const pending = mySubmissions.filter(isPending);
+  const approved = mySubmissions.filter(isApproved);
+  const returned = mySubmissions.filter(isReturned);
+
+  const isPaidClaim = (s) => {
+    const status = (s?.status || "").toLowerCase();
+    const paymentStatus = (s?.paymentStatus || "").toLowerCase();
+    return (s?.isPaid === true || paymentStatus === "paid" || status === "released") && !s?.isHeld;
+  };
+
+  const isPendingPaymentClaim = (s) => {
+    return !isPaidClaim(s) && !s?.isHeld;
+  };
 
   const totalReleasedIncentive = mySubmissions
-    .filter((s) => s.status === "released")
-    .reduce((acc, s) => acc + (s.incentiveAmount || 0), 0);
+    .filter(isPaidClaim)
+    .reduce(
+      (acc, s) =>
+        acc +
+        Number(s.userShare || s.individualShare || s.approvedAmount || s.totalIncentive || s.incentiveAmount || 0),
+      0,
+    );
 
   const totalProcessingIncentive = mySubmissions
-    .filter((s) => s.status === "pending_accounts")
-    .reduce((acc, s) => acc + (s.incentiveAmount || 0), 0);
+    .filter(isPendingPaymentClaim)
+    .reduce(
+      (acc, s) =>
+        acc +
+        Number(s.userShare || s.individualShare || s.approvedAmount || s.totalIncentive || s.incentiveAmount || 0),
+      0,
+    );
 
   const chartData = [
     { label: "Feb", value: 1 },
@@ -62,28 +92,39 @@ const ApplicantsDashboard = () => {
     { label: "Jun", value: 4 },
     {
       label: "Jul",
-      value: mySubmissions.filter((s) => s.status !== "draft").length,
+      value: mySubmissions.filter(
+        (s) => (s?.status || "").toLowerCase() !== "draft" && (s?.originalStatus || "").toLowerCase() !== "draft",
+      ).length,
     },
   ];
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "released":
-        return <Badge variant="success">Disbursed</Badge>;
-      case "pending_hod":
-        return <Badge variant="warning">HOD Review</Badge>;
-      case "pending_rpc":
-        return <Badge variant="info">RPC Verification</Badge>;
-      case "pending_accounts":
-        return <Badge variant="purple">Accounts Release</Badge>;
-      case "returned_hod":
-      case "returned_rpc":
-        return <Badge variant="danger">Returned</Badge>;
-      case "draft":
-        return <Badge variant="default">Draft</Badge>;
-      default:
-        return <Badge variant="default">{status}</Badge>;
+  const getStatusBadge = (status = "") => {
+    const safe = String(status).toLowerCase();
+    if (safe === "approved" || safe === "released" || safe === "completed") {
+      return <Badge variant="success">Completed & Disbursed</Badge>;
     }
+    if (safe.includes("hod")) {
+      return <Badge variant="warning">HOD Review</Badge>;
+    }
+    if (safe.includes("rpc") || safe.includes("r & d")) {
+      return <Badge variant="info">RPC Verification</Badge>;
+    }
+    if (safe.includes("accounts") || safe.includes("finance")) {
+      return <Badge variant="purple">Accounts Release</Badge>;
+    }
+    if (safe.includes("pending")) {
+      return <Badge variant="warning">Under Review</Badge>;
+    }
+    if (safe.includes("return") || safe.includes("revision")) {
+      return <Badge variant="danger">Returned</Badge>;
+    }
+    if (safe.includes("reject")) {
+      return <Badge variant="danger">Rejected</Badge>;
+    }
+    if (safe.includes("draft")) {
+      return <Badge variant="default">Draft</Badge>;
+    }
+    return <Badge variant="default">{status?.replace(/_/g, " ")}</Badge>;
   };
 
   return (
@@ -190,11 +231,15 @@ const ApplicantsDashboard = () => {
                     </td>
                   </tr>
                 ) : (
-                  mySubmissions.slice(0, 3).map((claim) => (
-                    <tr key={claim.id} className="hover:bg-neutral-50/50 transition-colors">
-                      <td className="py-3 font-semibold text-neutral-700">{claim.category}</td>
+                  mySubmissions.slice(0, 5).map((claim, idx) => (
+                    <tr key={claim._id || claim.id || idx} className="hover:bg-neutral-50/50 transition-colors">
+                      <td className="py-3 font-semibold text-neutral-700 uppercase">
+                        {String(claim.category || "").replace(/_/g, " ")}
+                      </td>
                       <td className="py-3 font-bold text-neutral-950 max-w-[240px] truncate">{claim.title}</td>
-                      <td className="py-3 text-neutral-500 font-medium">{dayjs(claim.dateSubmitted).format("MMM DD YYYY")}</td>
+                      <td className="py-3 text-neutral-500 font-medium">
+                        {dayjs(claim.submissionDate || claim.createdAt || claim.dateSubmitted).format("MMM DD YYYY")}
+                      </td>
                       <td className="py-3">{getStatusBadge(claim.status)}</td>
                     </tr>
                   ))

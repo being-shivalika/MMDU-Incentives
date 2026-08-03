@@ -290,10 +290,12 @@ export const processTransition = async (submissionId, actionType, user, comment,
     const amount = incentiveAmount || claim.individualShare || claim.approvedAmount || claim.calculatedAmount;
     claim.releasedAmount = amount;
     claim.paidAmount = amount;
+    claim.isPaid = true;
+    claim.paymentStatus = 'PAID';
     
     if (claim.authorPayments && claim.authorPayments.length > 0) {
       claim.authorPayments.forEach(p => {
-        if (p.isMmdu) p.paymentStatus = 'RELEASED';
+        if (p.isMmdu) p.paymentStatus = 'PAID';
       });
     }
 

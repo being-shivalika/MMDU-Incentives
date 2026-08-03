@@ -53,6 +53,11 @@ const claimSchema = new mongoose.Schema({
   isHeld: { type: Boolean, default: false },
   heldReason: { type: String, default: null },
   
+  // Payment tracking (Annual Disbursement Cycle)
+  isPaid: { type: Boolean, default: false },
+  paymentStatus: { type: String, enum: ['UNPAID', 'HELD', 'READY_FOR_RELEASE', 'PAID'], default: 'UNPAID' },
+  paymentDetails: { type: mongoose.Schema.Types.Mixed, default: null },
+  
   // Policy snapshot
   policySnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
   researchScore: { type: Number, default: 0 },
