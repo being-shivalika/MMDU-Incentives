@@ -47,7 +47,7 @@ const Hero = () => {
         {/* Desktop Image Section */}
         <div className="absolute right-0 top-0 hidden h-180 w-[54%] lg:block">
           <img
-            src="/student.jpeg"
+            src="/assets/images/hero-student.png"
             alt="Student"
             className="h-full w-full object-cover object-center"
           />
@@ -93,7 +93,7 @@ const Hero = () => {
           {/* Mobile / Tablet Image */}
           <div className="relative mt-10 w-full overflow-hidden lg:hidden">
             <img
-              src="/student.jpeg"
+              src="/assets/images/hero-student.png"
               alt="Student"
               className="h-85 w-full object-cover object-center sm:h-110 md:h-125"
             />

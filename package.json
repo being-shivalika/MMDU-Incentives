@@ -1,0 +1,12 @@
+{
+  "name": "mmdu-incentives-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Maharishi Markandeshwar (Deemed to be University) Research Promotion & Incentive Management System (RPMS)",
+  "scripts": {
+    "dev": "npm run dev --prefix Frontend",
+    "dev:frontend": "npm run dev --prefix Frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build": "npm run build --prefix Frontend"
+  }
+}
