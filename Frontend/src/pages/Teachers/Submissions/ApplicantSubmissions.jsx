@@ -64,9 +64,19 @@ const ApplicantSubmissions = () => {
       icon: FileText,
     },
     {
-      label: "Books & Chapters",
-      path: "/applicant/submissions/create/book",
+      label: "Book Chapter",
+      path: "/applicant/submissions/create/book_chapter",
       icon: Layers,
+    },
+    {
+      label: "Book Section",
+      path: "/applicant/submissions/create/book_section",
+      icon: Layers,
+    },
+    {
+      label: "Authored Book",
+      path: "/applicant/submissions/create/book",
+      icon: BookOpen,
     },
     {
       label: "Patent",

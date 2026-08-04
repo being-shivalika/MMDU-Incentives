@@ -20,11 +20,9 @@ const PublicationForm = ({
       }}
       // Updated to match your exact SRS requirements
       dropdownOptions={[
-        "Journal",
-        "Book",
-        "Book Chapter",
-        "Conference",
-        "Editorial",
+        "Journal Article (Original Research)",
+        "Review Article",
+        "Editorial / Letter to Editor",
         "Case Report",
         "Meta-analysis",
         "Case Study",

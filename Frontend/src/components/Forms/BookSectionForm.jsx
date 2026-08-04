@@ -2,7 +2,7 @@ import React from "react";
 import SubmissionForm from "./SubmissionForm";
 import Input from "../Ui/Input";
 
-const BookForm = ({ 
+const BookSectionForm = ({ 
   formData, 
   handleInputChange, 
   handleAddAuthor, 
@@ -12,23 +12,22 @@ const BookForm = ({
 }) => {
   return (
     <SubmissionForm
-      title="Book Chapter & Section Submission"
-      category="Book Chapter / Section"
+      title="Book Section Submission"
+      category="Book Section"
       basicFields={{
-        title: "Title (Chapter / Section / Book)",
-        domain: "Domain / Discipline",
-        dropdown: "Publication Type",
+        title: "Section Heading / Title",
+        domain: "Subject Area / Domain",
+        dropdown: "Section Indexing Tier",
       }}
       dropdownOptions={[
-        "Book Chapter",
-        "Book Section",
-        "Authored Book",
-        "Edited Book",
-        "Reference Book",
+        "Scopus / WoS Indexed Section",
+        "International Reference Section",
+        "National Book Section",
+        "Peer-Reviewed Section",
       ]}
       verificationLabels={{
-        first: "ISBN",
-        second: "Publisher Website",
+        first: "ISBN Number",
+        second: "Section Web / DOI Link",
       }}
       formData={formData}
       handleInputChange={handleInputChange}
@@ -39,14 +38,26 @@ const BookForm = ({
     >
       <div className="flex flex-col gap-5">
         <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
-          Book Specifics
+          Book Section Specifics
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input 
-            label="Author / Editor Name" 
-            name="authorEditorName" 
-            value={formData?.authorEditorName || ""} 
+            label="Book Title (Reference Book)" 
+            name="bookTitle" 
+            value={formData?.bookTitle || ""} 
+            onChange={handleInputChange} 
+          />
+          <Input 
+            label="Section / Part Number (e.g. Part II, Section 4)" 
+            name="sectionNumber" 
+            value={formData?.sectionNumber || ""} 
+            onChange={handleInputChange} 
+          />
+          <Input 
+            label="Section Editors / Authors" 
+            name="sectionEditors" 
+            value={formData?.sectionEditors || ""} 
             onChange={handleInputChange} 
           />
           <Input 
@@ -62,33 +73,19 @@ const BookForm = ({
             onChange={handleInputChange} 
           />
           <Input 
-            label="Edition" 
-            name="edition" 
-            value={formData?.edition || ""} 
+            label="Page Range (e.g. 45-78)" 
+            name="pageRange" 
+            value={formData?.pageRange || ""} 
             onChange={handleInputChange} 
           />
           <Input 
-            label="Chapter Details" 
-            name="chapterDetails" 
-            value={formData?.chapterDetails || ""} 
+            label="Section Link / URL" 
+            name="sectionLink" 
+            value={formData?.sectionLink || ""} 
             onChange={handleInputChange} 
           />
           <Input 
-            label="Page Count" 
-            name="pageCount" 
-            value={formData?.pageCount || ""} 
-            onChange={handleInputChange} 
-          />
-          
-          {/* Shifted these here to ensure they render, as SubmissionForm only handles 2 verification links natively */}
-          <Input 
-            label="Book Link" 
-            name="bookLink" 
-            value={formData?.bookLink || ""} 
-            onChange={handleInputChange} 
-          />
-          <Input 
-            label="Indexing Link" 
+            label="Indexing Proof Link" 
             name="indexingLink" 
             value={formData?.indexingLink || ""} 
             onChange={handleInputChange} 
@@ -99,4 +96,4 @@ const BookForm = ({
   );
 };
 
-export default BookForm;
+export default BookSectionForm;

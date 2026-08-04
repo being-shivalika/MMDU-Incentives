@@ -44,8 +44,16 @@ const ApplicantsSidebar = ({ role = "faculty", children, ...props }) => {
           label: "Conference / Seminar",
         },
         {
+          path: getSubmissionPath("book_chapter"),
+          label: "Book Chapter",
+        },
+        {
+          path: getSubmissionPath("book_section"),
+          label: "Book Section",
+        },
+        {
           path: getSubmissionPath("book"),
-          label: "Book & Chapters",
+          label: "Authored Book",
         },
         {
           path: getSubmissionPath("patent"),
