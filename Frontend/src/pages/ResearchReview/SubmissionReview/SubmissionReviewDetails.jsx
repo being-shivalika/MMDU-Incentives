@@ -176,8 +176,12 @@ const SubmissionReviewDetails = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Journal Name</p>
-                  <p className="font-medium text-gray-900">{submission.fields?.journalName || submission.metadata?.journalName || "N/A"}</p>
+                  <p className="text-sm text-gray-500">
+                    {submission.fields?.journalName || submission.metadata?.journalName ? "Name of Journal" : "Name of Conference / Seminar"}
+                  </p>
+                  <p className="font-semibold text-gray-900">
+                    {submission.fields?.journalName || submission.metadata?.journalName || submission.fields?.conferenceTitle || submission.metadata?.conferenceTitle || "N/A"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Publisher</p>
@@ -215,6 +219,19 @@ const SubmissionReviewDetails = () => {
                 ) : (
                   <p className="text-xs text-neutral-400 font-medium">No Proof URL</p>
                 )}
+              </div>
+
+              <div className="bg-neutral-50 p-3.5 rounded-xl border border-neutral-200 text-center">
+                <p className="text-xs text-neutral-500 font-semibold uppercase mb-1">Volume No.</p>
+                <p className="font-bold text-neutral-900 text-sm">{submission.metadata?.volumeNo || submission.fields?.volumeNo || "N/A"}</p>
+              </div>
+              <div className="bg-neutral-50 p-3.5 rounded-xl border border-neutral-200 text-center">
+                <p className="text-xs text-neutral-500 font-semibold uppercase mb-1">Issue No.</p>
+                <p className="font-bold text-neutral-900 text-sm">{submission.metadata?.issueNo || submission.fields?.issueNo || "N/A"}</p>
+              </div>
+              <div className="bg-neutral-50 p-3.5 rounded-xl border border-neutral-200 text-center col-span-2">
+                <p className="text-xs text-neutral-500 font-semibold uppercase mb-1">Page No.</p>
+                <p className="font-bold text-neutral-900 text-sm">{submission.metadata?.pageNo || submission.fields?.pageNo || "N/A"}</p>
               </div>
             </div>
           </Card>

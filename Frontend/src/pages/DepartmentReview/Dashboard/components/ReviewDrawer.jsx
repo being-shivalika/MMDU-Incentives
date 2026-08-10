@@ -190,9 +190,17 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
 
             {submission.subtype === "journal_publication" && (
               <>
+                {renderField("Name of Journal", metadata.journalName)}
+
                 {renderField("Quartile", metadata.quartile)}
 
                 {renderField("Impact Factor", metadata.impactFactor)}
+
+                {renderField("Volume No.", metadata.volumeNo)}
+
+                {renderField("Issue No.", metadata.issueNo)}
+
+                {renderField("Page No.", metadata.pageNo)}
 
                 {renderLink("Quartile Proof", metadata.quartileProof)}
 

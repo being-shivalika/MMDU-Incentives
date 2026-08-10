@@ -44,6 +44,21 @@ const PublicationForm = ({
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5 md:col-span-2">
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
+              Name of Journal <span className="text-red-500 ml-1 font-bold">*</span>
+            </label>
+            <input
+              type="text"
+              name="journalName"
+              placeholder="e.g. IEEE Transactions on Neural Networks and Learning Systems / Nature"
+              value={formData?.journalName || ""}
+              onChange={handleInputChange}
+              required
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800 placeholder:text-neutral-400"
+            />
+          </div>
+
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
               Quartile <span className="text-red-500 ml-1 font-bold">*</span>
@@ -88,6 +103,51 @@ const PublicationForm = ({
               name="quartileProof"
               placeholder="e.g. https://www.scimagojr.com/journalsearch.php?q=... or proof URL"
               value={formData?.quartileProof || ""}
+              onChange={handleInputChange}
+              required
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800 placeholder:text-neutral-400"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
+              Volume No. <span className="text-red-500 ml-1 font-bold">*</span>
+            </label>
+            <input
+              type="text"
+              name="volumeNo"
+              placeholder="e.g. Vol. 14 or 14"
+              value={formData?.volumeNo || ""}
+              onChange={handleInputChange}
+              required
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800 placeholder:text-neutral-400"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
+              Issue No. <span className="text-red-500 ml-1 font-bold">*</span>
+            </label>
+            <input
+              type="text"
+              name="issueNo"
+              placeholder="e.g. Issue 3 or 3"
+              value={formData?.issueNo || ""}
+              onChange={handleInputChange}
+              required
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800 placeholder:text-neutral-400"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5 md:col-span-2">
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
+              Page No. <span className="text-red-500 ml-1 font-bold">*</span>
+            </label>
+            <input
+              type="text"
+              name="pageNo"
+              placeholder="e.g. pp. 102-115 or 102-115"
+              value={formData?.pageNo || ""}
               onChange={handleInputChange}
               required
               className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800 placeholder:text-neutral-400"

@@ -98,11 +98,6 @@ export const navigationConfig = {
         },
 
         {
-          path: "/applicant/submissions/create/startup",
-          label: "Projects & Startup",
-        },
-
-        {
           path: "/applicant/submissions/create/copyright",
           label: "Copyright & Claims",
         },
@@ -160,11 +155,6 @@ export const navigationConfig = {
         {
           path: "/applicant/submissions/create/patent",
           label: "Patent",
-        },
-
-        {
-          path: "/applicant/submissions/create/startup",
-          label: "Projects & Startup",
         },
       ],
     },

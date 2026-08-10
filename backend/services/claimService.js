@@ -64,6 +64,12 @@ export const createClaim = async (claimData, user, ipAddress) => {
       error.statusCode = 400;
       throw error;
     }
+    const authors = claimData.metadata?.authors || [];
+    if (Array.isArray(authors) && authors.length > 15) {
+      const error = new Error('Maximum limit of 15 authors allowed per submission');
+      error.statusCode = 400;
+      throw error;
+    }
   }
   
   const claim = new Claim({

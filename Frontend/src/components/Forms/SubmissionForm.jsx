@@ -18,26 +18,46 @@ import {
 const departments = [
   "Computer Science & Engineering",
   "Information Technology",
-  "Artificial Intelligence",
-  "Electronics & Communication",
+  "Software Engineering",
+  "Electrical Engineering",
   "Mechanical Engineering",
   "Civil Engineering",
+  "Electronics & Communication Engineering",
+  "Biotechnology",
+  "Management Studies (MBA)",
+  "Computer Applications (MCA)",
+  "Pharmacy",
+  "Nursing",
+  "Physiotherapy",
+  "Law",
+  "Medical Sciences",
+  "Dental Sciences",
+  "Physics",
+  "Chemistry",
+  "Mathematics",
+  "Humanities & Social Sciences",
+  "Agriculture & Food Technology",
 ];
 
-const dummyFaculty = [
+const dummyMembers = [
+  // Faculty
   {
     id: "EMP101",
     name: "Dr. Anjali Sharma",
     department: "Computer Science & Engineering",
     designation: "Professor",
     email: "anjali.sharma@mmdu.ac.in",
+    role: "faculty",
+    isMmdu: true,
   },
   {
     id: "EMP215",
     name: "Dr. Rohan Gupta",
-    department: "Artificial Intelligence",
+    department: "Software Engineering",
     designation: "Associate Professor",
     email: "rohan.gupta@mmdu.ac.in",
+    role: "faculty",
+    isMmdu: true,
   },
   {
     id: "EMP318",
@@ -45,13 +65,17 @@ const dummyFaculty = [
     department: "Information Technology",
     designation: "Assistant Professor",
     email: "neha.arora@mmdu.ac.in",
+    role: "faculty",
+    isMmdu: true,
   },
   {
     id: "EMP402",
     name: "Dr. Vikram Singh",
-    department: "Electronics & Communication",
+    department: "Electronics & Communication Engineering",
     designation: "Professor",
     email: "vikram.singh@mmdu.ac.in",
+    role: "faculty",
+    isMmdu: true,
   },
   {
     id: "EMP509",
@@ -59,6 +83,8 @@ const dummyFaculty = [
     department: "Mechanical Engineering",
     designation: "Associate Professor",
     email: "sunita.verma@mmdu.ac.in",
+    role: "faculty",
+    isMmdu: true,
   },
   {
     id: "EMP612",
@@ -66,6 +92,45 @@ const dummyFaculty = [
     department: "Civil Engineering",
     designation: "Professor",
     email: "rajesh.kumar@mmdu.ac.in",
+    role: "faculty",
+    isMmdu: true,
+  },
+  // Students
+  {
+    id: "STU901",
+    name: "Aarav Sharma",
+    department: "Computer Science & Engineering",
+    designation: "B.Tech Student",
+    email: "aarav.stu@mmdu.ac.in",
+    role: "student",
+    isMmdu: true,
+  },
+  {
+    id: "STU902",
+    name: "Priya Patel",
+    department: "Information Technology",
+    designation: "M.Tech Research Scholar",
+    email: "priya.stu@mmdu.ac.in",
+    role: "student",
+    isMmdu: true,
+  },
+  {
+    id: "STU903",
+    name: "Rohan Verma",
+    department: "Pharmacy",
+    designation: "Ph.D Scholar",
+    email: "rohan.stu@mmdu.ac.in",
+    role: "student",
+    isMmdu: true,
+  },
+  {
+    id: "STU904",
+    name: "Simran Kaur",
+    department: "Biotechnology",
+    designation: "B.Sc Student",
+    email: "simran.stu@mmdu.ac.in",
+    role: "student",
+    isMmdu: true,
   },
 ];
 
@@ -172,6 +237,11 @@ const SubmissionForm = ({
       setTimeout(() => setToastMessage(null), 5000);
       return false;
     }
+    if (currentAuthors.length > 15) {
+      setToastMessage("Limit Exceeded: Maximum 15 authors allowed per submission.");
+      setTimeout(() => setToastMessage(null), 5000);
+      return false;
+    }
     const hasMmduAuthor = currentAuthors.some((a) => a.isMmdu !== false);
     if (!hasMmduAuthor) {
       setToastMessage("Field Required: At least one author must be an MMDU faculty/staff member.");
@@ -193,8 +263,13 @@ const SubmissionForm = ({
       return false;
     }
 
-    // 7. Research Publication Specifics (Quartile, Impact Factor & Quartile Proof)
+    // 7. Research Publication Specifics (Journal Name, Quartile, Impact Factor, Quartile Proof, Volume, Issue, Page No)
     if (category === "Publication" || showResearchSection) {
+      if (!formData.journalName || !formData.journalName.trim()) {
+        setToastMessage("Field Required: Please enter Name of Journal.");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
       if (!formData.quartile) {
         setToastMessage("Field Required: Please select Quartile (Q1, Q2, Q3, or Q4).");
         setTimeout(() => setToastMessage(null), 5000);
@@ -207,6 +282,21 @@ const SubmissionForm = ({
       }
       if (!formData.quartileProof || !formData.quartileProof.trim()) {
         setToastMessage("Field Required: Please enter Quartile Proof (Scimago / SJR Link or Proof URL).");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+      if (!formData.volumeNo || !formData.volumeNo.trim()) {
+        setToastMessage("Field Required: Please enter Volume No.");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+      if (!formData.issueNo || !formData.issueNo.trim()) {
+        setToastMessage("Field Required: Please enter Issue No.");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+      if (!formData.pageNo || !formData.pageNo.trim()) {
+        setToastMessage("Field Required: Please enter Page No.");
         setTimeout(() => setToastMessage(null), 5000);
         return false;
       }
@@ -270,6 +360,7 @@ const SubmissionForm = ({
 
   const getDepartmentSuggestions = (deptVal) => {
     const val = String(deptVal || "").toLowerCase().trim();
+    if (!val) return departments;
     return departments.filter((d) => String(d).toLowerCase().includes(val));
   };
 
@@ -278,14 +369,14 @@ const SubmissionForm = ({
     const empId = String(authorState?.employeeId || authorState?.id || "").toLowerCase().trim();
     const name = String(authorState?.name || "").toLowerCase().trim();
 
-    return dummyFaculty.filter((f) => {
-      const fDept = String(f.department || "").toLowerCase();
-      const fId = String(f.id || "").toLowerCase();
-      const fName = String(f.name || "").toLowerCase();
+    return dummyMembers.filter((m) => {
+      const mDept = String(m.department || "").toLowerCase();
+      const mId = String(m.id || "").toLowerCase();
+      const mName = String(m.name || "").toLowerCase();
 
-      const matchDept = !dept || fDept.includes(dept);
-      const matchEmpId = !empId || fId.includes(empId);
-      const matchName = !name || fName.includes(name);
+      const matchDept = !dept || mDept.includes(dept);
+      const matchEmpId = !empId || mId.includes(empId);
+      const matchName = !name || mName.includes(name);
       return matchDept && matchEmpId && matchName;
     });
   };
@@ -295,27 +386,28 @@ const SubmissionForm = ({
     const empId = String(authorState?.employeeId || authorState?.id || "").toLowerCase().trim();
     const name = String(authorState?.name || "").toLowerCase().trim();
 
-    return dummyFaculty.filter((f) => {
-      const fDept = String(f.department || "").toLowerCase();
-      const fId = String(f.id || "").toLowerCase();
-      const fName = String(f.name || "").toLowerCase();
+    return dummyMembers.filter((m) => {
+      const mDept = String(m.department || "").toLowerCase();
+      const mId = String(m.id || "").toLowerCase();
+      const mName = String(m.name || "").toLowerCase();
 
-      const matchDept = !dept || fDept.includes(dept);
-      const matchEmpId = !empId || fId.includes(empId);
-      const matchName = !name || fName.includes(name);
+      const matchDept = !dept || mDept.includes(dept);
+      const matchEmpId = !empId || mId.includes(empId);
+      const matchName = !name || mName.includes(name);
       return matchDept && matchEmpId && matchName;
     });
   };
 
-  const handleSelectFacultyToNewAuthor = (faculty) => {
+  const handleSelectFacultyToNewAuthor = (member) => {
     setNewAuthor({
-      id: faculty.id,
-      employeeId: faculty.id,
-      name: faculty.name,
-      department: faculty.department,
-      designation: faculty.designation,
+      id: member.id,
+      employeeId: member.id,
+      name: member.name,
+      department: member.department,
+      designation: member.designation,
       institution: "MMDU",
       isMmdu: true,
+      role: member.role || "faculty",
     });
     setActiveDropdown(null);
   };
@@ -352,6 +444,12 @@ const SubmissionForm = ({
     if (!newAuthor.name || !newAuthor.name.trim()) {
       setToastMessage("Please enter or select author name before submitting.");
       setTimeout(() => setToastMessage(null), 4000);
+      return;
+    }
+
+    if (editingIndex === null && currentAuthors.length >= 15) {
+      setToastMessage("Maximum limit of 15 authors per submission reached.");
+      setTimeout(() => setToastMessage(null), 5000);
       return;
     }
 
@@ -683,7 +781,7 @@ const SubmissionForm = ({
                     : "text-neutral-600 hover:text-neutral-900"
                 }`}
               >
-                <Building2 size={13} /> MMDU Faculty / Staff
+                <Building2 size={13} /> From MMDU
               </button>
               <button
                 type="button"
@@ -712,7 +810,7 @@ const SubmissionForm = ({
               {/* Department */}
               <div className="relative">
                 <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
-                  1. Teacher Department
+                  1. Department (MMDU)
                 </label>
                 <input
                   type="text"
@@ -732,7 +830,7 @@ const SubmissionForm = ({
                   className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800 outline-none transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 />
                 {activeDropdown?.field === "dept" && (
-                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-40 overflow-y-auto divide-y divide-neutral-100">
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y divide-neutral-100">
                     {getDepartmentSuggestions(newAuthor.department).map((d) => (
                       <button
                         key={d}
@@ -750,10 +848,10 @@ const SubmissionForm = ({
                 )}
               </div>
 
-              {/* Teacher Name */}
+              {/* Author Name (Faculty / Student) */}
               <div className="relative">
                 <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
-                  2. Teacher Name
+                  2. Author Name (Faculty / Student)
                 </label>
                 <input
                   type="text"
@@ -763,8 +861,8 @@ const SubmissionForm = ({
                   onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
                   onChange={(e) => {
                     const typedName = e.target.value;
-                    const matched = dummyFaculty.find(
-                      (f) => f.name.toLowerCase() === typedName.toLowerCase().trim()
+                    const matched = dummyMembers.find(
+                      (m) => m.name.toLowerCase() === typedName.toLowerCase().trim()
                     );
                     if (matched) {
                       handleSelectFacultyToNewAuthor(matched);
@@ -783,23 +881,25 @@ const SubmissionForm = ({
                 {activeDropdown?.field === "name" && (
                   <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y divide-neutral-100">
                     {getNameSuggestions(newAuthor).length > 0 ? (
-                      getNameSuggestions(newAuthor).map((f) => (
+                      getNameSuggestions(newAuthor).map((m) => (
                         <button
-                          key={f.id}
+                          key={m.id}
                           type="button"
-                          onMouseDown={() => handleSelectFacultyToNewAuthor(f)}
+                          onMouseDown={() => handleSelectFacultyToNewAuthor(m)}
                           className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center justify-between cursor-pointer"
                         >
                           <div>
                             <span className="text-xs font-bold text-neutral-800 block">
-                              {f.name}
+                              {m.name}
                             </span>
                             <span className="text-[11px] text-neutral-500">
-                              {f.department}
+                              {m.department} &bull; {m.designation}
                             </span>
                           </div>
-                          <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-semibold">
-                            Autofill
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                            m.role === 'student' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {m.role === 'student' ? 'Student' : 'Faculty'}
                           </span>
                         </button>
                       ))

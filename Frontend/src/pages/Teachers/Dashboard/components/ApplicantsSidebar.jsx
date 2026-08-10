@@ -63,10 +63,6 @@ const ApplicantsSidebar = ({ role = "faculty", children, ...props }) => {
           path: getSubmissionPath("copyright"),
           label: "Copyright",
         },
-        {
-          path: getSubmissionPath("startup"),
-          label: "Startup",
-        },
       ],
     },
 

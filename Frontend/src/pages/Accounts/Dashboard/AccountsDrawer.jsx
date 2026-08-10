@@ -82,6 +82,18 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
                 </div>
               </div>
               <div className="flex gap-4">
+                {(submission.metadata?.journalName || submission.fields?.journalName || submission.metadata?.conferenceTitle || submission.fields?.conferenceTitle) && (
+                  <div className="flex-1 bg-gray-50 border p-3 rounded-lg">
+                    <p className="text-xs text-gray-500 font-semibold uppercase">
+                      {submission.metadata?.journalName || submission.fields?.journalName ? "Name of Journal" : "Name of Conference / Seminar"}
+                    </p>
+                    <p className="font-bold text-gray-900 text-sm">
+                      {submission.metadata?.journalName || submission.fields?.journalName || submission.metadata?.conferenceTitle || submission.fields?.conferenceTitle}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-4">
                 <div className="flex-1 bg-gray-50 border p-3 rounded-lg">
                   <p className="text-xs text-gray-500 font-semibold uppercase">
                     Quartile
@@ -100,6 +112,33 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
                     {submission.metadata?.impactFactor ||
                       submission.fields?.impactFactor ||
                       "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 flex-wrap">
+                <div className="flex-1 min-w-[120px] bg-gray-50 border p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 font-semibold uppercase">
+                    Volume No.
+                  </p>
+                  <p className="font-medium text-gray-900">
+                    {submission.metadata?.volumeNo || submission.fields?.volumeNo || "N/A"}
+                  </p>
+                </div>
+                <div className="flex-1 min-w-[120px] bg-gray-50 border p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 font-semibold uppercase">
+                    Issue No.
+                  </p>
+                  <p className="font-medium text-gray-900">
+                    {submission.metadata?.issueNo || submission.fields?.issueNo || "N/A"}
+                  </p>
+                </div>
+                <div className="flex-1 min-w-[120px] bg-gray-50 border p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 font-semibold uppercase">
+                    Page No.
+                  </p>
+                  <p className="font-medium text-gray-900">
+                    {submission.metadata?.pageNo || submission.fields?.pageNo || "N/A"}
                   </p>
                 </div>
               </div>

@@ -13,7 +13,7 @@ const ConferenceForm = ({
     <SubmissionForm
       title="Conference / Seminar Submission"
       category="Conference"
-      showResearchSection={true}
+      showResearchSection={false}
       basicFields={{
         title: "Title of Paper",
         domain: "Research Area / Domain",
@@ -28,7 +28,7 @@ const ConferenceForm = ({
       ]}
       verificationLabels={{
         first: "Paper Link / DOI / Proceeding URL",
-        second: "Presentation Certificate / Scopus Link",
+        second: "Presentation Certificate",
       }}
       formData={formData}
       handleInputChange={handleInputChange}
@@ -43,10 +43,10 @@ const ConferenceForm = ({
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Title of Conference/Seminar */}
+          {/* Name of Conference/Seminar */}
           <div className="flex flex-col gap-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-              Title of Conference / Seminar <span className="text-red-500">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
+              Name of Conference / Seminar <span className="text-red-500 ml-1 font-bold">*</span>
             </label>
             <input
               type="text"

@@ -86,11 +86,6 @@ const ApplicantSubmissions = () => {
       path: "/applicant/submissions/create/copyright",
       icon: CopyrightIcon,
     },
-    {
-      label: "Startup",
-      path: "/applicant/submissions/create/startup",
-      icon: Rocket,
-    },
   ];
 
   return (
