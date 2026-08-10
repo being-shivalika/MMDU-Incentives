@@ -106,17 +106,14 @@ const ApplicantsDashboard = () => {
     if (safe === "approved" || safe === "released" || safe === "completed") {
       return <Badge variant="success">Completed & Disbursed</Badge>;
     }
-    if (safe.includes("hod")) {
-      return <Badge variant="warning">HOD Review</Badge>;
-    }
-    if (safe.includes("rpc") || safe.includes("r & d")) {
-      return <Badge variant="info">RPC Verification</Badge>;
+    if (safe.includes("r & d") || safe.includes("rd") || safe.includes("rpc") || safe.includes("hod") || safe.includes("principal") || safe.includes("department")) {
+      return <Badge variant="warning">Pending R & D Review</Badge>;
     }
     if (safe.includes("accounts") || safe.includes("finance")) {
       return <Badge variant="purple">Accounts Release</Badge>;
     }
     if (safe.includes("pending")) {
-      return <Badge variant="warning">Under Review</Badge>;
+      return <Badge variant="warning">Pending R & D Review</Badge>;
     }
     if (safe.includes("return") || safe.includes("revision")) {
       return <Badge variant="danger">Returned</Badge>;
