@@ -39,9 +39,9 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://localhost:3000",
-  process.env.FRONTEND_URL,
   "https://mmdu-incentives.vercel.app",
-].filter(Boolean);
+  "https://mmdu-incentives-git-master-shivalika-mehras-projects.vercel.app",
+];
 
 app.use(
   cors({
@@ -61,6 +61,7 @@ app.use(
   }),
 );
 
+
 app.use(express.json());
 app.use(helmet());
 app.use(mongoSanitize());
@@ -69,11 +70,6 @@ app.use("/api", apiLimiter);
 
 // Serve uploaded files
 app.use("/uploads", express.static(join(__dirname, "uploads")));
-
-// Root Health Check Route
-app.get("/", (req, res) => {
-  res.json({ message: "MMDU Research Incentive Management System API is running" });
-});
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -91,14 +87,14 @@ app.use(errorHandler);
 const PORT = Number(process.env.PORT) || 5000;
 
 const startServer = (port) => {
-  const server = app.listen(port, "0.0.0.0", () => {
-    console.log(`Server running on port ${port} bound to 0.0.0.0`);
+  const server = app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
   });
 
   server.on("error", (error) => {
-    if (error.code === "EADDRINUSE" && !process.env.PORT) {
+    if (error.code === "EADDRINUSE") {
       console.warn(`Port ${port} is busy. Trying ${port + 1}...`);
-      startServer(port + 1);
+      server.close(() => startServer(port + 1));
     } else {
       console.error(error);
       process.exit(1);
