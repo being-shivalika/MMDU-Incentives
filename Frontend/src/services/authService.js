@@ -52,3 +52,19 @@ export const getCachedUser = () => {
   const user = localStorage.getItem(USER_KEY);
   return user ? JSON.parse(user) : null;
 };
+
+// Request password reset OTP
+export const requestForgotPassword = async (email) => {
+  return await apiClient("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+};
+
+// Reset password using OTP
+export const submitResetPassword = async (email, token, newPassword) => {
+  return await apiClient("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ email, token, newPassword }),
+  });
+};

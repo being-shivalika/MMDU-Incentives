@@ -112,11 +112,10 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
 
   // Mapping currentDesk to currentLevel
   let currentLevel = 'Applicant';
-  if (claimObj.currentDesk === 'hod') currentLevel = 'HOD';
-  else if (claimObj.currentDesk === 'principal') currentLevel = 'Principal';
+  if (claimObj.currentDesk === 'rpc_cell' || claimObj.currentDesk === 'rpc' || claimObj.currentDesk === 'rd_cell' || claimObj.status === 'RPC_VERIFICATION') currentLevel = 'R & D';
+  else if (claimObj.currentDesk === 'hod' || claimObj.currentDesk === 'principal' || claimObj.status === 'DEPARTMENT_REVIEW') currentLevel = 'R & D';
   else if (claimObj.currentDesk === 'director') currentLevel = 'Director';
-  else if (claimObj.currentDesk === 'rpc_cell' || claimObj.currentDesk === 'rpc') currentLevel = 'RPC';
-  else if (claimObj.currentDesk === 'accounts') currentLevel = 'Accounts';
+  else if (claimObj.currentDesk === 'accounts' || claimObj.status === 'ACCOUNTS_PROCESSING') currentLevel = 'Accounts';
   else if (claimObj.status === 'COMPLETED') currentLevel = 'Completed';
   else if (claimObj.status === 'REJECTED') currentLevel = 'Applicant';
   

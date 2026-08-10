@@ -19,11 +19,6 @@ const DepartmentReviewSidebar = ({ role = "hod", children, ...props }) => {
       icon: LayoutDashboard,
       end: true,
     },
-    {
-      path: ROUTES?.DEPARTMENT_REVIEW_QUEUE || "/department-review/queue",
-      label: "Department Queue",
-      icon: FileClock,
-    },
   ];
 
   return (

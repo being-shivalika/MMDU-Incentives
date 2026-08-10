@@ -15,10 +15,11 @@ const WelcomeHero = ({
           Welcome back, {userName || "Faculty"}
         </h1>
         <p className="text-xs text-neutral-500 font-medium tracking-wide">
-          {userDesignation || "Faculty Member"} &bull; {userDepartment || "Maharishi Markandeshwar University"}
+          {userDesignation || "Faculty Member"} &bull;{" "}
+          {userDepartment || "Maharishi Markandeshwar University"}
         </p>
       </div>
-      
+
       <div className="flex items-center gap-2">
         <Button
           onClick={onNewClaim}

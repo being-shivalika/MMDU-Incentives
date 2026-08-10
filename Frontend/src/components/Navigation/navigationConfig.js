@@ -184,12 +184,6 @@ export const navigationConfig = {
       label: "Dashboard",
       icon: LayoutDashboard,
     },
-
-    {
-      path: "/hod/reviews",
-      label: "Department Queue",
-      icon: FileClock,
-    },
   ],
 
   /*
