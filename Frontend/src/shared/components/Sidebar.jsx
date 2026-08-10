@@ -9,14 +9,14 @@ export default function Sidebar() {
   const items = NAV[role];
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-gray-400 bg-gray-400 px-3 py-5 lg:flex">
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-neutral-200/60 bg-[#F3F3F1] px-3 py-5 lg:flex">
       <div className="mb-6 flex items-center gap-2.5 px-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2B2B2B] text-white">
           <GraduationCap size={19} />
         </div>
         <div className="leading-tight">
-          <p className="text-sm font-bold tracking-tight text-slate-900">MMDU</p>
-          <p className="text-[10px] font-medium uppercase tracking-wide text-slate-700">
+          <p className="text-sm font-bold tracking-tight text-neutral-900">MMDU</p>
+          <p className="text-[10px] font-medium uppercase tracking-wide text-neutral-600">
             Research Incentives
           </p>
         </div>
@@ -28,13 +28,13 @@ export default function Sidebar() {
             {({ isActive }) => (
               <div
                 className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  isActive ? "text-white" : "text-slate-800 hover:bg-gray-300"
+                  isActive ? "text-white bg-[#2B2B2B]" : "text-neutral-700 hover:bg-neutral-200/50 hover:text-neutral-900"
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute inset-0 rounded-lg bg-slate-900"
+                    className="absolute inset-0 rounded-lg bg-[#2B2B2B]"
                     transition={{ type: "spring", stiffness: 400, damping: 32 }}
                   />
                 )}

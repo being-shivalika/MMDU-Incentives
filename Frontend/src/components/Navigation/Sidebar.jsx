@@ -50,8 +50,8 @@ const Sidebar = ({
           fixed top-16 left-0 z-50
           flex flex-col
           h-[calc(100vh-4rem)]
-          bg-[#d4d3d3bb]
-          border-r border-neutral-100
+          bg-[#F3F3F1]
+          border-r border-neutral-200/60
           transition-all duration-300 ease-in-out
           w-64
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
@@ -88,19 +88,19 @@ const Sidebar = ({
                   );
 
                   return (
-                    <div key={item.label} className="flex flex-col  ">
+                    <div key={item.label} className="flex flex-col">
                       <button
                         type="button"
                         onClick={() => setOpenDropdown(isOpen ? null : index)}
                         className={`group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm transition-all duration-200 ${
                           hasActiveChild
-                            ? "bg-neutral-800 text-white font-medium shadow-sm"
-                            : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 font-medium"
+                            ? "bg-[#2B2B2B] text-white font-semibold shadow-sm"
+                            : "text-neutral-700 hover:bg-neutral-200/50 hover:text-neutral-900 font-medium"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <item.icon
-                            className={`h-5 w-5 shrink-0 transition-colors ${hasActiveChild ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"}`}
+                            className={`h-5 w-5 shrink-0 transition-colors ${hasActiveChild ? "text-white" : "text-neutral-500 group-hover:text-neutral-800"}`}
                           />
                           {!isCollapsed && <span>{item.label}</span>}
                         </div>
@@ -128,7 +128,6 @@ const Sidebar = ({
                               : "grid-rows-[0fr] opacity-0"
                           }`}
                         >
-                          {/* Changed from gap-1 to gap-0.5 for tighter grouping */}
                           <div className="overflow-hidden flex flex-col gap-0.5">
                             {item.subItems.map((sub) => (
                               <NavLink
@@ -139,8 +138,8 @@ const Sidebar = ({
                                 className={({ isActive }) =>
                                   `flex items-center rounded-lg pl-11 pr-3 py-2 text-sm transition-all duration-200 ${
                                     isActive
-                                      ? "bg-[#ccdcf9] border border-blue-400 text-neutral-800 font-semibold" // Fixed: Softer active state for children
-                                      : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800 font-medium"
+                                      ? "bg-[#2B2B2B] text-white font-semibold shadow-sm"
+                                      : "text-neutral-600 hover:bg-neutral-200/40 hover:text-neutral-900 font-medium"
                                   }`
                                 }
                               >
@@ -172,8 +171,8 @@ const Sidebar = ({
 
                       return `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 ${
                         isItemActive
-                          ? "bg-neutral-800 text-white font-medium shadow-sm"
-                          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 font-medium"
+                          ? "bg-[#2B2B2B] text-white font-semibold shadow-sm"
+                          : "text-neutral-700 hover:bg-neutral-200/50 hover:text-neutral-900 font-medium"
                       }`;
                     }}
                   >
@@ -188,7 +187,7 @@ const Sidebar = ({
                       return (
                         <>
                           <Icon
-                            className={`h-5 w-5 shrink-0 transition-colors ${isItemActive ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"}`}
+                            className={`h-5 w-5 shrink-0 transition-colors ${isItemActive ? "text-white" : "text-neutral-500 group-hover:text-neutral-800"}`}
                           />
                           {!isCollapsed && <span>{item.label}</span>}
                         </>
@@ -201,10 +200,10 @@ const Sidebar = ({
           </div>
 
           {/* Logout Button */}
-          <div className="p-4 shrink-0 border-t border-neutral-100">
+          <div className="p-4 shrink-0 border-t border-neutral-200/60">
             <button
               onClick={logout}
-              className={`flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-neutral-50 hover:bg-neutral-100 hover:border-neutral-200 py-2.5 text-sm font-semibold text-neutral-700 transition-all duration-200 ${
+              className={`flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white hover:bg-neutral-100 hover:border-neutral-300 py-2.5 text-sm font-semibold text-neutral-800 transition-all duration-200 ${
                 isCollapsed ? "lg:px-0" : "px-3"
               }`}
             >
