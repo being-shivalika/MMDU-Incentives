@@ -17,7 +17,7 @@ const Card = React.forwardRef(
             : {}
         }
         transition={{ duration: 0.2, ease: "easeOut" }}
-        className={`bg-white border border-zinc-100 rounded-xl p-6 ${
+        className={` border border-zinc-100 rounded-xl p-6 ${
           onClick || hoverable ? "cursor-pointer hover:border-zinc-300" : ""
         } ${className}`}
         {...props}

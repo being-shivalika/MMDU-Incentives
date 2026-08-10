@@ -19,7 +19,7 @@ const Button = React.forwardRef(
 
     const variants = {
       primary:
-        "bg-zinc-900 text-white hover:bg-zinc-800 border border-zinc-900",
+        "bg-[#8C0404] text-white hover:bg-[#6F0303] border border-[#8C0404]",
       secondary:
         "bg-zinc-100 text-zinc-900 hover:bg-zinc-200 border border-transparent",
       outline:

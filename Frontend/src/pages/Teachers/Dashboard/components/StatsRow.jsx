@@ -11,7 +11,7 @@ const StatsRow = ({
 }) => {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-      <Card className="p-4 flex flex-col justify-between">
+      <Card className="p-4 flex flex-col justify-between bg-neutral-50">
         <span className="text-[10px] font-bold text-brand-gray-400 uppercase">
           Submissions
         </span>
@@ -19,7 +19,7 @@ const StatsRow = ({
           {mySubmissionsCount}
         </span>
       </Card>
-      <Card className="p-4 flex flex-col justify-between">
+      <Card className="p-4 flex flex-col justify-between bg-blue-50">
         <span className="text-[10px] font-bold text-brand-gray-400 uppercase">
           Pending Review
         </span>
@@ -27,7 +27,7 @@ const StatsRow = ({
           {pendingCount}
         </span>
       </Card>
-      <Card className="p-4 flex flex-col justify-between">
+      <Card className="p-4 flex flex-col justify-between bg-indigo-50">
         <span className="text-[10px] font-bold text-brand-gray-400 uppercase">
           Approved
         </span>
@@ -35,7 +35,7 @@ const StatsRow = ({
           {approvedCount}
         </span>
       </Card>
-      <Card className="p-4 flex flex-col justify-between">
+      <Card className="p-4 flex flex-col justify-between bg-orange-100">
         <span className="text-[10px] font-bold text-brand-gray-400 uppercase">
           Returned Action
         </span>
@@ -43,7 +43,7 @@ const StatsRow = ({
           {returnedCount}
         </span>
       </Card>
-      <Card className="p-4 flex flex-col justify-between">
+      <Card className="p-4 flex flex-col justify-between bg-green-50">
         <span className="text-[10px] font-bold text-brand-gray-400 uppercase">
           Incentive Released
         </span>
@@ -51,7 +51,7 @@ const StatsRow = ({
           ₹{totalReleasedIncentive}
         </span>
       </Card>
-      <Card className="p-4 flex flex-col justify-between">
+      <Card className="p-4 flex flex-col justify-between bg-neutral-100">
         <span className="text-[10px] font-bold text-brand-gray-400 uppercase">
           Payment Pending
         </span>

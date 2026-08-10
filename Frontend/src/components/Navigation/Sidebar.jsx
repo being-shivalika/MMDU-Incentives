@@ -50,7 +50,7 @@ const Sidebar = ({
           fixed top-16 left-0 z-50
           flex flex-col
           h-[calc(100vh-4rem)]
-          bg-white
+          bg-[#d4d3d3bb]
           border-r border-neutral-100
           transition-all duration-300 ease-in-out
           w-64
@@ -88,27 +88,33 @@ const Sidebar = ({
                   );
 
                   return (
-                    <div key={item.label} className="flex flex-col">
+                    <div key={item.label} className="flex flex-col  ">
                       <button
                         type="button"
                         onClick={() => setOpenDropdown(isOpen ? null : index)}
-                        className={`group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs transition-all duration-200 cursor-pointer ${
+                        className={`group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm transition-all duration-200 ${
                           hasActiveChild
-                            ? "bg-neutral-950 text-white font-bold shadow-xs"
-                            : "text-neutral-600 hover:bg-neutral-100/80 hover:text-neutral-900 font-semibold"
+                            ? "bg-neutral-800 text-white font-medium shadow-sm"
+                            : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 font-medium"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <item.icon className={`h-4 w-4 shrink-0 transition-colors ${hasActiveChild ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"}`} />
-                          {!isCollapsed && <span className="tracking-tight">{item.label}</span>}
+                          <item.icon
+                            className={`h-5 w-5 shrink-0 transition-colors ${hasActiveChild ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"}`}
+                          />
+                          {!isCollapsed && <span>{item.label}</span>}
                         </div>
 
                         {!isCollapsed && (
                           <div className="shrink-0">
                             {isOpen ? (
-                              <ChevronDown className={`h-3.5 w-3.5 ${hasActiveChild ? "text-white/80" : "text-neutral-400"}`} />
+                              <ChevronDown
+                                className={`h-4 w-4 ${hasActiveChild ? "text-white/80" : "text-neutral-400"}`}
+                              />
                             ) : (
-                              <ChevronRight className={`h-3.5 w-3.5 ${hasActiveChild ? "text-white/80" : "text-neutral-400"}`} />
+                              <ChevronRight
+                                className={`h-4 w-4 ${hasActiveChild ? "text-white/80" : "text-neutral-400"}`}
+                              />
                             )}
                           </div>
                         )}
@@ -117,10 +123,13 @@ const Sidebar = ({
                       {!isCollapsed && (
                         <div
                           className={`grid transition-all duration-200 ease-in-out ${
-                            isOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0"
+                            isOpen
+                              ? "grid-rows-[1fr] opacity-100 mt-1"
+                              : "grid-rows-[0fr] opacity-0"
                           }`}
                         >
-                          <div className="overflow-hidden flex flex-col gap-0.5 pl-2">
+                          {/* Changed from gap-1 to gap-0.5 for tighter grouping */}
+                          <div className="overflow-hidden flex flex-col gap-0.5">
                             {item.subItems.map((sub) => (
                               <NavLink
                                 key={sub.path}
@@ -128,10 +137,10 @@ const Sidebar = ({
                                 end
                                 onClick={closeMobileSidebar}
                                 className={({ isActive }) =>
-                                  `flex items-center rounded-lg pl-9 pr-3 py-2 text-xs transition-all duration-200 ${
+                                  `flex items-center rounded-lg pl-11 pr-3 py-2 text-sm transition-all duration-200 ${
                                     isActive
-                                      ? "bg-blue-50 text-blue-700 font-bold border border-blue-100"
-                                      : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900 font-medium"
+                                      ? "bg-[#ccdcf9] border border-blue-400 text-neutral-800 font-semibold" // Fixed: Softer active state for children
+                                      : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800 font-medium"
                                   }`
                                 }
                               >
@@ -161,10 +170,10 @@ const Sidebar = ({
                             item.path !== "/" &&
                             location.pathname.startsWith(item.path));
 
-                      return `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs transition-all duration-200 ${
+                      return `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 ${
                         isItemActive
-                          ? "bg-neutral-950 text-white font-bold shadow-xs"
-                          : "text-neutral-600 hover:bg-neutral-100/80 hover:text-neutral-900 font-semibold"
+                          ? "bg-neutral-800 text-white font-medium shadow-sm"
+                          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 font-medium"
                       }`;
                     }}
                   >
@@ -178,8 +187,10 @@ const Sidebar = ({
 
                       return (
                         <>
-                          <Icon className={`h-4 w-4 shrink-0 transition-colors ${isItemActive ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"}`} />
-                          {!isCollapsed && <span className="tracking-tight">{item.label}</span>}
+                          <Icon
+                            className={`h-5 w-5 shrink-0 transition-colors ${isItemActive ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"}`}
+                          />
+                          {!isCollapsed && <span>{item.label}</span>}
                         </>
                       );
                     }}
@@ -212,9 +223,7 @@ const Sidebar = ({
             ml-0 pt-16 lg:pt-0
           `}
         >
-          <div className="p-6 md:p-8">
-            {children}
-          </div>
+          <div className="p-6 md:p-8">{children}</div>
         </main>
       )}
     </>

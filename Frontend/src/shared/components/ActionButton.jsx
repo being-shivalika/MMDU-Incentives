@@ -33,7 +33,7 @@ const ActionButton = ({
         return "bg-gray-100 text-gray-700 hover:bg-gray-200";
       case "primary":
       default:
-        return "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm";
+        return "bg-[#8C0404] text-white hover:bg-[#6F0303] shadow-sm";
     }
   };
 
