@@ -7,6 +7,7 @@
     "dev": "npm run dev --prefix Frontend",
     "dev:frontend": "npm run dev --prefix Frontend",
     "dev:backend": "npm run dev --prefix backend",
-    "build": "npm run build --prefix Frontend"
+    "build": "npm run build --prefix Frontend",
+    "start": "npm start --prefix backend"
   }
 }

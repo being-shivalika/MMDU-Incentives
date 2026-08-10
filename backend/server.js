@@ -39,9 +39,9 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://localhost:3000",
+  process.env.FRONTEND_URL,
   "https://mmdu-incentives.vercel.app",
-  "https://mmdu-incentives-git-master-shivalika-mehras-projects.vercel.app",
-];
+].filter(Boolean);
 
 app.use(
   cors({
@@ -61,7 +61,6 @@ app.use(
   }),
 );
 
-
 app.use(express.json());
 app.use(helmet());
 app.use(mongoSanitize());
@@ -70,6 +69,11 @@ app.use("/api", apiLimiter);
 
 // Serve uploaded files
 app.use("/uploads", express.static(join(__dirname, "uploads")));
+
+// Root Health Check Route
+app.get("/", (req, res) => {
+  res.json({ message: "MMDU Research Incentive Management System API is running" });
+});
 
 // Routes
 app.use("/api/auth", authRoutes);
