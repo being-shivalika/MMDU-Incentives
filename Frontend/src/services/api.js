@@ -1,11 +1,12 @@
 const TOKEN_KEY = "rpms-token";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL =
+  import.meta.env.VITE_API_URL || "https://mmdu-incentives.onrender.com";
 export const getStoredToken = () => {
   let token = localStorage.getItem(TOKEN_KEY);
   if (token) {
-    token = token.replace(/^["']|["']$/g, '');
-    if (token === 'null' || token === 'undefined') return null;
+    token = token.replace(/^["']|["']$/g, "");
+    if (token === "null" || token === "undefined") return null;
   }
   return token;
 };

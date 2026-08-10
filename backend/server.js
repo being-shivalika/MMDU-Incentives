@@ -48,10 +48,7 @@ app.use(
     origin(origin, callback) {
       if (!origin) return callback(null, true);
 
-      if (
-        allowedOrigins.includes(origin) ||
-        /\.vercel\.app$/.test(origin)
-      ) {
+      if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
         return callback(null, true);
       }
 
@@ -60,7 +57,6 @@ app.use(
     credentials: true,
   }),
 );
-
 
 app.use(express.json());
 app.use(helmet());
