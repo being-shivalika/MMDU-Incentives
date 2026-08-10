@@ -18,11 +18,16 @@ export const getEffectiveApprover = async (department, institute = 'MMDU') => {
   try {
     // 1. Check for active HOD in the department
     if (department) {
-      const hodUser = await User.findOne({
-        role: 'hod',
-        department: { $regex: new RegExp(`^${department.trim()}$`, 'i') },
-        isActive: true
-      });
+      const cleanDept = department.trim().toLowerCase();
+      let query = { role: 'hod', isActive: true };
+
+      if (cleanDept.includes('computer') || cleanDept.includes('cse')) {
+        query.department = { $regex: /computer|cse/i };
+      } else {
+        query.department = { $regex: new RegExp(`^${department.trim()}$`, 'i') };
+      }
+
+      const hodUser = await User.findOne(query);
 
       if (hodUser) {
         return {

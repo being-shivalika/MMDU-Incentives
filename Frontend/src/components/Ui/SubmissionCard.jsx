@@ -25,7 +25,11 @@ const getStatusStyle = (status) => {
 
 const formatStatus = (status) => {
   if (!status) return "UNKNOWN";
-  return status.replace(/_/g, " ").toUpperCase();
+  const s = status.replace(/_/g, " ").toUpperCase();
+  if (s.includes("PRINCIPAL") || s.includes("HOD") || s.includes("DEPARTMENT")) {
+    return "PENDING R & D REVIEW";
+  }
+  return s;
 };
 
 const SubmissionCard = ({ submission, onClick }) => {
