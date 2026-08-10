@@ -14,6 +14,9 @@ const ApplicantCreatePublication = () => {
     fourthVerification: "",
     authors: [],
     certified: false,
+    quartile: "Q1",
+    impactFactor: "",
+    quartileProof: "",
   });
 
   const handleInputChange = (e) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import useAuth from "../../../hooks/useAuth";
 import Card from "../../../components/Ui/Card";
 import ReviewStats from "./components/ReviewStats";
@@ -6,6 +6,7 @@ import ReviewFilters from "./components/ReviewFilters";
 import ReviewQueueTable from "./components/ReviewQueueTable";
 import ReviewDrawer from "./components/ReviewDrawer";
 import { getSubmissions } from "../../../services/submissionService";
+import useSubmissionSync from "../../../hooks/useSubmissionSync";
 import { processTransition } from "../../../services/workflowService";
 
 const DepartmentReviewDashboard = () => {
@@ -25,13 +26,9 @@ const DepartmentReviewDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadSubmissions = async () => {
-    setIsLoading(true);
-    setError(null);
+  const loadSubmissions = useCallback(async () => {
     try {
-      // The backend automatically filters based on the authenticated HOD's department and role
       const response = await getSubmissions();
-      // Ensure we have an array (assume response.data contains the list)
       const data = response.data || [];
       setSubmissions(data);
     } catch (err) {
@@ -40,11 +37,9 @@ const DepartmentReviewDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    loadSubmissions();
-  }, [user]);
+  useSubmissionSync(loadSubmissions, 3000);
 
   // Compute stats
   const pendingCount = submissions.filter((s) => s.status && s.status.includes("Pending")).length;

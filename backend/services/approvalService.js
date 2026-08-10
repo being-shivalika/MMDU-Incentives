@@ -131,6 +131,11 @@ export const processTransition = async (submissionId, actionType, user, comment,
   const isRejectAction = genericAction.includes('reject') || genericAction.includes('withdraw');
   const isReturnAction = genericAction.includes('return') || genericAction.includes('revision');
 
+  if (['accounts', 'admin'].includes(user.role)) {
+    permissions.canReleasePayment = true;
+    permissions.canConfirmPayment = true;
+  }
+
   if (isForwardAction && !permissions.canApprove && !permissions.canReleasePayment && !permissions.canSubmit) {
     const error = new Error(`User with role '${user.role}' is not the effective approver for stage '${claim.status}'.`);
     error.statusCode = 403;
@@ -234,38 +239,11 @@ export const processTransition = async (submissionId, actionType, user, comment,
     claim.policySnapshot = policyResult.policySnapshot;
     claim.researchScore = policyResult.scorePoints;
 
-    // ENFORCE SECOND PUBLICATION RULE (Database-backed)
-    const priorEligibleCount = await Claim.countDocuments({
-      applicant: claim.applicant,
-      status: { $in: ['RPC_VERIFICATION', 'ACCOUNTS_PROCESSING', 'COMPLETED'] },
-      _id: { $ne: claim._id }
-    });
-
-    if (priorEligibleCount === 0) {
-      // 1st Eligible Publication: Payment remains held until 2nd publication
-      claim.isHeld = true;
-      claim.heldReason = '1st eligible publication — Incentive recorded. Payment held until 2nd publication per Research Promotion Policy 2026.';
-      if (claim.authorPayments && claim.authorPayments.length > 0) {
-        claim.authorPayments.forEach(p => { p.paymentStatus = 'HELD'; });
-      }
-    } else {
-      // 2nd or subsequent Eligible Publication: Release payment!
-      claim.isHeld = false;
-      claim.heldReason = null;
-      if (claim.authorPayments && claim.authorPayments.length > 0) {
-        claim.authorPayments.forEach(p => { p.paymentStatus = 'READY_FOR_RELEASE'; });
-      }
-
-      // Unhold all prior held claims for this applicant!
-      const heldClaims = await Claim.find({ applicant: claim.applicant, isHeld: true });
-      for (const heldClaim of heldClaims) {
-        heldClaim.isHeld = false;
-        heldClaim.heldReason = null;
-        if (heldClaim.authorPayments && heldClaim.authorPayments.length > 0) {
-          heldClaim.authorPayments.forEach(p => { p.paymentStatus = 'READY_FOR_RELEASE'; });
-        }
-        await heldClaim.save();
-      }
+    // Q1, Q2 and eligible publications give incentive from 1st submission
+    claim.isHeld = false;
+    claim.heldReason = null;
+    if (claim.authorPayments && claim.authorPayments.length > 0) {
+      claim.authorPayments.forEach(p => { p.paymentStatus = 'READY_FOR_RELEASE'; });
     }
     
     await researchScoreService.calculateAndStoreScore(claim, policyResult);

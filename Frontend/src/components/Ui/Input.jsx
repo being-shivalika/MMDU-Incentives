@@ -6,8 +6,9 @@ const Input = React.forwardRef(
     return (
       <div className="w-full flex flex-col gap-0 text-left">
         {label && (
-          <label className="text-xs font-medium text-zinc-500 tracking-wide uppercase">
+          <label className="text-xs font-semibold text-neutral-600 tracking-wide uppercase mb-1 flex items-center">
             {label}
+            {props.required !== false && <span className="text-red-500 ml-1 font-bold">*</span>}
           </label>
         )}
         <motion.input

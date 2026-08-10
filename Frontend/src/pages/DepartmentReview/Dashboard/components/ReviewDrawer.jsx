@@ -194,6 +194,8 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
 
                 {renderField("Impact Factor", metadata.impactFactor)}
 
+                {renderLink("Quartile Proof", metadata.quartileProof)}
+
                 {renderLink("DOI", metadata.firstVerification)}
 
                 {renderLink("Scopus Profile", metadata.secondVerification)}

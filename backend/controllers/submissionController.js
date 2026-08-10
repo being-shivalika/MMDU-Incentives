@@ -180,8 +180,9 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
     authorPayments: claimObj.authorPayments || [],
     isHeld: claimObj.isHeld || false,
     heldReason: claimObj.heldReason || null,
+    isAccountsApproved: claimObj.isAccountsApproved || claimObj.paymentStatus === 'APPROVED_BY_ACCOUNTS' || claimObj.paymentStatus === 'READY_FOR_RELEASE' || claimObj.status === 'COMPLETED' || claimObj.isPaid || false,
     isPaid: claimObj.isPaid || claimObj.paymentStatus === 'PAID' || false,
-    paymentStatus: claimObj.paymentStatus || (claimObj.isPaid ? 'PAID' : 'PENDING_DISBURSEMENT'),
+    paymentStatus: claimObj.isPaid || claimObj.paymentStatus === 'PAID' ? 'PAID' : (claimObj.isAccountsApproved || claimObj.paymentStatus === 'APPROVED_BY_ACCOUNTS' ? 'APPROVED_BY_ACCOUNTS' : (claimObj.paymentStatus || 'UNPAID')),
     calculatedAmount: claimObj.calculatedAmount,
     approvedAmount: claimObj.approvedAmount,
     releasedAmount: claimObj.releasedAmount,
@@ -267,7 +268,48 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
 };
 
 /**
- * @desc Mark single claim as paid in annual disbursement
+ * @desc Step 1: Approve payment amount by Accounts department (Ready for annual payout)
+ * @route PUT /api/submissions/:id/approve-payment
+ * @access Private (accounts, admin)
+ */
+export const approveClaimPayment = asyncHandler(async (req, res) => {
+  const claim = await Claim.findById(req.params.id);
+  if (!claim) {
+    return errorResponse(res, 'Claim not found', null, 404);
+  }
+
+  claim.isAccountsApproved = true;
+  if (!claim.isPaid) {
+    claim.paymentStatus = 'APPROVED_BY_ACCOUNTS';
+  }
+
+  if (claim.authorPayments && claim.authorPayments.length > 0) {
+    claim.authorPayments.forEach(p => {
+      if (p.isMmdu && p.paymentStatus !== 'PAID') p.paymentStatus = 'READY_FOR_RELEASE';
+    });
+  }
+
+  await claim.save();
+
+  await ApprovalHistory.create({
+    claim: claim._id,
+    step: 'Payment Approved by Accounts',
+    action: 'APPROVE_PAYMENT',
+    fromStatus: claim.status,
+    toStatus: claim.status,
+    actionBy: req.user._id,
+    actionByName: req.user.name,
+    actionByRole: req.user.role,
+    remarks: req.body.remarks || 'Incentive amount verified and approved by Accounts for annual payout cycle.',
+    date: new Date()
+  });
+
+  const data = await transformClaimForResponse(claim, null, req.user);
+  return successResponse(res, 'Claim payment approved successfully by Accounts', data);
+});
+
+/**
+ * @desc Step 2: Mark single claim as paid in annual disbursement (Tick as Paid)
  * @route PUT /api/submissions/:id/pay
  * @access Private (accounts, admin)
  */
@@ -277,19 +319,10 @@ export const markClaimAsPaid = asyncHandler(async (req, res) => {
     return errorResponse(res, 'Claim not found', null, 404);
   }
 
-  const totalEligible = await Claim.countDocuments({
-    applicant: claim.applicant,
-    status: { $in: ['RPC_VERIFICATION', 'ACCOUNTS_PROCESSING', 'COMPLETED'] }
-  });
-
-  if (totalEligible >= 2) {
-    claim.isHeld = false;
-    claim.heldReason = null;
-  }
-
-  const amount = claim.individualShare || claim.userShare || claim.approvedAmount || claim.totalIncentive || claim.calculatedAmount || claim.incentiveAmount || 0;
+  claim.isAccountsApproved = true;
   claim.isPaid = true;
   claim.paymentStatus = 'PAID';
+  const amount = claim.individualShare || claim.userShare || claim.approvedAmount || claim.totalIncentive || claim.calculatedAmount || claim.incentiveAmount || 0;
   claim.releasedAmount = amount;
   claim.paidAmount = amount;
   claim.paymentDetails = {

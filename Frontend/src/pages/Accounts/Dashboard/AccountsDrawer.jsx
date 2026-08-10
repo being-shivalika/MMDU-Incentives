@@ -103,6 +103,20 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
                   </p>
                 </div>
               </div>
+
+              {(submission.metadata?.quartileProof || submission.fields?.quartileProof) && (
+                <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg flex justify-between items-center text-xs font-semibold">
+                  <span className="text-blue-800 uppercase tracking-wide">Quartile Proof:</span>
+                  <a
+                    href={submission.metadata?.quartileProof || submission.fields?.quartileProof}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 hover:underline font-bold break-all flex items-center gap-1"
+                  >
+                    View Proof Document / Link ↗
+                  </a>
+                </div>
+              )}
               <div className="mt-4 pt-4 bg-green-50 p-4 rounded-xl border border-green-200 space-y-2">
                 <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1">
                   Financial & Author Split Information (Policy 2026)
@@ -146,16 +160,30 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
         </div>
 
         <div className="p-6 border-t bg-gray-50 flex gap-3 flex-wrap">
-          {(submission.permissions?.canReleasePayment || submission.permissions?.canConfirmPayment) ? (
-            <button
-              onClick={() => handleActionClick("Process Payment")}
-              className="flex-1 bg-green-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <Check className="h-5 w-5" /> Release Payment
-            </button>
+          {submission.isPaid ? (
+            <div className="w-full text-center text-xs font-bold text-emerald-800 uppercase tracking-wider py-3 bg-emerald-100 border border-emerald-300 rounded-xl">
+              ✔ Payment Disbursed & Bank Credited (Released Payment)
+            </div>
+          ) : (Number(submission.individualShare || submission.userShare || submission.incentiveAmount || 0) <= 0 || submission.isHeld) ? (
+            <div className="w-full text-center text-xs font-bold text-amber-800 uppercase tracking-wider py-3 bg-amber-50 border border-amber-200 rounded-xl">
+              ⚠️ Payment Not Applicable — {submission.isHeld ? 'Held' : 'Incentive amount is ₹0 per policy (Min 3 Q3/Q4 required)'}
+            </div>
           ) : (
-            <div className="w-full text-center text-xs font-bold text-gray-500 uppercase tracking-wider py-2">
-              View Only Mode — Payment Action Restricted
+            <div className="w-full flex flex-col sm:flex-row gap-3">
+              {!submission.isAccountsApproved && (
+                <button
+                  onClick={() => handleActionClick("Approve Payment")}
+                  className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                >
+                  <Check className="h-5 w-5" /> Step 1: Approve Payment Amount
+                </button>
+              )}
+              <button
+                onClick={() => handleActionClick("Process Payment")}
+                className="flex-1 bg-emerald-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                <Check className="h-5 w-5" /> {submission.isAccountsApproved ? "Tick as Paid (Release Payment)" : "Step 2: Tick as Paid"}
+              </button>
             </div>
           )}
         </div>

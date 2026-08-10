@@ -1,4 +1,5 @@
 import apiClient from './api';
+import { notifyClaimsUpdated } from '../hooks/useSubmissionSync';
 
 export const processTransition = async (data) => {
   // Map frontend generic fields to backend expected fields
@@ -25,10 +26,12 @@ export const processTransition = async (data) => {
     console.log("processTransition payload:", payload);
   }
 
-  return await apiClient('/workflow/transition', {
+  const res = await apiClient('/workflow/transition', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
+  notifyClaimsUpdated();
+  return res;
 };
 
 export const getWorkflowConfig = async () => {

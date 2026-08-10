@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 
@@ -10,6 +10,7 @@ import VerificationFilters from "./components/VerificationFilters";
 import VerificationQueueTable from "./components/VerificationQueueTable";
 
 import { getSubmissions } from "../../../services/submissionService";
+import useSubmissionSync from "../../../hooks/useSubmissionSync";
 import { ROUTES } from "../../../constants/routes";
 
 const ResearchReviewDashboard = () => {
@@ -30,14 +31,11 @@ const ResearchReviewDashboard = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const loadSubmissions = async () => {
-    setIsLoading(true);
-    setError(null);
 
+  const loadSubmissions = useCallback(async () => {
     try {
       const response = await getSubmissions();
       const data = response.data || [];
-
       setSubmissions(data);
     } catch (err) {
       console.error("Error loading submissions:", err);
@@ -45,12 +43,9 @@ const ResearchReviewDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-  useEffect(() => {
-    if (user?.role) {
-      loadSubmissions();
-    }
-  }, [user]);
+  }, []);
+
+  useSubmissionSync(loadSubmissions, 3000);
   // Dashboard Statistics
   const stats = {
     pendingAnalysis: submissions.filter((s) => s.status?.includes("Pending"))

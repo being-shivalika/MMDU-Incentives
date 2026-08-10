@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import useAuth from "../../../hooks/useAuth";
 import Card from "../../../components/Ui/Card";
 import ReviewStats from "../../DepartmentReview/Dashboard/components/ReviewStats";
@@ -6,6 +6,7 @@ import ReviewFilters from "../../DepartmentReview/Dashboard/components/ReviewFil
 import ReviewQueueTable from "../../DepartmentReview/Dashboard/components/ReviewQueueTable";
 import ReviewDrawer from "../../DepartmentReview/Dashboard/components/ReviewDrawer";
 import { getSubmissions } from "../../../services/submissionService";
+import useSubmissionSync from "../../../hooks/useSubmissionSync";
 import { processTransition } from "../../../services/workflowService";
 
 const PrincipalDashboard = () => {
@@ -25,9 +26,7 @@ const PrincipalDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadSubmissions = async () => {
-    setIsLoading(true);
-    setError(null);
+  const loadSubmissions = useCallback(async () => {
     try {
       const response = await getSubmissions();
       const data = response.data || [];
@@ -38,11 +37,9 @@ const PrincipalDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    loadSubmissions();
-  }, [user]);
+  useSubmissionSync(loadSubmissions, 3000);
 
   // Compute stats
   const pendingCount = submissions.filter(

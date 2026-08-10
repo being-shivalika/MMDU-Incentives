@@ -12,6 +12,7 @@ import {
   Building2,
   X,
   Pencil,
+  Lock,
 } from "lucide-react";
 
 const departments = [
@@ -68,6 +69,9 @@ const dummyFaculty = [
   },
 ];
 
+import useAuth from "../../hooks/useAuth";
+import { useEffect } from "react";
+
 const SubmissionForm = ({
   title,
   category,
@@ -92,7 +96,34 @@ const SubmissionForm = ({
   onDraft,
   children,
 }) => {
+  const { user } = useAuth();
   const currentAuthors = Array.isArray(formData?.authors) ? formData.authors : [];
+
+  // Automatically add logged-in faculty as default 1st author if authors list is empty
+  useEffect(() => {
+    if (user && currentAuthors.length === 0) {
+      const defaultPrimaryAuthor = {
+        id: user.employeeId || user.id || "EMP_LOGGED_IN",
+        employeeId: user.employeeId || user.id || "EMP_LOGGED_IN",
+        name: user.name || "Faculty Member",
+        department: user.department || "Computer Science & Engineering",
+        designation: user.designation || "Faculty",
+        institution: "MMDU",
+        isMmdu: true,
+        isPrimary: true,
+        isDeletable: false,
+      };
+
+      if (handleInputChange) {
+        handleInputChange({
+          target: {
+            name: "authors",
+            value: [defaultPrimaryAuthor],
+          },
+        });
+      }
+    }
+  }, [user, currentAuthors.length]);
   const [newAuthor, setNewAuthor] = useState({
     isMmdu: true,
     name: "",
@@ -113,23 +144,128 @@ const SubmissionForm = ({
   const equalSharePercentage =
     mmduAuthorCount > 0 ? (100 / mmduAuthorCount).toFixed(1) : "0";
 
-  const checkMmduAuthorRequirement = () => {
-    if (mmduAuthorCount === 0) {
-      setToastMessage("At least one author must be from MMDU.");
+  const validateAllFields = () => {
+    // 1. Basic Title
+    if (!formData.title || !formData.title.trim()) {
+      setToastMessage(`Field Required: Please enter ${basicFields?.title || "Title"}.`);
       setTimeout(() => setToastMessage(null), 5000);
       return false;
     }
+
+    // 2. Domain / Research Area
+    if (!formData.domain || !formData.domain.trim()) {
+      setToastMessage(`Field Required: Please enter ${basicFields?.domain || "Research Area / Domain"}.`);
+      setTimeout(() => setToastMessage(null), 5000);
+      return false;
+    }
+
+    // 3. Category / Subtype Dropdown Selection
+    if (dropdownOptions && dropdownOptions.length > 0 && (!formData.dropdown || !formData.dropdown.trim())) {
+      setToastMessage(`Field Required: Please select ${basicFields?.dropdown || "Category Type"}.`);
+      setTimeout(() => setToastMessage(null), 5000);
+      return false;
+    }
+
+    // 4. Authors validation
+    if (!currentAuthors || currentAuthors.length === 0) {
+      setToastMessage("Field Required: At least one author must be added.");
+      setTimeout(() => setToastMessage(null), 5000);
+      return false;
+    }
+    const hasMmduAuthor = currentAuthors.some((a) => a.isMmdu !== false);
+    if (!hasMmduAuthor) {
+      setToastMessage("Field Required: At least one author must be an MMDU faculty/staff member.");
+      setTimeout(() => setToastMessage(null), 5000);
+      return false;
+    }
+
+    // 5. First Verification Detail
+    if (!formData.firstVerification || !formData.firstVerification.trim()) {
+      setToastMessage(`Field Required: Please enter ${verificationLabels?.first || "Verification Detail #1"}.`);
+      setTimeout(() => setToastMessage(null), 5000);
+      return false;
+    }
+
+    // 6. Second Verification Detail
+    if (!formData.secondVerification || !formData.secondVerification.trim()) {
+      setToastMessage(`Field Required: Please enter ${verificationLabels?.second || "Verification Detail #2"}.`);
+      setTimeout(() => setToastMessage(null), 5000);
+      return false;
+    }
+
+    // 7. Research Publication Specifics (Quartile, Impact Factor & Quartile Proof)
+    if (category === "Publication" || showResearchSection) {
+      if (!formData.quartile) {
+        setToastMessage("Field Required: Please select Quartile (Q1, Q2, Q3, or Q4).");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+      if (formData.impactFactor === undefined || formData.impactFactor === null || String(formData.impactFactor).trim() === "") {
+        setToastMessage("Field Required: Please enter Impact Factor.");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+      if (!formData.quartileProof || !formData.quartileProof.trim()) {
+        setToastMessage("Field Required: Please enter Quartile Proof (Scimago / SJR Link or Proof URL).");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+    }
+
+    // 8. Conference Specific Fields
+    if (category === "Conference") {
+      if (!formData.conferenceTitle || !formData.conferenceTitle.trim()) {
+        setToastMessage("Field Required: Please enter Title of Conference / Seminar.");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+      if (!formData.organizedBy || !formData.organizedBy.trim()) {
+        setToastMessage("Field Required: Please enter Organised By.");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+      if (!formData.startDate) {
+        setToastMessage("Field Required: Please select Conference Start Date.");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+      if (!formData.endDate) {
+        setToastMessage("Field Required: Please select Conference End Date.");
+        setTimeout(() => setToastMessage(null), 5000);
+        return false;
+      }
+    }
+
+    // 9. Self-Certification Checkbox
+    if (!formData.certified) {
+      setToastMessage("Field Required: Please check the self-certification box to confirm information accuracy.");
+      setTimeout(() => setToastMessage(null), 5000);
+      return false;
+    }
+
     return true;
   };
 
-  const handleFormSubmit = (e) => {
-    if (!checkMmduAuthorRequirement()) return;
-    if (onSubmit) onSubmit(e);
+  const handleFormSubmit = async (e) => {
+    if (!validateAllFields()) return;
+    try {
+      if (onSubmit) await onSubmit(e);
+    } catch (err) {
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to submit claim due to server error.";
+      setToastMessage(errMsg);
+      setTimeout(() => setToastMessage(null), 8000);
+    }
   };
 
-  const handleFormDraft = (e) => {
-    if (!checkMmduAuthorRequirement()) return;
-    if (onDraft) onDraft(e);
+  const handleFormDraft = async (e) => {
+    if (!validateAllFields()) return;
+    try {
+      if (onDraft) await onDraft(e);
+    } catch (err) {
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to save draft due to server error.";
+      setToastMessage(errMsg);
+      setTimeout(() => setToastMessage(null), 8000);
+    }
   };
 
   const getDepartmentSuggestions = (deptVal) => {
@@ -229,28 +365,37 @@ const SubmissionForm = ({
       isMmdu: newAuthor.isMmdu !== false,
     };
 
-    let updated;
+    let updatedAuthors = [];
     if (editingIndex !== null) {
-      updated = [...currentAuthors];
-      updated[editingIndex] = authorObj;
+      updatedAuthors = [...currentAuthors];
+      updatedAuthors[editingIndex] = authorObj;
+      setEditingIndex(null);
     } else {
-      updated = [...currentAuthors, authorObj];
-      if (handleAddAuthor) {
-        handleAddAuthor(authorObj);
+      const isDuplicate = currentAuthors.some(
+        (a) => a.name.toLowerCase().trim() === authorObj.name.toLowerCase().trim()
+      );
+
+      if (isDuplicate) {
+        setToastMessage(`Author "${authorObj.name}" is already added.`);
+        setTimeout(() => setToastMessage(null), 4000);
+        return;
       }
+      updatedAuthors = [...currentAuthors, authorObj];
     }
 
     if (handleInputChange) {
       handleInputChange({
         target: {
           name: "authors",
-          value: updated,
+          value: updatedAuthors,
         },
       });
     }
 
-    // Reset editing and form state
-    setEditingIndex(null);
+    if (handleAddAuthor) {
+      handleAddAuthor(authorObj);
+    }
+
     setNewAuthor({
       isMmdu: true,
       name: "",
@@ -264,6 +409,19 @@ const SubmissionForm = ({
 
   const handleRemoveAuthorIndex = (indexToRemove) => {
     const targetAuthor = currentAuthors[indexToRemove];
+
+    const isPrimaryAuthor =
+      indexToRemove === 0 ||
+      targetAuthor?.isPrimary ||
+      targetAuthor?.isDeletable === false ||
+      (user && (targetAuthor?.id === (user.employeeId || user.id) || targetAuthor?.employeeId === (user.employeeId || user.id)));
+
+    if (isPrimaryAuthor) {
+      setToastMessage("Primary applicant (logged-in faculty) cannot be deleted.");
+      setTimeout(() => setToastMessage(null), 4000);
+      return;
+    }
+
     const updated = currentAuthors.filter((_, i) => i !== indexToRemove);
 
     if (editingIndex === indexToRemove) {
@@ -290,13 +448,13 @@ const SubmissionForm = ({
     <Card className="relative w-full bg-white border border-neutral-200 shadow-sm rounded-xl overflow-hidden p-0">
       {/* FLOATING TOAST NOTIFICATION BAR */}
       {toastMessage && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-red-900/95 text-white px-4 py-3 rounded-xl shadow-2xl border border-red-700 backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-300">
-          <AlertCircle className="w-5 h-5 shrink-0 text-red-300" />
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-rose-900/95 text-white px-5 py-3.5 rounded-xl shadow-2xl border border-rose-700 backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-300">
+          <AlertCircle className="w-5 h-5 shrink-0 text-rose-300" />
           <span className="text-xs font-bold tracking-wide">{toastMessage}</span>
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            className="ml-2 hover:bg-red-800 p-1 rounded-lg transition-colors cursor-pointer"
+            className="ml-2 hover:bg-rose-800 p-1 rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-4 h-4 text-white" />
           </button>
@@ -324,6 +482,7 @@ const SubmissionForm = ({
             name="title"
             value={formData.title || ""}
             onChange={handleInputChange}
+            required
           />
 
           <Input
@@ -331,17 +490,19 @@ const SubmissionForm = ({
             name="domain"
             value={formData.domain || ""}
             onChange={handleInputChange}
+            required
           />
 
           {dropdownOptions.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-                {basicFields.dropdown}
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
+                {basicFields.dropdown} <span className="text-red-500 ml-1 font-bold">*</span>
               </label>
               <select
                 name="dropdown"
                 value={formData.dropdown || ""}
                 onChange={handleInputChange}
+                required
                 className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
               >
                 <option value="">Select an option</option>
@@ -401,6 +562,12 @@ const SubmissionForm = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {currentAuthors.map((author, index) => {
                 const isMmdu = author.isMmdu !== false;
+                const isPrimaryAuthor =
+                  index === 0 ||
+                  author?.isPrimary ||
+                  author?.isDeletable === false ||
+                  (user && (author?.id === (user.employeeId || user.id) || author?.employeeId === (user.employeeId || user.id)));
+
                 return (
                   <div
                     key={author.id || index}
@@ -408,8 +575,8 @@ const SubmissionForm = ({
                   >
                     {/* Tile Header */}
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-neutral-800 text-white uppercase tracking-wider">
-                        {index === 0 ? "1st Author (Primary)" : `Author #${index + 1}`}
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${isPrimaryAuthor ? "bg-blue-700 text-white" : "bg-neutral-800 text-white"}`}>
+                        {index === 0 ? "1st Author (Primary / You)" : `Author #${index + 1}`}
                       </span>
 
                       <div className="flex items-center gap-1.5">
@@ -436,14 +603,23 @@ const SubmissionForm = ({
                           <Pencil size={13} />
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAuthorIndex(index)}
-                          title="Remove Author"
-                          className="p-1 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                        >
-                          <X size={14} />
-                        </button>
+                        {isPrimaryAuthor ? (
+                          <span
+                            title="Primary applicant (logged-in faculty) cannot be deleted"
+                            className="p-1 rounded-lg text-neutral-400 bg-neutral-100 flex items-center justify-center cursor-not-allowed"
+                          >
+                            <Lock size={13} />
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveAuthorIndex(index)}
+                            title="Remove Author"
+                            className="p-1 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -454,11 +630,6 @@ const SubmissionForm = ({
                       </h4>
 
                       <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-neutral-500">
-                        {(author.employeeId || author.id) && (
-                          <span className="font-mono font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
-                            ID: {author.employeeId || author.id}
-                          </span>
-                        )}
                         <span className="truncate">
                           {author.department || (isMmdu ? "MMDU" : author.institution || "External")}
                         </span>
@@ -537,7 +708,7 @@ const SubmissionForm = ({
 
           {/* Form Inputs for Single Author Entry */}
           {newAuthor.isMmdu ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Department */}
               <div className="relative">
                 <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
@@ -579,72 +750,10 @@ const SubmissionForm = ({
                 )}
               </div>
 
-              {/* Teacher Roll No / Emp ID */}
-              <div className="relative">
-                <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
-                  2. Teacher Roll No / Emp ID
-                </label>
-                <input
-                  type="text"
-                  placeholder="Type or select Emp ID..."
-                  value={newAuthor.employeeId || ""}
-                  onFocus={() => setActiveDropdown({ field: "empId" })}
-                  onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
-                  onChange={(e) => {
-                    const typedId = e.target.value;
-                    const matched = dummyFaculty.find(
-                      (f) => f.id.toLowerCase() === typedId.toLowerCase().trim()
-                    );
-                    if (matched) {
-                      handleSelectFacultyToNewAuthor(matched);
-                    } else {
-                      setNewAuthor((prev) => ({ ...prev, employeeId: typedId }));
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddAuthorSubmit();
-                    }
-                  }}
-                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-mono font-bold text-neutral-800 outline-none transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-                />
-                {activeDropdown?.field === "empId" && (
-                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto divide-y divide-neutral-100">
-                    {getEmpIdSuggestions(newAuthor).length > 0 ? (
-                      getEmpIdSuggestions(newAuthor).map((f) => (
-                        <button
-                          key={f.id}
-                          type="button"
-                          onMouseDown={() => handleSelectFacultyToNewAuthor(f)}
-                          className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center justify-between cursor-pointer"
-                        >
-                          <div>
-                            <span className="text-xs font-mono font-bold text-blue-700 block">
-                              {f.id}
-                            </span>
-                            <span className="text-[11px] text-neutral-600">
-                              {f.name} • {f.department}
-                            </span>
-                          </div>
-                          <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-semibold">
-                            Autofill
-                          </span>
-                        </button>
-                      ))
-                    ) : (
-                      <p className="px-3 py-2 text-xs text-neutral-400 text-center">
-                        No matching Emp ID. You can type manually.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
               {/* Teacher Name */}
               <div className="relative">
                 <label className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider block mb-1">
-                  3. Teacher Name
+                  2. Teacher Name
                 </label>
                 <input
                   type="text"
@@ -686,7 +795,7 @@ const SubmissionForm = ({
                               {f.name}
                             </span>
                             <span className="text-[11px] text-neutral-500">
-                              Emp ID: {f.id} • {f.department}
+                              {f.department}
                             </span>
                           </div>
                           <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-semibold">
@@ -752,10 +861,10 @@ const SubmissionForm = ({
 
           {/* Action to Add / Update Author */}
           <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
-            {newAuthor.name && newAuthor.employeeId && newAuthor.isMmdu ? (
+            {newAuthor.name && newAuthor.isMmdu ? (
               <span className="text-xs text-emerald-700 font-medium flex items-center gap-1">
                 <CheckCircle2 size={14} className="text-emerald-600" />
-                Faculty verified: {newAuthor.name} ({newAuthor.employeeId})
+                Faculty verified: {newAuthor.name}
               </span>
             ) : (
               <span className="text-[11px] text-neutral-400">
@@ -832,43 +941,6 @@ const SubmissionForm = ({
             value={formData.secondVerification || ""}
             onChange={handleInputChange}
           />
-
-          {showResearchSection && (
-            <>
-              <div>
-                <label className="text-xs uppercase text-zinc-500 block mb-1">
-                  Quartile
-                </label>
-                <select
-                  name="quartile"
-                  value={formData?.quartile || ""}
-                  onChange={handleInputChange}
-                  className="rounded-md px-3 py-2 w-full text-sm bg-zinc-50"
-                >
-                  <option value="">Select Quartile</option>
-                  <option value="Q1">Q1</option>
-                  <option value="Q2">Q2</option>
-                  <option value="Q3">Q3</option>
-                  <option value="Q4">Q4</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs uppercase text-zinc-500 block mb-1">
-                  Impact Factor
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="impactFactor"
-                  placeholder="e.g. 5.4"
-                  value={formData?.impactFactor || ""}
-                  onChange={handleInputChange}
-                  className="rounded-md px-3 py-2 w-full text-sm bg-zinc-50"
-                />
-              </div>
-            </>
-          )}
         </div>
       </section>
 

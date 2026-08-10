@@ -12,7 +12,7 @@ const PublicationForm = ({
     <SubmissionForm
       title="Publication Submission"
       category="Publication"
-      showResearchSection={true}
+      showResearchSection={false}
       basicFields={{
         title: "Publication Title",
         domain: "Research Area",
@@ -45,13 +45,14 @@ const PublicationForm = ({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-              Quartile
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
+              Quartile <span className="text-red-500 ml-1 font-bold">*</span>
             </label>
             <select
               name="quartile"
               value={formData?.quartile || ""}
               onChange={handleInputChange}
+              required
               className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
             >
               <option value="">Select Quartile</option>
@@ -63,8 +64,8 @@ const PublicationForm = ({
           </div>
           
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-              Impact Factor
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
+              Impact Factor <span className="text-red-500 ml-1 font-bold">*</span>
             </label>
             <input
               type="number"
@@ -73,6 +74,22 @@ const PublicationForm = ({
               placeholder="e.g. 5.4"
               value={formData?.impactFactor || ""}
               onChange={handleInputChange}
+              required
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800 placeholder:text-neutral-400"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5 md:col-span-2">
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
+              Quartile Proof (Scimago / SJR Link or Proof URL) <span className="text-red-500 ml-1 font-bold">*</span>
+            </label>
+            <input
+              type="text"
+              name="quartileProof"
+              placeholder="e.g. https://www.scimagojr.com/journalsearch.php?q=... or proof URL"
+              value={formData?.quartileProof || ""}
+              onChange={handleInputChange}
+              required
               className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800 placeholder:text-neutral-400"
             />
           </div>

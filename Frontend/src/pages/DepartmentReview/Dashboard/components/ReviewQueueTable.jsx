@@ -47,98 +47,77 @@ const ReviewQueueTable = ({ data = [], onRowClick }) => {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+    <div className="overflow-x-auto rounded-2xl border border-neutral-200/80 bg-white shadow-sm">
+      <table className="min-w-full divide-y divide-neutral-100 text-xs text-left font-medium">
+        <thead className="bg-neutral-50/80 text-neutral-500 uppercase font-bold tracking-wider text-[11px] border-b border-neutral-200/80">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-              Submission
-            </th>
-
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-              Applicant
-            </th>
-
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-              Category
-            </th>
-
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-              Current Stage
-            </th>
-
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-              Submitted
-            </th>
-
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-              Status
-            </th>
-
-            <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-              Review
-            </th>
+            <th className="px-5 py-3.5">Submission</th>
+            <th className="px-5 py-3.5">Applicant</th>
+            <th className="px-5 py-3.5">Category & Subtype</th>
+            <th className="px-5 py-3.5">Current Stage</th>
+            <th className="px-5 py-3.5">Submitted Date</th>
+            <th className="px-5 py-3.5">Status</th>
+            <th className="px-5 py-3.5 text-center">Action</th>
           </tr>
         </thead>
 
-        <tbody className="divide-y divide-gray-100 bg-white">
+        <tbody className="divide-y divide-neutral-100 bg-white text-neutral-700">
           {data.map((submission) => (
             <tr
-              key={submission.id}
+              key={submission.id || submission._id}
               onClick={() => onRowClick(submission)}
-              className="cursor-pointer hover:bg-gray-50 transition-colors"
+              className="cursor-pointer hover:bg-blue-50/40 transition-colors group"
             >
-              <td className="px-6 py-4">
-                <p className="font-semibold text-gray-900">
+              <td className="px-5 py-4">
+                <p className="font-bold text-neutral-900 text-xs">
                   {submission.claimNumber || submission.id}
                 </p>
-
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                <p className="text-[11px] text-neutral-500 font-medium mt-0.5 max-w-xs truncate" title={submission.title}>
                   {submission.title}
                 </p>
               </td>
 
-              <td className="px-6 py-4">
-                <p className="font-medium">
+              <td className="px-5 py-4">
+                <p className="font-bold text-neutral-900">
                   {submission.submittedBy ||
                     submission.creatorName ||
                     "Unknown Applicant"}
                 </p>
-
-                <p className="text-xs text-gray-500 mt-1">
-                  {submission.creatorDept || submission.department || "Unknown"}
+                <p className="text-[11px] text-neutral-500 font-medium mt-0.5">
+                  {submission.creatorDept || submission.department || "MMDU Department"}
                 </p>
               </td>
 
-              <td className="px-6 py-4">
-                <p className="font-medium">{submission.category}</p>
-
-                <p className="text-xs text-gray-500 mt-1">
-                  {submission.subtype}
+              <td className="px-5 py-4">
+                <p className="font-bold text-neutral-800 uppercase tracking-wide text-[11px]">
+                  {String(submission.category || "").replace(/_/g, " ")}
+                </p>
+                <p className="text-[11px] text-neutral-500 capitalize mt-0.5">
+                  {String(submission.subtype || "").replace(/_/g, " ")}
                 </p>
               </td>
 
-              <td className="px-6 py-4">
+              <td className="px-5 py-4">
                 {getCurrentLevelBadge(submission.currentLevel)}
               </td>
 
-              <td className="px-6 py-4 whitespace-nowrap">
-                {dayjs(submission.dateSubmitted || submission.createdAt).format(
-                  "DD MMM YYYY",
-                )}
+              <td className="px-5 py-4 whitespace-nowrap text-neutral-500 font-medium">
+                {dayjs(submission.dateSubmitted || submission.createdAt).format("DD MMM YYYY")}
               </td>
 
-              <td className="px-6 py-4">{getStatusBadge(submission.status)}</td>
+              <td className="px-5 py-4 whitespace-nowrap">
+                {getStatusBadge(submission.status)}
+              </td>
 
-              <td className="px-6 py-4 text-center">
+              <td className="px-5 py-4 text-center whitespace-nowrap">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onRowClick(submission);
                   }}
-                  className="inline-flex items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition"
+                  className="inline-flex items-center justify-center px-3 py-1.5 rounded-xl bg-neutral-50 text-neutral-700 font-bold text-[11px] uppercase tracking-wider group-hover:bg-blue-600 group-hover:text-white transition-colors cursor-pointer border border-neutral-200/80 group-hover:border-blue-600"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  Review <ChevronRight className="ml-1 h-3.5 w-3.5" />
                 </button>
               </td>
             </tr>

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import SubmissionCard from "../../../components/Ui/SubmissionCard";
 import { getSubmissions } from "../../../services/submissionService";
+import useSubmissionSync from "../../../hooks/useSubmissionSync";
 import {
   Plus,
   FileText,
@@ -21,21 +22,18 @@ const ApplicantSubmissions = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    const fetchSubmissions = async () => {
-      setLoading(true);
-      try {
-        const response = await getSubmissions();
-        setSubmissions(response.data || response.claims || []);
-      } catch (error) {
-        console.error("Failed to fetch submissions", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSubmissions();
+  const fetchSubmissions = useCallback(async () => {
+    try {
+      const response = await getSubmissions();
+      setSubmissions(response.data || response.claims || []);
+    } catch (error) {
+      console.error("Failed to fetch submissions", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useSubmissionSync(fetchSubmissions, 3000);
 
   // Close dropdown when clicking outside
   useEffect(() => {

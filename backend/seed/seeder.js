@@ -7,6 +7,7 @@ import User from "../models/User.js";
 import Role from "../models/Role.js";
 import Institute from "../models/Institute.js";
 import Department from "../models/Department.js";
+import Claim from "../models/Claim.js";
 
 // Load env from backend/.env
 const __filename = fileURLToPath(import.meta.url);
@@ -234,13 +235,88 @@ const seedDatabase = async () => {
       },
     ];
 
+    const createdUsers = [];
     // Use User.create to trigger pre-save hooks for password hashing
     for (const userData of users) {
       const user = await User.create(userData);
-
+      createdUsers.push(user);
       console.log("CREATED:", user.email, "PASSWORD:", user.password);
+
+      // Relink existing claims in database for this faculty member to the new user _id
+      await Claim.updateMany(
+        { applicantName: { $regex: new RegExp(`^${user.name.trim()}$`, 'i') } },
+        { $set: { applicant: user._id, department: user.department } }
+      );
     }
-    console.log(`✅ ${users.length} users seeded`);
+    console.log(`✅ ${createdUsers.length} users seeded & existing claims relinked`);
+
+    // Seed sample claims if Claim collection is empty
+    const existingClaimsCount = await Claim.countDocuments({});
+    if (existingClaimsCount === 0) {
+      const priyaUser = createdUsers.find((u) => u.email === "priya.mehta@mmdu.ac.in");
+      if (priyaUser) {
+        console.log("Seeding initial sample claims for Dr. Priya Mehta...");
+        await Claim.create([
+          {
+            claimNumber: "RPMS-2026-0129",
+            applicant: priyaUser._id,
+            applicantName: priyaUser.name,
+            department: priyaUser.department,
+            applicantRole: priyaUser.role,
+            category: "research_publications",
+            subtype: "journal_publication",
+            title: "Advanced Machine Learning Algorithms for Healthcare Predictive Analytics",
+            metadata: {
+              quartile: "Q1",
+              impactFactor: "6.8",
+              journalName: "IEEE Transactions on Neural Networks and Learning Systems",
+              publisher: "IEEE",
+              doi: "10.1109/TNNLS.2026.3150241"
+            },
+            status: "COMPLETED",
+            currentDesk: "accounts",
+            financialYear: "2026-2027",
+            totalIncentive: 25000,
+            individualShare: 25000,
+            calculatedAmount: 25000,
+            approvedAmount: 25000,
+            isAccountsApproved: true,
+            isPaid: true,
+            paymentStatus: "PAID",
+            releasedAmount: 25000,
+            paidAmount: 25000
+          },
+          {
+            claimNumber: "RPMS-2026-0130",
+            applicant: priyaUser._id,
+            applicantName: priyaUser.name,
+            department: priyaUser.department,
+            applicantRole: priyaUser.role,
+            category: "research_publications",
+            subtype: "journal_publication",
+            title: "Scalable Distributed Systems for Cloud Intelligence",
+            metadata: {
+              quartile: "Q2",
+              impactFactor: "4.2",
+              journalName: "Journal of Systems Architecture",
+              publisher: "Elsevier",
+              doi: "10.1016/j.sysarc.2026.10284"
+            },
+            status: "COMPLETED",
+            currentDesk: "accounts",
+            financialYear: "2026-2027",
+            totalIncentive: 20000,
+            individualShare: 20000,
+            calculatedAmount: 20000,
+            approvedAmount: 20000,
+            isAccountsApproved: true,
+            isPaid: false,
+            paymentStatus: "APPROVED_BY_ACCOUNTS"
+          }
+        ]);
+        console.log("✅ Sample claims seeded for Dr. Priya Mehta");
+      }
+    }
 
     console.log("\n🎉 Database seeded successfully!");
     console.log("\nDefault login credentials:");

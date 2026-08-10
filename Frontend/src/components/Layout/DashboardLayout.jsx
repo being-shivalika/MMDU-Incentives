@@ -29,7 +29,7 @@ const DashboardLayout = () => {
   const sidebarTitle = user?.role ? ROLE_TITLES[user.role] : "Dashboard";
 
   return (
-    <div className="min-h-screen bg-gray-100 text-black">
+    <div className="min-h-screen bg-slate-50/70 text-neutral-900 font-sans antialiased">
       {/* Navbar */}
       <Navbar
         onToggleSidebar={toggleSidebar}

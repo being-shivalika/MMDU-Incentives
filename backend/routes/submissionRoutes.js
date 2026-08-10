@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listSubmissions, createSubmission, getSubmission, updateSubmission, saveDraft, deleteSubmission, markClaimAsPaid, markBatchClaimsAsPaid } from '../controllers/submissionController.js';
+import { listSubmissions, createSubmission, getSubmission, updateSubmission, saveDraft, deleteSubmission, markClaimAsPaid, markBatchClaimsAsPaid, approveClaimPayment } from '../controllers/submissionController.js';
 import protect from '../middleware/auth.js';
 import authorize from '../middleware/authorize.js';
 
@@ -19,6 +19,7 @@ router.route('/:id')
   .delete(authorize('faculty', 'student'), deleteSubmission);
 
 router.put('/:id/draft', authorize('faculty', 'student'), saveDraft);
+router.put('/:id/approve-payment', authorize('accounts', 'admin', 'hod', 'rpc_cell', 'director', 'vc'), approveClaimPayment);
 router.put('/:id/pay', authorize('accounts', 'admin', 'hod', 'rpc_cell', 'director', 'vc'), markClaimAsPaid);
 
 export default router;

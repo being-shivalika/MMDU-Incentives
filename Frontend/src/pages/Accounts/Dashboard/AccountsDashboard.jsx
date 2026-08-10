@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import useAuth from "../../../hooks/useAuth";
 import Card from "../../../components/Ui/Card";
 import ReviewStats from "../../DepartmentReview/Dashboard/components/ReviewStats";
 import ReviewFilters from "../../DepartmentReview/Dashboard/components/ReviewFilters";
 import ReviewQueueTable from "../../DepartmentReview/Dashboard/components/ReviewQueueTable";
 import AccountsDrawer from "./AccountsDrawer";
-import { getSubmissions } from "../../../services/submissionService";
+import { getSubmissions, markClaimAsPaid, approveClaimPayment } from "../../../services/submissionService";
+import useSubmissionSync from "../../../hooks/useSubmissionSync";
 import { processTransition } from "../../../services/workflowService";
 import { Calendar, FileSpreadsheet, FileText } from "lucide-react";
 import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
@@ -27,7 +28,7 @@ const AccountsDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadSubmissions = async () => {
+  const loadSubmissions = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -40,11 +41,13 @@ const AccountsDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useSubmissionSync(loadSubmissions, 3000);
 
   useEffect(() => {
     loadSubmissions();
-  }, [user]);
+  }, [user, loadSubmissions]);
 
   // Compute stats
   const pendingCount = submissions.filter((s) => s.status && s.status.includes("Pending")).length;
@@ -70,22 +73,19 @@ const AccountsDashboard = () => {
 
   const handleAction = async (actionType, remarks) => {
     if (!selectedSubmission) return;
-    
-    let transitionAction;
-    if (actionType === "Process Payment") transitionAction = "RELEASE_PAYMENT";
-    else return;
 
     try {
-      await processTransition({
-        claimId: selectedSubmission.id,
-        action: transitionAction,
-        remarks: remarks
-      });
+      const claimId = selectedSubmission.id || selectedSubmission._id;
+      if (actionType === "Approve Payment") {
+        await approveClaimPayment(claimId, remarks || "Incentive amount verified and approved by Accounts for annual payout cycle.");
+      } else {
+        await markClaimAsPaid(claimId, remarks || "Ticked and marked as paid in annual disbursement cycle.");
+      }
       await loadSubmissions();
       setIsDrawerOpen(false);
     } catch (err) {
-      console.error("Error processing transition:", err);
-      alert(err.message || "Failed to process review action");
+      console.error("Error processing payment action:", err);
+      alert(err.message || "Failed to process payment action.");
     }
   };
 

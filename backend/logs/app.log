@@ -349,3 +349,28 @@
 2026-08-03T18:25:35.800Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0126 — Your Approval Processed
 2026-08-03T18:25:36.755Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0126 — Approved by RPC Cell Coordinator
 2026-08-03T18:25:36.831Z warn: Email not configured. Would have sent to rpc@mmdu.ac.in: [RPMS] Claim RPMS-2026-0126 — Your Approval Processed
+2026-08-04T05:41:51.648Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0127 — Approved by Dr. Amit Verma
+2026-08-04T05:41:51.897Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0127 — Your Approval Processed
+2026-08-04T05:44:05.951Z warn: No policy rule found for research_publications/journal_publication/Q1_SCI_SCIE
+2026-08-04T05:44:07.152Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0127 — Approved by R&D Cell Coordinator
+2026-08-04T05:44:07.323Z warn: Email not configured. Would have sent to rd@mmdu.ac.in: [RPMS] Claim RPMS-2026-0127 — Your Approval Processed
+2026-08-10T12:49:32.816Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0129 — Approved by Dr. Amit Verma
+2026-08-10T12:49:32.889Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0129 — Your Approval Processed
+2026-08-10T12:51:57.595Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0129 — Approved by R&D Cell Coordinator
+2026-08-10T12:51:57.666Z warn: Email not configured. Would have sent to rd@mmdu.ac.in: [RPMS] Claim RPMS-2026-0129 — Your Approval Processed
+2026-08-10T13:02:23.890Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0130 — Approved by Dr. Amit Verma
+2026-08-10T13:02:23.978Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0130 — Your Approval Processed
+2026-08-10T13:02:55.018Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0130 — Returned for Correction
+2026-08-10T13:03:26.299Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0130 — Approved by Dr. Amit Verma
+2026-08-10T13:03:26.368Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0130 — Your Approval Processed
+2026-08-10T13:03:43.894Z info: Research score already exists for claim RPMS-2026-0130
+2026-08-10T13:03:44.253Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0130 — Approved by R&D Cell Coordinator
+2026-08-10T13:03:44.333Z warn: Email not configured. Would have sent to rd@mmdu.ac.in: [RPMS] Claim RPMS-2026-0130 — Your Approval Processed
+2026-08-10T13:09:48.154Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0131 — Approved by Dr. Amit Verma
+2026-08-10T13:09:48.231Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0131 — Your Approval Processed
+2026-08-10T13:10:00.805Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0131 — Approved by R&D Cell Coordinator
+2026-08-10T13:10:00.872Z warn: Email not configured. Would have sent to rd@mmdu.ac.in: [RPMS] Claim RPMS-2026-0131 — Your Approval Processed
+2026-08-10T13:29:20.165Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0132 — Approved by Dr. Amit Verma
+2026-08-10T13:29:20.233Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0132 — Your Approval Processed
+2026-08-10T13:39:16.829Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0133 — Approved by Dr. Amit Verma
+2026-08-10T13:39:16.903Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0133 — Your Approval Processed

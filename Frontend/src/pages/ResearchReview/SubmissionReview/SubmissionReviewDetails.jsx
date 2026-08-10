@@ -24,7 +24,6 @@ const SubmissionReviewDetails = () => {
 
   // RPC Analysis State
   const [remarks, setRemarks] = useState("");
-  const [incentiveAmount, setIncentiveAmount] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
@@ -64,10 +63,6 @@ const SubmissionReviewDetails = () => {
     setValidationErrors({});
     const errors = {};
 
-    if (actionType === "approve") {
-      if (!incentiveAmount) errors.incentiveAmount = "Recommended Incentive is required for approval";
-    }
-
     if (actionType === "reject" || actionType === "return") {
       if (!remarks.trim()) errors.remarks = "Remarks are required for this action";
     }
@@ -79,11 +74,12 @@ const SubmissionReviewDetails = () => {
 
     setSubmitting(true);
     try {
+      const computedAmount = submission?.userShare || submission?.individualShare || submission?.approvedAmount || submission?.calculatedAmount || submission?.totalIncentive;
       await processTransition({
         claimId: id,
         action: actionType,
         remarks: remarks,
-        incentiveAmount: actionType === "approve" ? parseFloat(incentiveAmount) : undefined
+        incentiveAmount: actionType === "approve" ? computedAmount : undefined
       });
       navigate(ROUTES.RESEARCH_REVIEW);
     } catch (err) {
@@ -205,12 +201,20 @@ const SubmissionReviewDetails = () => {
                 <p className="text-xs text-blue-600 font-semibold uppercase mb-1">Impact Factor</p>
                 <p className="font-bold text-blue-900 text-2xl">{submission.metadata?.impactFactor || submission.fields?.impactFactor || "N/A"}</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center col-span-2 md:col-span-2">
-                <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Indexing</p>
-                <div className="flex flex-wrap gap-2 justify-center mt-2">
-                  <Badge variant="default">Scopus</Badge>
-                  <Badge variant="default">Web of Science</Badge>
-                </div>
+              <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 text-center col-span-2 flex flex-col justify-center items-center">
+                <p className="text-xs text-blue-600 font-semibold uppercase mb-1">Quartile Proof Link / Doc</p>
+                {submission.metadata?.quartileProof || submission.fields?.quartileProof ? (
+                  <a
+                    href={submission.metadata?.quartileProof || submission.fields?.quartileProof}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-bold text-blue-700 hover:underline text-xs break-all flex items-center gap-1"
+                  >
+                    View Scimago / SJR Proof ↗
+                  </a>
+                ) : (
+                  <p className="text-xs text-neutral-400 font-medium">No Proof URL</p>
+                )}
               </div>
             </div>
           </Card>
@@ -242,21 +246,18 @@ const SubmissionReviewDetails = () => {
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Recommended Incentive (₹) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  className={`w-full md:w-1/2 border ${validationErrors.incentiveAmount ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} rounded-lg p-3 text-sm focus:ring-2 outline-none transition-shadow`}
-                  placeholder="e.g. 15000"
-                  value={incentiveAmount}
-                  onChange={(e) => setIncentiveAmount(e.target.value)}
-                  disabled={submitting}
-                />
-                {validationErrors.incentiveAmount && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.incentiveAmount}</p>
-                )}
+              <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-0.5">
+                    Policy Engine Calculated Incentive
+                  </p>
+                  <p className="text-xs text-blue-600 font-medium">
+                    Automatically calculated based on Research Promotion Policy (Q-Quartile, Author Split & Indexing).
+                  </p>
+                </div>
+                <div className="text-2xl font-black text-blue-900 bg-white px-4 py-2 rounded-lg border border-blue-200 shadow-sm shrink-0">
+                  ₹{(submission?.userShare || submission?.individualShare || submission?.approvedAmount || submission?.calculatedAmount || submission?.totalIncentive || 0).toLocaleString("en-IN")}
+                </div>
               </div>
             </div>
           </Card>

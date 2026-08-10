@@ -19,14 +19,13 @@ const determineCondition = (claim) => {
     }
 
     const indexingTier = String(metadata?.indexingTier || '');
-    const quartile = String(metadata?.quartile || '');
+    const quartile = String(metadata?.quartile || '').toUpperCase().trim();
     
-    if (indexingTier.toLowerCase().includes('sci') || quartile.toUpperCase().startsWith('Q')) {
-      if (quartile.toUpperCase() === 'Q1' || indexingTier.includes('Q1')) return 'Q1_SCI_SCIE';
-      if (quartile.toUpperCase() === 'Q2' || indexingTier.includes('Q2')) return 'Q2_SCI_SCIE';
-      if (quartile.toUpperCase() === 'Q3' || quartile.toUpperCase() === 'Q4' || indexingTier.includes('Q3') || indexingTier.includes('Q4')) return 'Q3_Q4_SCI_SCIE';
-      return 'Q3_Q4_SCI_SCIE';
-    }
+    if (quartile === 'Q1' || indexingTier.includes('Q1')) return 'Q1_SCI_SCIE';
+    if (quartile === 'Q2' || indexingTier.includes('Q2')) return 'Q2_SCI_SCIE';
+    if (quartile === 'Q3' || quartile === 'Q4' || quartile === 'Q3/Q4' || indexingTier.includes('Q3') || indexingTier.includes('Q4')) return 'Q3_Q4_SCI_SCIE';
+
+    if (indexingTier.toLowerCase().includes('sci')) return 'Q3_Q4_SCI_SCIE';
     if (indexingTier.toLowerCase().includes('scopus')) return 'SCOPUS_ONLY';
     if (indexingTier.toLowerCase().includes('ugc')) return 'UGC_CARE';
     return 'OTHER';
@@ -76,6 +75,49 @@ const countInternalAuthors = (metadata) => {
 };
 
 /**
+ * Sync Q3/Q4 cumulative incentive amounts across all non-rejected claims for an applicant.
+ */
+export const syncApplicantQ3Q4Claims = async (applicantId, financialYear) => {
+  if (!applicantId) return;
+
+  const q3q4Claims = await Claim.find({
+    applicant: applicantId,
+    financialYear,
+    category: 'research_publications',
+    $or: [
+      { 'metadata.quartile': { $in: ['Q3', 'Q4', 'q3', 'q4', 'Q3/Q4'] } },
+      { 'policySnapshot.condition': 'Q3_Q4_SCI_SCIE' }
+    ],
+    status: { $nin: ['DRAFT', 'REJECTED'] }
+  });
+
+  const count = q3q4Claims.length;
+  const targetTotal = count >= 6 ? 15000 : count >= 3 ? 10000 : 0;
+
+  for (const claim of q3q4Claims) {
+    if (claim.totalIncentive !== targetTotal) {
+      const authorCount = Math.max(1, claim.mmduAuthorCount || 1);
+      const share = Math.round(targetTotal / authorCount);
+      claim.totalIncentive = targetTotal;
+      claim.calculatedAmount = share;
+      claim.approvedAmount = share;
+      claim.individualShare = share;
+      if (claim.authorPayments && claim.authorPayments.length > 0) {
+        claim.authorPayments.forEach(p => {
+          if (p.isMmdu) p.payableAmount = share;
+        });
+      }
+      if (claim.policySnapshot) {
+        claim.policySnapshot.totalIncentive = targetTotal;
+        claim.policySnapshot.individualShare = share;
+        claim.policySnapshot.calculatedAmount = share;
+      }
+      await claim.save();
+    }
+  }
+};
+
+/**
  * Calculate incentive amount for a claim based on active policy rules.
  * @param {Object} claim - Claim document
  * @returns {Object} { amount, scorePoints, policySnapshot, policyRule }
@@ -83,11 +125,13 @@ const countInternalAuthors = (metadata) => {
 export const calculateIncentive = async (claim) => {
   const condition = determineCondition(claim);
   const categoryQuery = claim.category === 'conferences' ? { $in: ['conferences', 'research_publications'] } : claim.category;
-  
+  const normSubtype = (claim.subtype || '').replace('_publication', '');
+  const subtypeQuery = { $in: [claim.subtype, normSubtype] };
+
   // Find matching active policy rule
   const policyRule = await PolicyRule.findOne({
     category: categoryQuery,
-    subtype: claim.subtype,
+    subtype: subtypeQuery,
     condition,
     isActive: true,
     $and: [
@@ -99,38 +143,21 @@ export const calculateIncentive = async (claim) => {
   // Also try broader match (condition = 'ANY') if specific not found
   const fallbackRule = !policyRule ? await PolicyRule.findOne({
     category: categoryQuery,
-    subtype: claim.subtype,
+    subtype: subtypeQuery,
     condition: 'ANY',
     isActive: true
   }) : null;
   
   const rule = policyRule || fallbackRule;
   
-  if (!rule) {
-    logger.warn(`No policy rule found for ${claim.category}/${claim.subtype}/${condition}`);
-    return {
-      amount: 0,
-      scorePoints: 0,
-      policySnapshot: { error: 'No matching policy rule found', condition },
-      policyRule: null
-    };
-  }
+  let totalIncentive = rule ? rule.incentiveAmount : 0;
   
-  // Check applicant type eligibility
-  if (rule.applicantType !== 'both' && rule.applicantType !== claim.applicantRole) {
-    return {
-      amount: 0,
-      scorePoints: 0,
-      policySnapshot: { error: `Policy not applicable for ${claim.applicantRole}`, rule: rule.toObject() },
-      policyRule: rule
-    };
-  }
-  
-  let totalIncentive = rule.incentiveAmount;
-  
-  // Table 1 S.No 1: Q3/Q4 Cumulative Publication Count Tiering
-  // 1-2 pubs: ₹0 | 3-5 pubs: ₹10,000 | 6+ pubs: ₹15,000
-  if (condition === 'Q3_Q4_SCI_SCIE') {
+  // Exact policy rules for Q1, Q2, Q3/Q4
+  if (condition === 'Q1_SCI_SCIE') {
+    totalIncentive = 25000;
+  } else if (condition === 'Q2_SCI_SCIE') {
+    totalIncentive = 20000;
+  } else if (condition === 'Q3_Q4_SCI_SCIE') {
     const q3q4Count = (await Claim.countDocuments({
       applicant: claim.applicant,
       financialYear: claim.financialYear,
@@ -144,7 +171,7 @@ export const calculateIncentive = async (claim) => {
     })) + 1; // Count including current claim
 
     if (q3q4Count < 3) {
-      totalIncentive = 0; // Less than 3 Q3/Q4 publications in calendar/financial year = ₹0
+      totalIncentive = 0; // Less than 3 Q3/Q4 publications in year = ₹0
     } else if (q3q4Count >= 6) {
       totalIncentive = 15000; // 6 and above Q3/Q4 publications = ₹15,000
     } else {
@@ -184,8 +211,8 @@ export const calculateIncentive = async (claim) => {
 
   let amount = individualShare; // Applicant's share of total incentive
   
-  // Check annual limits
-  if (rule.maxClaimsPerYear > 0) {
+  // Check annual limits safely
+  if (rule?.maxClaimsPerYear > 0) {
     const existingClaimsCount = await Claim.countDocuments({
       applicant: claim.applicant,
       financialYear: claim.financialYear,
@@ -201,13 +228,13 @@ export const calculateIncentive = async (claim) => {
         individualShare: 0,
         authorPayments: [],
         scorePoints: 0,
-        policySnapshot: { error: `Annual claim limit (${rule.maxClaimsPerYear}) exceeded`, rule: rule.toObject() },
+        policySnapshot: { error: `Annual claim limit (${rule.maxClaimsPerYear}) exceeded`, rule: rule.toObject ? rule.toObject() : rule },
         policyRule: rule
       };
     }
   }
   
-  if (rule.maxAmountPerYear > 0) {
+  if (rule?.maxAmountPerYear > 0) {
     const existingAmountResult = await Claim.aggregate([
       {
         $match: {
@@ -252,7 +279,7 @@ export const calculateIncentive = async (claim) => {
 };
 
 /**
- * Check for duplicate DOI across all non-rejected claims.
+ * Check for duplicate claim submissions based on DOI, Scopus Link, Verification Links, and Title.
  */
 export const checkDuplicateDOI = async (doi, excludeClaimId = null) => {
   if (!doi) return false;
@@ -263,4 +290,72 @@ export const checkDuplicateDOI = async (doi, excludeClaimId = null) => {
   if (excludeClaimId) query._id = { $ne: excludeClaimId };
   const existing = await Claim.findOne(query);
   return !!existing;
+};
+
+/**
+ * Check for duplicate claim submissions across all non-rejected claims.
+ */
+export const checkDuplicateSubmission = async (claimData, excludeClaimId = null) => {
+  const metadata = claimData.metadata || {};
+
+  const doi = (metadata.doi || metadata.firstVerification || "").trim().toLowerCase();
+  const firstVerification = (metadata.firstVerification || "").trim().toLowerCase();
+  const secondVerification = (metadata.secondVerification || metadata.scopusLink || "").trim().toLowerCase();
+  const title = (claimData.title || metadata.title || "").trim().toLowerCase().replace(/\s+/g, ' ');
+
+  if (!doi && !firstVerification && !secondVerification && !title) {
+    return { isDuplicate: false };
+  }
+
+  // Find all active (non-rejected) claims
+  const query = {
+    status: { $nin: ['REJECTED'] }
+  };
+  if (excludeClaimId) {
+    query._id = { $ne: excludeClaimId };
+  }
+
+  const existingClaims = await Claim.find(query).select('claimNumber applicantName title metadata').lean();
+
+  for (const existing of existingClaims) {
+    const exMeta = existing.metadata || {};
+
+    const exDoi = (exMeta.doi || exMeta.firstVerification || "").trim().toLowerCase();
+    const exFirstVer = (exMeta.firstVerification || "").trim().toLowerCase();
+    const exSecondVer = (exMeta.secondVerification || exMeta.scopusLink || "").trim().toLowerCase();
+    const exTitle = (existing.title || exMeta.title || "").trim().toLowerCase().replace(/\s+/g, ' ');
+
+    // 1. Scopus Link / Paper Link match
+    if (secondVerification && secondVerification.length > 5 && (secondVerification === exSecondVer || secondVerification === exFirstVer)) {
+      return {
+        isDuplicate: true,
+        reason: `A submission with this Scopus Link / Paper URL already exists in the system (${existing.claimNumber} submitted by ${existing.applicantName || 'another author'}). Duplicate submissions for the same paper are not allowed.`
+      };
+    }
+
+    // 2. DOI / Primary Verification Link match
+    if (doi && doi.length > 3 && (doi === exDoi || doi === exFirstVer || doi === exSecondVer)) {
+      return {
+        isDuplicate: true,
+        reason: `A submission with this DOI / Paper Link already exists in the system (${existing.claimNumber} submitted by ${existing.applicantName || 'another author'}). Duplicate submissions for the same paper are not allowed.`
+      };
+    }
+
+    if (firstVerification && firstVerification.length > 3 && (firstVerification === exFirstVer || firstVerification === exDoi || firstVerification === exSecondVer)) {
+      return {
+        isDuplicate: true,
+        reason: `A submission with this verification link/ID (${firstVerification}) already exists in the system (${existing.claimNumber} submitted by ${existing.applicantName || 'another author'}).`
+      };
+    }
+
+    // 3. Exact Title match (for titles > 8 characters)
+    if (title && title.length > 8 && title === exTitle) {
+      return {
+        isDuplicate: true,
+        reason: `A submission with the exact same Title "${existing.title}" already exists in the system (${existing.claimNumber} submitted by ${existing.applicantName || 'another author'}). Co-authors cannot submit duplicate claims for an already submitted paper.`
+      };
+    }
+  }
+
+  return { isDuplicate: false };
 };

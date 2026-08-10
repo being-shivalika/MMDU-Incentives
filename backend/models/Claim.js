@@ -54,8 +54,9 @@ const claimSchema = new mongoose.Schema({
   heldReason: { type: String, default: null },
   
   // Payment tracking (Annual Disbursement Cycle)
+  isAccountsApproved: { type: Boolean, default: false },
   isPaid: { type: Boolean, default: false },
-  paymentStatus: { type: String, enum: ['UNPAID', 'HELD', 'READY_FOR_RELEASE', 'PAID'], default: 'UNPAID' },
+  paymentStatus: { type: String, enum: ['UNPAID', 'HELD', 'READY_FOR_RELEASE', 'APPROVED_BY_ACCOUNTS', 'PAID'], default: 'UNPAID' },
   paymentDetails: { type: mongoose.Schema.Types.Mixed, default: null },
   
   // Policy snapshot

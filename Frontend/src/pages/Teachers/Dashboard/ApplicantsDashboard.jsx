@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import Card from "../../../components/Ui/Card";
@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import StatsRow from "./components/StatsRow";
 import WelcomeHero from "./components/WelcomeHero";
 import { getSubmissions } from "../../../services/submissionService";
+import useSubmissionSync from "../../../hooks/useSubmissionSync";
 
 const ApplicantsDashboard = () => {
   const { user } = useAuth();
@@ -18,19 +19,18 @@ const ApplicantsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const circulars = [];
 
-  useEffect(() => {
-    const fetchSubmissions = async () => {
-      try {
-        const res = await getSubmissions();
-        setSubmissions(res.data || res.claims || []);
-      } catch (err) {
-        console.error("Failed to load submissions", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSubmissions();
+  const fetchSubmissions = useCallback(async () => {
+    try {
+      const res = await getSubmissions();
+      setSubmissions(res.data || res.claims || []);
+    } catch (err) {
+      console.error("Failed to load submissions", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useSubmissionSync(fetchSubmissions, 3000);
 
   const mySubmissions = submissions;
 
@@ -63,7 +63,10 @@ const ApplicantsDashboard = () => {
   };
 
   const isPendingPaymentClaim = (s) => {
-    return !isPaidClaim(s) && !s?.isHeld;
+    const status = (s?.status || "").toLowerCase();
+    const paymentStatus = (s?.paymentStatus || "").toLowerCase();
+    const isAccountsApproved = s?.isAccountsApproved === true || paymentStatus === "approved_by_accounts" || paymentStatus === "ready_for_release" || status === "completed" || status.includes("accounts");
+    return !isPaidClaim(s) && isAccountsApproved && !s?.isHeld;
   };
 
   const totalReleasedIncentive = mySubmissions
@@ -216,6 +219,7 @@ const ApplicantsDashboard = () => {
                 <tr className="border-b border-neutral-200 text-neutral-400 uppercase font-bold tracking-wider">
                   <th className="pb-3 font-semibold">Category</th>
                   <th className="pb-3 font-semibold">Title</th>
+                  <th className="pb-3 font-semibold">Quartile</th>
                   <th className="pb-3 font-semibold">Date</th>
                   <th className="pb-3 font-semibold">Status</th>
                 </tr>
@@ -223,7 +227,7 @@ const ApplicantsDashboard = () => {
               <tbody className="divide-y divide-neutral-100">
                 {mySubmissions.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="text-center py-12 text-neutral-400">
+                    <td colSpan="5" className="text-center py-12 text-neutral-400">
                       <div className="flex flex-col items-center justify-center space-y-2">
                         <Inbox className="h-6 w-6 text-neutral-300" />
                         <span className="text-xs font-medium">No submissions yet</span>
@@ -231,18 +235,39 @@ const ApplicantsDashboard = () => {
                     </td>
                   </tr>
                 ) : (
-                  mySubmissions.slice(0, 5).map((claim, idx) => (
-                    <tr key={claim._id || claim.id || idx} className="hover:bg-neutral-50/50 transition-colors">
-                      <td className="py-3 font-semibold text-neutral-700 uppercase">
-                        {String(claim.category || "").replace(/_/g, " ")}
-                      </td>
-                      <td className="py-3 font-bold text-neutral-950 max-w-[240px] truncate">{claim.title}</td>
-                      <td className="py-3 text-neutral-500 font-medium">
-                        {dayjs(claim.submissionDate || claim.createdAt || claim.dateSubmitted).format("MMM DD YYYY")}
-                      </td>
-                      <td className="py-3">{getStatusBadge(claim.status)}</td>
-                    </tr>
-                  ))
+                  mySubmissions.slice(0, 5).map((claim, idx) => {
+                    const claimQuartile = claim.metadata?.quartile || claim.fields?.quartile || claim.quartile;
+                    const claimId = claim._id || claim.id;
+
+                    return (
+                      <tr
+                        key={claimId || idx}
+                        onClick={() => navigate(`/applicant/submissions/${claimId}`)}
+                        className="hover:bg-blue-50/40 cursor-pointer transition-colors group"
+                        title="Click to view submission details"
+                      >
+                        <td className="py-3 font-semibold text-neutral-700 uppercase">
+                          {String(claim.category || "").replace(/_/g, " ")}
+                        </td>
+                        <td className="py-3 font-bold text-neutral-950 max-w-[220px] truncate group-hover:text-blue-600 group-hover:underline transition-colors">
+                          {claim.title}
+                        </td>
+                        <td className="py-3 font-extrabold text-xs">
+                          {claimQuartile ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-50 text-blue-800 border border-blue-200">
+                              {claimQuartile}
+                            </span>
+                          ) : (
+                            <span className="text-neutral-400 font-medium">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 text-neutral-500 font-medium whitespace-nowrap">
+                          {dayjs(claim.submissionDate || claim.createdAt || claim.dateSubmitted).format("MMM DD YYYY")}
+                        </td>
+                        <td className="py-3 whitespace-nowrap">{getStatusBadge(claim.status)}</td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

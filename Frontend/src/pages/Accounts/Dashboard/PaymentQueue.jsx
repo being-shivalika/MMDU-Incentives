@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PageHeader from "../../../shared/components/PageHeader";
 import {
   CreditCard,
@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import Card from "../../../components/Ui/Card";
 import Badge from "../../../components/Ui/Badge";
-import { getSubmissions, markClaimAsPaid, markBatchClaimsAsPaid } from "../../../services/submissionService";
+import { getSubmissions, markClaimAsPaid, markBatchClaimsAsPaid, approveClaimPayment } from "../../../services/submissionService";
+import useSubmissionSync from "../../../hooks/useSubmissionSync";
 import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
 
 const DEPARTMENTS = [
@@ -69,7 +70,7 @@ const PaymentQueue = () => {
   const [processing, setProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  const loadSubmissions = async () => {
+  const loadSubmissions = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getSubmissions();
@@ -80,11 +81,13 @@ const PaymentQueue = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useSubmissionSync(loadSubmissions, 3000);
 
   useEffect(() => {
     loadSubmissions();
-  }, []);
+  }, [loadSubmissions]);
 
   // Reset Filters Handler
   const handleResetFilters = () => {
@@ -185,7 +188,23 @@ const PaymentQueue = () => {
     return acc + (isNaN(share) ? 0 : share);
   }, 0);
 
-  // Single Mark as Paid Action
+  // Single Step 1: Approve Payment Action
+  const handleSingleApprovePayment = async (id) => {
+    try {
+      setProcessing(true);
+      setSuccessMessage(null);
+      await approveClaimPayment(id, "Incentive amount verified and approved by Accounts for annual payout cycle.");
+      setSuccessMessage("Incentive claim payment APPROVED by Accounts successfully!");
+      await loadSubmissions();
+    } catch (err) {
+      console.error("Error approving claim payment:", err);
+      alert(err.message || "Failed to approve claim payment.");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // Single Step 2: Mark as Paid Action
   const handleSingleMarkPaid = async (id) => {
     try {
       setProcessing(true);
@@ -330,7 +349,7 @@ const PaymentQueue = () => {
             >
               {PAYOUT_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s === "UNPAID" ? "Unpaid / Pending" : s === "PAID" ? "Paid / Disbursed" : s === "HELD" ? "Held (1st Pub)" : "All Statuses"}
+                  {s === "UNPAID" ? "Unpaid / Pending" : s === "PAID" ? "Paid / Disbursed" : s === "HELD" ? "Held" : "All Statuses"}
                 </option>
               ))}
             </select>
@@ -497,6 +516,7 @@ const PaymentQueue = () => {
                   );
                   const isHeld = item.isHeld || false;
                   const isPaid = item.isPaid || item.paymentStatus === "PAID";
+                  const isAccountsApproved = item.isAccountsApproved || item.paymentStatus === "APPROVED_BY_ACCOUNTS" || item.paymentStatus === "READY_FOR_RELEASE" || item.status === "COMPLETED";
 
                   return (
                     <tr
@@ -553,27 +573,48 @@ const PaymentQueue = () => {
                       {/* Annual Status */}
                       <td className="py-3.5 px-4 text-center">
                         {isHeld ? (
-                          <Badge variant="warning">Held (1st Pub Policy)</Badge>
+                          <Badge variant="warning">Held</Badge>
                         ) : isPaid ? (
                           <Badge variant="success">Paid / Disbursed</Badge>
+                        ) : isAccountsApproved ? (
+                          <Badge variant="info">Approved (Pending Credit)</Badge>
+                        ) : share > 0 ? (
+                          <Badge variant="warning">Unapproved Payout</Badge>
                         ) : (
-                          <Badge variant="danger">Unpaid</Badge>
+                          <Badge variant="secondary">Not Applicable (₹0)</Badge>
                         )}
                       </td>
 
                       {/* Single Action Button */}
                       <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => handleSingleMarkPaid(id)}
-                          disabled={processing || isPaid}
-                          className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-lg border transition-colors cursor-pointer ${
-                            isPaid
-                              ? "bg-emerald-100 text-emerald-900 border-emerald-300 opacity-90 cursor-default"
-                              : "bg-neutral-950 text-white border-neutral-900 hover:bg-neutral-800"
-                          }`}
-                        >
-                          {isPaid ? "✔ Paid" : "Tick as Paid"}
-                        </button>
+                        {isPaid ? (
+                          <span className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 inline-block">
+                            ✔ Paid
+                          </span>
+                        ) : share > 0 && !isHeld ? (
+                          <div className="flex items-center justify-end gap-1.5">
+                            {!isAccountsApproved && (
+                              <button
+                                onClick={() => handleSingleApprovePayment(id)}
+                                disabled={processing}
+                                className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border bg-blue-600 text-white border-blue-600 hover:bg-blue-700 transition-colors cursor-pointer"
+                              >
+                                Approve Payment
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleSingleMarkPaid(id)}
+                              disabled={processing}
+                              className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border bg-neutral-950 text-white border-neutral-900 hover:bg-neutral-800 transition-colors cursor-pointer"
+                            >
+                              Tick as Paid
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] font-semibold text-neutral-400 italic">
+                            {isHeld ? "Held" : "Not Applicable"}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

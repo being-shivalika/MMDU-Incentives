@@ -2,7 +2,7 @@ import Claim from '../models/Claim.js';
 import ApprovalHistory from '../models/ApprovalHistory.js';
 import { generateClaimNumber } from './counterService.js';
 import FinancialYear from '../models/FinancialYear.js';
-import { checkDuplicateDOI } from './policyEngine.js';
+import { checkDuplicateDOI, checkDuplicateSubmission, calculateIncentive, syncApplicantQ3Q4Claims } from './policyEngine.js';
 import { createAuditLog } from './auditService.js';
 import { AUDIT_ACTIONS } from '../constants/auditActions.js';
 import { CLAIM_STATUSES } from '../constants/claimStatuses.js';
@@ -29,19 +29,44 @@ export const createClaim = async (claimData, user, ipAddress) => {
   const claimNumber = await generateClaimNumber();
   const financialYear = await getCurrentFinancialYear();
   
-  // Check duplicate DOI
-  if (claimData.metadata?.doi) {
-    const isDuplicate = await checkDuplicateDOI(claimData.metadata.doi);
-    if (isDuplicate) {
-      const error = new Error('A claim with this DOI already exists');
+  // Comprehensive duplicate check (DOI, Scopus Link, Verification Links, Title)
+  const dupCheck = await checkDuplicateSubmission(claimData);
+  if (dupCheck.isDuplicate) {
+    const error = new Error(dupCheck.reason);
+    error.statusCode = 400;
+    throw error;
+  }
+  
+  const isDraft = claimData.status === 'DRAFT';
+  
+  if (!isDraft) {
+    const title = claimData.metadata?.title || claimData.title;
+    if (!title || !title.trim() || title === 'Untitled Claim') {
+      const error = new Error('Title is required for submission');
+      error.statusCode = 400;
+      throw error;
+    }
+    const domain = claimData.metadata?.domain || claimData.domain;
+    if (!domain || !domain.trim()) {
+      const error = new Error('Research Area / Domain is required for submission');
+      error.statusCode = 400;
+      throw error;
+    }
+    const firstVer = claimData.metadata?.firstVerification || claimData.firstVerification;
+    if (!firstVer || !firstVer.trim()) {
+      const error = new Error('Verification detail #1 (e.g. DOI / ISBN / Reg No) is required');
+      error.statusCode = 400;
+      throw error;
+    }
+    const secondVer = claimData.metadata?.secondVerification || claimData.secondVerification;
+    if (!secondVer || !secondVer.trim()) {
+      const error = new Error('Verification detail #2 (e.g. Scopus Link / Certificate Link) is required');
       error.statusCode = 400;
       throw error;
     }
   }
   
-  const isDraft = claimData.status === 'DRAFT';
-  
-  const claim = await Claim.create({
+  const claim = new Claim({
     claimNumber,
     applicant: user._id,
     applicantName: user.name,
@@ -57,6 +82,22 @@ export const createClaim = async (claimData, user, ipAddress) => {
     financialYear,
     submissionDate: isDraft ? null : new Date()
   });
+
+  const policyResult = await calculateIncentive(claim);
+  claim.totalIncentive = policyResult.totalIncentive || policyResult.amount || 0;
+  claim.mmduAuthorCount = policyResult.mmduAuthorCount || 1;
+  claim.individualShare = policyResult.individualShare || policyResult.amount || 0;
+  claim.authorPayments = policyResult.authorPayments || [];
+  claim.calculatedAmount = policyResult.amount || 0;
+  claim.approvedAmount = policyResult.amount || 0;
+  claim.policySnapshot = policyResult.policySnapshot;
+  claim.researchScore = policyResult.scorePoints || 0;
+
+  await claim.save();
+
+  if (!isDraft) {
+    await syncApplicantQ3Q4Claims(user._id, financialYear);
+  }
   
   // Create initial approval history
   await ApprovalHistory.create({
@@ -140,14 +181,12 @@ export const updateClaim = async (claimId, updateData, user, ipAddress) => {
     throw error;
   }
   
-  // Check duplicate DOI if changed
-  if (updateData.metadata?.doi && updateData.metadata.doi !== claim.metadata?.doi) {
-    const isDuplicate = await checkDuplicateDOI(updateData.metadata.doi, claim._id);
-    if (isDuplicate) {
-      const error = new Error('A claim with this DOI already exists');
-      error.statusCode = 400;
-      throw error;
-    }
+  // Check duplicate submission if metadata/title changed
+  const dupCheck = await checkDuplicateSubmission(updateData, claim._id);
+  if (dupCheck.isDuplicate) {
+    const error = new Error(dupCheck.reason);
+    error.statusCode = 400;
+    throw error;
   }
   
   // Determine if this is a resubmission
@@ -267,9 +306,12 @@ export const listClaims = async (filters = {}, pagination = {}, user) => {
   
   const query = {};
   
-  // Role-based filtering
+  // Role-based filtering (matches user._id or applicantName so claims persist across seeder runs)
   if (user.role === 'faculty' || user.role === 'student') {
-    query.applicant = user._id; // Only see own claims
+    query.$or = [
+      { applicant: user._id },
+      { applicantName: { $regex: new RegExp(`^${user.name.trim()}$`, 'i') } }
+    ];
   } else if (user.role === 'hod') {
     // HOD sees claims in their department currently at their desk
     if (!status) {

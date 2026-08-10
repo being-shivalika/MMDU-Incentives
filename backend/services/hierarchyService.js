@@ -161,8 +161,8 @@ export const getClaimPermissions = async (claim, user) => {
     }
   }
 
-  // 4. Accounts Processing Stage ('ACCOUNTS_PROCESSING')
-  if (status === 'ACCOUNTS_PROCESSING') {
+  // 4. Accounts Processing Stage ('ACCOUNTS_PROCESSING' or 'COMPLETED')
+  if (status === 'ACCOUNTS_PROCESSING' || status === 'COMPLETED') {
     if (['accounts', 'admin'].includes(user.role)) {
       canConfirmPayment = true;
       canReleasePayment = true;
