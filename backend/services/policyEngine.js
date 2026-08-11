@@ -272,7 +272,7 @@ export const calculateIncentive = async (claim) => {
     mmduAuthorCount,
     individualShare,
     authorPayments,
-    scorePoints: rule.scorePoints || 0,
+    scorePoints: rule?.scorePoints || 0,
     policySnapshot,
     policyRule: rule
   };
