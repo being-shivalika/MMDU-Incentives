@@ -140,7 +140,7 @@ const SubmissionReviewDetails = () => {
           {/* Section 1: Faculty Information */}
           <Card>
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-2">
-              <User className="h-5 w-5 text-blue-500" /> Faculty Information
+              <User className="h-5 w-5 text-[#8C0404]" /> Faculty Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -157,7 +157,7 @@ const SubmissionReviewDetails = () => {
           {/* Section 2: Research Information */}
           <Card>
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-2">
-              <FileText className="h-5 w-5 text-blue-500" /> Research Information
+              <FileText className="h-5 w-5 text-[#8C0404]" /> Research Information
             </h2>
             <div className="space-y-4">
               <div>
@@ -194,25 +194,25 @@ const SubmissionReviewDetails = () => {
           {/* Section 3: Quality Metrics */}
           <Card>
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-2">
-              <Tag className="h-5 w-5 text-blue-500" /> Quality Metrics
+              <Tag className="h-5 w-5 text-[#8C0404]" /> Quality Metrics
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
-                <p className="text-xs text-blue-600 font-semibold uppercase mb-1">Quartile</p>
-                <p className="font-bold text-blue-900 text-2xl">{submission.metadata?.quartile || submission.fields?.quartile || "N/A"}</p>
+              <div className="bg-[#8C0404]/10 p-4 rounded-xl border border-[#8C0404]/20 text-center">
+                <p className="text-xs text-[#8C0404] font-semibold uppercase mb-1">Quartile</p>
+                <p className="font-bold text-[#8C0404] text-2xl">{submission.metadata?.quartile || submission.fields?.quartile || "N/A"}</p>
               </div>
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
-                <p className="text-xs text-blue-600 font-semibold uppercase mb-1">Impact Factor</p>
-                <p className="font-bold text-blue-900 text-2xl">{submission.metadata?.impactFactor || submission.fields?.impactFactor || "N/A"}</p>
+              <div className="bg-[#8C0404]/10 p-4 rounded-xl border border-[#8C0404]/20 text-center">
+                <p className="text-xs text-[#8C0404] font-semibold uppercase mb-1">Impact Factor</p>
+                <p className="font-bold text-[#8C0404] text-2xl">{submission.metadata?.impactFactor || submission.fields?.impactFactor || "N/A"}</p>
               </div>
-              <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 text-center col-span-2 flex flex-col justify-center items-center">
-                <p className="text-xs text-blue-600 font-semibold uppercase mb-1">Quartile Proof Link / Doc</p>
+              <div className="bg-[#8C0404]/5 p-4 rounded-xl border border-[#8C0404]/20 text-center col-span-2 flex flex-col justify-center items-center">
+                <p className="text-xs text-[#8C0404] font-semibold uppercase mb-1">Quartile Proof Link / Doc</p>
                 {submission.metadata?.quartileProof || submission.fields?.quartileProof ? (
                   <a
                     href={submission.metadata?.quartileProof || submission.fields?.quartileProof}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-bold text-blue-700 hover:underline text-xs break-all flex items-center gap-1"
+                    className="font-bold text-[#8C0404] hover:underline text-xs break-all flex items-center gap-1"
                   >
                     View Scimago / SJR Proof ↗
                   </a>
@@ -237,9 +237,9 @@ const SubmissionReviewDetails = () => {
           </Card>
           
           {/* Section 6: RPC Analysis Workspace */}
-          <Card className="border-l-4 border-l-blue-500">
+          <Card className="border-l-4 border-l-[#8C0404]">
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-2">
-              <ShieldCheck className="h-5 w-5 text-blue-500" /> RPC Analysis & Final Decision
+              <ShieldCheck className="h-5 w-5 text-[#8C0404]" /> RPC Analysis & Final Decision
             </h2>
             <p className="text-sm text-gray-500 mb-6">
               Complete the analysis workspace below. This information will be forwarded to the Accounts department upon Final Approval.
@@ -251,7 +251,7 @@ const SubmissionReviewDetails = () => {
                   Research Remarks & Observations <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  className={`w-full border ${validationErrors.remarks ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} rounded-lg p-3 text-sm focus:ring-2 outline-none transition-shadow`}
+                  className={`w-full border ${validationErrors.remarks ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-[#8C0404]'} rounded-lg p-3 text-sm focus:ring-2 outline-none transition-shadow`}
                   rows="4"
                   placeholder="Enter detailed validation remarks, quartile verification notes, etc..."
                   value={remarks}
@@ -263,16 +263,16 @@ const SubmissionReviewDetails = () => {
                 )}
               </div>
 
-              <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div className="bg-[#8C0404]/10 border border-[#8C0404]/20 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-blue-800 mb-0.5">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#8C0404] mb-0.5">
                     Policy Engine Calculated Incentive
                   </p>
-                  <p className="text-xs text-blue-600 font-medium">
+                  <p className="text-xs text-[#8C0404]/80 font-medium">
                     Automatically calculated based on Research Promotion Policy (Q-Quartile, Author Split & Indexing).
                   </p>
                 </div>
-                <div className="text-2xl font-black text-blue-900 bg-white px-4 py-2 rounded-lg border border-blue-200 shadow-sm shrink-0">
+                <div className="text-2xl font-black text-[#8C0404] bg-white px-4 py-2 rounded-lg border border-[#8C0404]/30 shadow-sm shrink-0">
                   ₹{(submission?.userShare || submission?.individualShare || submission?.approvedAmount || submission?.calculatedAmount || submission?.totalIncentive || 0).toLocaleString("en-IN")}
                 </div>
               </div>
@@ -304,18 +304,18 @@ const SubmissionReviewDetails = () => {
           {/* Section 7: Supporting Links */}
           <Card>
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-2">
-              <Link2 className="h-5 w-5 text-blue-500" /> Verification Links
+              <Link2 className="h-5 w-5 text-[#8C0404]" /> Verification Links
             </h2>
             <div className="space-y-2">
-              <a href="#" className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm font-medium text-gray-700">
+              <a href="#" className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-[#8C0404]/40 hover:bg-[#8C0404]/5 transition-colors text-sm font-medium text-gray-700">
                 <span>DOI Link</span>
                 <ExternalLink className="h-4 w-4 text-gray-400" />
               </a>
-              <a href="#" className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm font-medium text-gray-700">
+              <a href="#" className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-[#8C0404]/40 hover:bg-[#8C0404]/5 transition-colors text-sm font-medium text-gray-700">
                 <span>Scopus Profile</span>
                 <ExternalLink className="h-4 w-4 text-gray-400" />
               </a>
-              <a href="#" className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm font-medium text-gray-700">
+              <a href="#" className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-[#8C0404]/40 hover:bg-[#8C0404]/5 transition-colors text-sm font-medium text-gray-700">
                 <span>Publisher Site</span>
                 <ExternalLink className="h-4 w-4 text-gray-400" />
               </a>
@@ -325,7 +325,7 @@ const SubmissionReviewDetails = () => {
           {/* Section 5: Review History Timeline */}
           <Card>
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-2">
-              <Clock className="h-5 w-5 text-blue-500" /> Review History
+              <Clock className="h-5 w-5 text-[#8C0404]" /> Review History
             </h2>
             <div className="relative pl-4 space-y-6 mt-4">
               <div className="absolute top-0 bottom-0 left-[11px] w-0.5 bg-gray-200"></div>
@@ -347,7 +347,7 @@ const SubmissionReviewDetails = () => {
               </div>
               
               <div className="relative">
-                <div className="absolute -left-4 w-6 h-6 rounded-full bg-blue-500 border-4 border-white"></div>
+                <div className="absolute -left-4 w-6 h-6 rounded-full bg-[#8C0404] border-4 border-white"></div>
                 <div className="pl-6">
                   <p className="text-sm font-bold text-gray-900">RPC Verification</p>
                   <p className="text-xs text-gray-500">Currently under review</p>
@@ -381,7 +381,7 @@ const SubmissionReviewDetails = () => {
               onClick={() => handleAction("approve")}
               defaultText="FINAL APPROVAL"
               activeText="Processing..."
-              className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 shadow-md"
+              className="px-8 py-2.5 bg-[#8C0404] hover:bg-[#6F0303] shadow-md"
             />
           </div>
         </div>

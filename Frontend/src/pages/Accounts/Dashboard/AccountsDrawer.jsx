@@ -144,13 +144,13 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
               </div>
 
               {(submission.metadata?.quartileProof || submission.fields?.quartileProof) && (
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg flex justify-between items-center text-xs font-semibold">
-                  <span className="text-blue-800 uppercase tracking-wide">Quartile Proof:</span>
+                <div className="bg-[#8C0404]/10 border border-[#8C0404]/30 p-3 rounded-lg flex justify-between items-center text-xs font-semibold">
+                  <span className="text-[#8C0404] uppercase tracking-wide">Quartile Proof:</span>
                   <a
                     href={submission.metadata?.quartileProof || submission.fields?.quartileProof}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-blue-600 hover:underline font-bold break-all flex items-center gap-1"
+                    className="text-[#8C0404] hover:underline font-bold break-all flex items-center gap-1"
                   >
                     View Proof Document / Link ↗
                   </a>
@@ -212,7 +212,7 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
               {!submission.isAccountsApproved && (
                 <button
                   onClick={() => handleActionClick("Approve Payment")}
-                  className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                  className="flex-1 bg-[#8C0404] text-white px-4 py-3 rounded-xl font-bold hover:bg-[#6F0303] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <Check className="h-5 w-5" /> Step 1: Approve Payment Amount
                 </button>

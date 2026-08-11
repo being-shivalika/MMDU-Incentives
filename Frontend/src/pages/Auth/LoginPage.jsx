@@ -194,7 +194,7 @@ const LoginPage = () => {
                     setForgotEmail(email);
                     setViewMode("forgot");
                   }}
-                  className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  className="text-xs font-bold text-[#8C0404] hover:text-[#6F0303] hover:underline cursor-pointer"
                 >
                   Forgot Password?
                 </button>
@@ -213,7 +213,7 @@ const LoginPage = () => {
               varient="primary"
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-lg bg-blue-700 py-3 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50 transition-colors shadow-md"
+              className="w-full rounded-lg bg-[#8C0404] py-3 text-sm font-bold text-white hover:bg-[#6F0303] disabled:opacity-50 transition-colors shadow-md"
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
@@ -224,7 +224,7 @@ const LoginPage = () => {
         {viewMode === "forgot" && (
           <form onSubmit={handleRequestOtp} className="space-y-4 text-left">
             <div className="flex items-center gap-2 mb-2">
-              <KeyRound className="h-5 w-5 text-blue-600" />
+              <KeyRound className="h-5 w-5 text-[#8C0404]" />
               <h2 className="text-base font-bold text-neutral-900">Forgot Password</h2>
             </div>
             <p className="text-xs text-neutral-500">
@@ -239,7 +239,7 @@ const LoginPage = () => {
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-neutral-200 p-3 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                className="w-full rounded-lg border border-neutral-200 p-3 text-sm outline-none focus:border-[#8C0404] focus:ring-1 focus:ring-[#8C0404]"
               />
             </div>
 
@@ -247,7 +247,7 @@ const LoginPage = () => {
               varient="primary"
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-lg bg-blue-700 py-3 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50 transition-colors shadow-md"
+              className="w-full rounded-lg bg-[#8C0404] py-3 text-sm font-bold text-white hover:bg-[#6F0303] disabled:opacity-50 transition-colors shadow-md"
             >
               {isLoading ? "Generating OTP..." : "Send Reset Code (OTP)"}
             </Button>

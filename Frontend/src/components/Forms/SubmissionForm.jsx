@@ -620,7 +620,7 @@ const SubmissionForm = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
             <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-2">
-              <Users size={18} className="text-blue-600" />
+              <Users size={18} className="text-[#8C0404]" />
               Authors & Contributors Details
             </h2>
             <p className="text-xs text-neutral-500 mt-0.5">
@@ -630,7 +630,7 @@ const SubmissionForm = ({
 
           {currentAuthors.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200/60">
+              <span className="text-xs font-semibold px-3 py-1 bg-[#8C0404]/10 text-[#8C0404] rounded-full border border-[#8C0404]/20">
                 {currentAuthors.length} Author{currentAuthors.length > 1 ? "s" : ""} Added
               </span>
               {mmduAuthorCount > 0 && (
@@ -673,7 +673,7 @@ const SubmissionForm = ({
                   >
                     {/* Tile Header */}
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${isPrimaryAuthor ? "bg-blue-700 text-white" : "bg-neutral-800 text-white"}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${isPrimaryAuthor ? "bg-[#8C0404] text-white" : "bg-neutral-800 text-white"}`}>
                         {index === 0 ? "1st Author (Primary / You)" : `Author #${index + 1}`}
                       </span>
 
@@ -980,7 +980,7 @@ const SubmissionForm = ({
               className={`px-4 py-2 text-white font-semibold text-xs rounded-lg transition-all shadow-sm hover:shadow flex items-center gap-1.5 cursor-pointer ${
                 editingIndex !== null
                   ? "bg-amber-600 hover:bg-amber-700"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  : "bg-[#8C0404] hover:bg-[#6F0303]"
               }`}
             >
               {editingIndex !== null ? (

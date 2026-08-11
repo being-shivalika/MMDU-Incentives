@@ -20,7 +20,7 @@ const LandingNavbar = () => {
 
             <div>
               <h1 className="text-lg font-semibold leading-none text-[#1a1a1a]">
-                MMU <span className="text-[#cba430]">RPMS</span>
+                MMU <span className="text-[#8C0404]">RPMS</span>
               </h1>
 
               <p className="mt-1 hidden text-[9px] font-medium uppercase tracking-[0.08em] text-gray-500 sm:block">
@@ -38,7 +38,7 @@ const LandingNavbar = () => {
                 items-center
                 gap-2
                 rounded-lg
-                bg-[#cba430]
+                bg-[#8C0404]
                 px-6
                 py-3
                 text-[13px]
@@ -46,7 +46,7 @@ const LandingNavbar = () => {
                 text-white
                 transition
                 duration-200
-                hover:bg-[#ad8b25]
+                hover:bg-[#6F0303]
               "
             >
               Login
@@ -88,11 +88,13 @@ const LandingNavbar = () => {
                 justify-center
                 gap-2
                 rounded-lg
-                bg-[#cba430]
+                bg-[#8C0404]
+                hover:bg-[#6F0303]
                 py-3
                 text-sm
                 font-semibold
                 text-white
+                transition-colors
               "
             >
               Login

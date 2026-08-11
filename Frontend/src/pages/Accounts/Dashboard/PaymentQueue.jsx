@@ -597,7 +597,7 @@ const PaymentQueue = () => {
                               <button
                                 onClick={() => handleSingleApprovePayment(id)}
                                 disabled={processing}
-                                className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border bg-blue-600 text-white border-blue-600 hover:bg-blue-700 transition-colors cursor-pointer"
+                                className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border bg-[#8C0404] text-white border-[#8C0404] hover:bg-[#6F0303] transition-colors cursor-pointer"
                               >
                                 Approve Payment
                               </button>
