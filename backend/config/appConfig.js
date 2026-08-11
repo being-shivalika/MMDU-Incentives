@@ -14,7 +14,7 @@ const appConfig = {
     'application/zip'
   ],
   rateLimitWindow: 15 * 60 * 1000, // 15 minutes
-  rateLimitMax: 100,
+  rateLimitMax: 300,
   currency: 'INR',
   nodeEnv: process.env.NODE_ENV || 'development'
 };

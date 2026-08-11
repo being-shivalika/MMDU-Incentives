@@ -41,13 +41,14 @@ export const useSubmissionSync = (fetchCallback, intervalMs = 4000) => {
     window.addEventListener(CLAIMS_UPDATED_EVENT, handleClaimsUpdated);
     window.addEventListener('focus', handleFocus);
 
-    // Auto-polling interval
-    if (intervalMs > 0) {
+    // Auto-polling interval (clamped to a minimum of 30 seconds to avoid spamming the backend API)
+    const safeInterval = Math.max(intervalMs, 30000);
+    if (safeInterval > 0) {
       timer = setInterval(() => {
         if (document.visibilityState === 'visible') {
           runFetch();
         }
-      }, intervalMs);
+      }, safeInterval);
     }
 
     return () => {
