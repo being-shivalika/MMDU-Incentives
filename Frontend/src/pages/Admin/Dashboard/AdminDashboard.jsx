@@ -47,15 +47,24 @@ const AdminDashboard = () => {
           <h1 className="text-2xl font-bold text-neutral-900">
             Welcome Admin, {user?.name || "Administrator"}
           </h1>
-          <p className="text-xs text-neutral-500 mt-1">Manage database users, roles, system metrics, and oversee portal operations.</p>
+          <p className="text-xs text-neutral-500 mt-1">Universal Administrative Control over claims, users, audit logs, and system metrics.</p>
         </div>
 
-        <Link
-          to="/admin/users"
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#8C0404] hover:bg-[#6F0303] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer shrink-0"
-        >
-          <UserPlus size={16} /> Manage Database Users
-        </Link>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <Link
+            to="/admin/submissions"
+            className="flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer shrink-0"
+          >
+            <FileText size={16} /> All Submissions Overseer
+          </Link>
+
+          <Link
+            to="/admin/users"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#8C0404] hover:bg-[#6F0303] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer shrink-0"
+          >
+            <UserPlus size={16} /> Manage Database Users
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

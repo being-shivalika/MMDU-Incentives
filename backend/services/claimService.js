@@ -175,18 +175,21 @@ export const updateClaim = async (claimId, updateData, user, ipAddress) => {
     throw error;
   }
   
-  // Only allow updates in DRAFT or RETURNED
-  if (![CLAIM_STATUSES.DRAFT, CLAIM_STATUSES.RETURNED].includes(claim.status)) {
-    const error = new Error('Claim can only be updated in DRAFT or RETURNED status');
-    error.statusCode = 400;
-    throw error;
-  }
-  
-  // Only allow owner to update
-  if (claim.applicant.toString() !== user._id.toString()) {
-    const error = new Error('You can only update your own claims');
-    error.statusCode = 403;
-    throw error;
+  const isAdmin = user && user.role === 'admin';
+  if (!isAdmin) {
+    // Only allow updates in DRAFT or RETURNED for non-admins
+    if (![CLAIM_STATUSES.DRAFT, CLAIM_STATUSES.RETURNED].includes(claim.status)) {
+      const error = new Error('Claim can only be updated in DRAFT or RETURNED status');
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    // Only allow owner to update for non-admins
+    if (claim.applicant.toString() !== user._id.toString()) {
+      const error = new Error('You can only update your own claims');
+      error.statusCode = 403;
+      throw error;
+    }
   }
   
   // Check duplicate submission if metadata/title changed
@@ -371,19 +374,23 @@ export const deleteDraft = async (claimId, user) => {
     error.statusCode = 404;
     throw error;
   }
-  if (claim.status !== CLAIM_STATUSES.DRAFT) {
-    const error = new Error('Only draft claims can be deleted');
-    error.statusCode = 400;
-    throw error;
-  }
-  if (claim.applicant.toString() !== user._id.toString()) {
-    const error = new Error('You can only delete your own claims');
-    error.statusCode = 403;
-    throw error;
+  
+  const isAdmin = user && user.role === 'admin';
+  if (!isAdmin) {
+    if (claim.status !== CLAIM_STATUSES.DRAFT) {
+      const error = new Error('Only draft claims can be deleted');
+      error.statusCode = 400;
+      throw error;
+    }
+    if (claim.applicant && claim.applicant.toString() !== user._id.toString()) {
+      const error = new Error('You can only delete your own claims');
+      error.statusCode = 403;
+      throw error;
+    }
   }
   
   await ApprovalHistory.deleteMany({ claim: claimId });
   await Claim.findByIdAndDelete(claimId);
   
-  return { message: 'Draft deleted successfully' };
+  return { message: 'Submission deleted successfully' };
 };

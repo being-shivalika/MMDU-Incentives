@@ -44,6 +44,7 @@ export const ROUTES = {
 
   // Administration
   ADMIN: "/admin",
+  ADMIN_SUBMISSIONS: "/admin/submissions",
   ADMIN_USERS: "/admin/users",
   ADMIN_CIRCULARS: "/admin/circulars",
   ADMIN_AUDIT: "/admin/audit",

@@ -2,6 +2,7 @@ import { ROLES } from "../../../constants/roles";
 import { ROUTES } from "../../../constants/routes";
 
 import AdminDashboard from "../../../pages/Admin/Dashboard/AdminDashboard";
+import AllSubmissions from "../../../pages/Admin/Dashboard/AllSubmissions";
 import UserManagement from "../../../pages/Admin/Dashboard/UserManagement";
 import Circulars from "../../../pages/Admin/Dashboard/Circulars";
 import AuditLogs from "../../../pages/Admin/Dashboard/AuditLogs";
@@ -12,6 +13,13 @@ const adminRoutes = [
     path: ROUTES.ADMIN,
     element: <AdminDashboard />,
     label: "Dashboard",
+    showInSidebar: true,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: ROUTES.ADMIN_SUBMISSIONS,
+    element: <AllSubmissions />,
+    label: "All Submissions",
     showInSidebar: true,
     allowedRoles: [ROLES.ADMIN],
   },
