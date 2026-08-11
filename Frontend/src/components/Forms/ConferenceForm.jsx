@@ -28,6 +28,7 @@ const ConferenceForm = ({
       ]}
       verificationLabels={{
         first: "Paper Link / DOI / Proceeding URL",
+        second: "Scopus / Indexing Link",
       }}
       formData={formData}
       handleInputChange={handleInputChange}

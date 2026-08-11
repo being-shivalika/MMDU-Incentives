@@ -37,7 +37,7 @@ const getStatusStyle = (status) => {
 const formatKey = (key) => {
   const keyMap = {
     firstVerification: "Primary Link (DOI/ISBN)",
-    secondVerification: "Secondary Link (Scopus/Indexing)",
+    secondVerification: "Scopus / Indexing Link",
     thirdVerification: "Additional Link",
     fourthVerification: "Supporting Document",
     dropdown: "Publication Type",
