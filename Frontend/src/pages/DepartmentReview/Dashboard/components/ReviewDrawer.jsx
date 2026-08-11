@@ -628,7 +628,13 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
   const history = submission.workflowHistory || [];
 
   const timeline = useMemo(() => {
-    return [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+    return [...history]
+      .filter((h) => {
+        const act = String(h.action || "").toUpperCase();
+        const step = String(h.step || h.level || "").toUpperCase();
+        return !act.includes("DRAFT") && !step.includes("DRAFT");
+      })
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [history]);
 
   const handleAction = (action) => {

@@ -194,79 +194,51 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
     effectiveApprover,
     permissions,
     
-    workflowHistory: (() => {
-      if (!approvalHistory || !Array.isArray(approvalHistory)) return [];
+    workflowHistory: approvalHistory 
+      ? approvalHistory
+          .filter(h => {
+            const act = String(h.action || '').toUpperCase();
+            const step = String(h.step || '').toUpperCase();
+            return !act.includes('DRAFT') && !step.includes('DRAFT');
+          })
+          .map(h => {
+            const role = (h.actionByRole || '').toLowerCase();
+            let levelLabel = 'Faculty';
 
-      // Filter out draft actions (drafts are not workflow steps)
-      const validHistory = approvalHistory.filter(
-        (h) => h.action !== "SAVE_DRAFT" && h.step !== "Draft Saved"
-      );
+            if (role === 'student') {
+              levelLabel = 'Student';
+            } else if (role === 'faculty') {
+              levelLabel = 'Faculty';
+            } else if (role === 'hod') {
+              levelLabel = 'HOD';
+            } else if (role === 'principal') {
+              levelLabel = 'Principal';
+            } else if (role === 'director') {
+              levelLabel = 'Director';
+            } else if (role === 'rpc_cell' || role === 'rd_cell' || role === 'rpc') {
+              levelLabel = 'R & D';
+            } else if (role === 'accounts' || role === 'finance') {
+              const hasPayout = (claimObj.totalIncentive > 0 || claimObj.approvedAmount > 0 || userShare > 0) && !claimObj.isHeld && (claimObj.status === 'COMPLETED' || (h.action && h.action.includes('RELEASE')));
+              levelLabel = hasPayout ? 'Account Credited The Money' : 'Completed';
+            } else if (h.action && (h.action.includes('SUBMIT') || h.action.includes('SAVE'))) {
+              levelLabel = claimObj.applicantRole === 'student' ? 'Student' : 'Faculty';
+            }
 
-      const result = [];
-      let hasSubmitted = false;
+            const isRejected = h.action && (h.action.includes('REJECT') || h.action.includes('WITHDRAW'));
+            const isReturned = h.action && (h.action.includes('RETURN') || h.action.includes('REVISE') || h.action.includes('CORRECT'));
+            const actionText = isRejected ? 'rejected' : isReturned ? 'revision requested' : (h.action && (h.action.includes('SUBMIT') || h.action.includes('RESUBMIT'))) ? 'submitted' : 'approved';
 
-      validHistory.forEach((h) => {
-        const isSubmitAction =
-          h.action &&
-          (h.action.includes("SUBMIT") || h.action === "SAVE_DRAFT");
-
-        if (isSubmitAction) {
-          if (hasSubmitted) return; // Allow only 1 initial submission entry for applicant
-          hasSubmitted = true;
-        }
-
-        const role = (h.actionByRole || "").toLowerCase();
-        let levelLabel = "Faculty";
-
-        if (role === "hod") {
-          levelLabel = "HOD";
-        } else if (role === "principal") {
-          levelLabel = "Principal";
-        } else if (role === "director") {
-          levelLabel = "Director";
-        } else if (role === "rpc_cell" || role === "rd_cell" || role === "rpc") {
-          levelLabel = "R & D";
-        } else if (role === "accounts" || role === "finance") {
-          const hasPayout =
-            (claimObj.totalIncentive > 0 ||
-              claimObj.approvedAmount > 0 ||
-              userShare > 0) &&
-            !claimObj.isHeld &&
-            (claimObj.status === "COMPLETED" ||
-              (h.action && h.action.includes("RELEASE")));
-          levelLabel = hasPayout ? "Account Credited The Money" : "Completed";
-        } else {
-          levelLabel = claimObj.applicantRole === "student" ? "Student" : "Faculty";
-        }
-
-        const isRejected =
-          h.action && (h.action.includes("REJECT") || h.action.includes("WITHDRAW"));
-        const isReturned =
-          h.action &&
-          (h.action.includes("RETURN") ||
-            h.action.includes("REVISE") ||
-            h.action.includes("CORRECT"));
-        const actionText = isRejected
-          ? "Rejected"
-          : isReturned
-          ? "Revision Requested"
-          : isSubmitAction
-          ? "Submitted"
-          : "Approved";
-
-        result.push({
-          level: levelLabel,
-          action: actionText,
-          isRejected,
-          isReturned,
-          by: h.actionByName,
-          remarks: h.remarks,
-          date: h.date,
-        });
-      });
-
-      return result;
-    })(),
+            return {
+              level: levelLabel,
+              action: actionText,
+              isRejected,
+              isReturned,
+              by: h.actionByName,
+              date: h.date,
+              remarks: h.remarks
+            };
+          })
+      : [],
     reviewHistory: approvalHistory 
       ? approvalHistory.map(h => ({
           step: h.step,

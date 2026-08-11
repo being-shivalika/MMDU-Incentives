@@ -103,8 +103,10 @@ export const createClaim = async (claimData, user, ipAddress) => {
 
   if (!isDraft) {
     await syncApplicantQ3Q4Claims(user._id, financialYear);
-
-    // Create initial approval history for non-draft claims
+  }
+  
+  // Create initial approval history for official submissions only
+  if (!isDraft) {
     await ApprovalHistory.create({
       claim: claim._id,
       step: 'Submitted',

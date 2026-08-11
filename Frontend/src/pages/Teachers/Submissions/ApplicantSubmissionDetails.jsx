@@ -199,28 +199,6 @@ const ApplicantSubmissionDetails = () => {
           )
       : null;
 
-  const cleanedWorkflowHistory = React.useMemo(() => {
-    if (!workflowHistory || !Array.isArray(workflowHistory)) return [];
-    
-    const valid = workflowHistory.filter(
-      (h) => h.action !== "SAVE_DRAFT" && h.action !== "Draft Saved" && h.level !== "Draft Saved"
-    );
-
-    const result = [];
-    let hasSubmitted = false;
-
-    valid.forEach((h) => {
-      const isSubmit = String(h.action || "").toLowerCase().includes("submit");
-      if (isSubmit) {
-        if (hasSubmitted) return;
-        hasSubmitted = true;
-      }
-      result.push(h);
-    });
-
-    return result;
-  }, [workflowHistory]);
-
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
       {/* HEADER SECTION */}
@@ -557,15 +535,21 @@ const ApplicantSubmissionDetails = () => {
 
               {/* TIMELINE UI REFINED */}
               <div className="relative border-l border-neutral-200 ml-2 space-y-6">
-                {cleanedWorkflowHistory &&
-                  cleanedWorkflowHistory.map((stage, idx) => {
-                    const isLast = idx === cleanedWorkflowHistory.length - 1;
-                    const isRejectedOrReturned =
-                      stage.isRejected ||
-                      stage.isReturned ||
-                      stage.action.includes("Reject") ||
-                      stage.action.includes("Revision") ||
-                      stage.action.includes("Return");
+                {workflowHistory &&
+                  workflowHistory
+                    .filter((stage) => {
+                      const act = String(stage.action || "").toUpperCase();
+                      const lvl = String(stage.level || "").toUpperCase();
+                      return !act.includes("DRAFT") && !lvl.includes("DRAFT");
+                    })
+                    .map((stage, idx, arr) => {
+                      const isLast = idx === arr.length - 1;
+                      const isRejectedOrReturned =
+                        stage.isRejected ||
+                        stage.isReturned ||
+                        stage.action.includes("Reject") ||
+                        stage.action.includes("Revision") ||
+                        stage.action.includes("Return");
 
                     let dotColor = "bg-green-500 border-white"; // past approved step
                     if (isRejectedOrReturned) {
