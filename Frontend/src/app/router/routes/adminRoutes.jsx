@@ -19,7 +19,7 @@ const adminRoutes = [
   {
     path: ROUTES.ADMIN_SUBMISSIONS,
     element: <AllSubmissions />,
-    label: "All Submissions",
+    label: "Submissions",
     showInSidebar: true,
     allowedRoles: [ROLES.ADMIN],
   },
