@@ -199,6 +199,28 @@ const ApplicantSubmissionDetails = () => {
           )
       : null;
 
+  const cleanedWorkflowHistory = React.useMemo(() => {
+    if (!workflowHistory || !Array.isArray(workflowHistory)) return [];
+    
+    const valid = workflowHistory.filter(
+      (h) => h.action !== "SAVE_DRAFT" && h.action !== "Draft Saved" && h.level !== "Draft Saved"
+    );
+
+    const result = [];
+    let hasSubmitted = false;
+
+    valid.forEach((h) => {
+      const isSubmit = String(h.action || "").toLowerCase().includes("submit");
+      if (isSubmit) {
+        if (hasSubmitted) return;
+        hasSubmitted = true;
+      }
+      result.push(h);
+    });
+
+    return result;
+  }, [workflowHistory]);
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
       {/* HEADER SECTION */}
@@ -535,9 +557,9 @@ const ApplicantSubmissionDetails = () => {
 
               {/* TIMELINE UI REFINED */}
               <div className="relative border-l border-neutral-200 ml-2 space-y-6">
-                {workflowHistory &&
-                  workflowHistory.map((stage, idx) => {
-                    const isLast = idx === workflowHistory.length - 1;
+                {cleanedWorkflowHistory &&
+                  cleanedWorkflowHistory.map((stage, idx) => {
+                    const isLast = idx === cleanedWorkflowHistory.length - 1;
                     const isRejectedOrReturned =
                       stage.isRejected ||
                       stage.isReturned ||

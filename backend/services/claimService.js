@@ -103,21 +103,21 @@ export const createClaim = async (claimData, user, ipAddress) => {
 
   if (!isDraft) {
     await syncApplicantQ3Q4Claims(user._id, financialYear);
+
+    // Create initial approval history for non-draft claims
+    await ApprovalHistory.create({
+      claim: claim._id,
+      step: 'Submitted',
+      action: 'SUBMIT_CLAIM',
+      fromStatus: 'NEW',
+      toStatus: claim.status,
+      actionBy: user._id,
+      actionByName: user.name,
+      actionByRole: user.role,
+      remarks: 'Claim submitted for review.',
+      date: new Date()
+    });
   }
-  
-  // Create initial approval history
-  await ApprovalHistory.create({
-    claim: claim._id,
-    step: isDraft ? 'Draft Saved' : 'Submitted',
-    action: isDraft ? 'SAVE_DRAFT' : 'SUBMIT_CLAIM',
-    fromStatus: 'NEW',
-    toStatus: claim.status,
-    actionBy: user._id,
-    actionByName: user.name,
-    actionByRole: user.role,
-    remarks: isDraft ? 'Draft saved successfully' : 'Claim submitted for review.',
-    date: new Date()
-  });
   
   // Audit log
   await createAuditLog({
