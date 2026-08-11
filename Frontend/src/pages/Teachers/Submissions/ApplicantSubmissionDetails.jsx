@@ -139,6 +139,22 @@ const ApplicantSubmissionDetails = () => {
   } = submission;
 
   const isRejected = status === "Rejected" || status === "Revision Requested";
+  const isDraftStatus = String(status || "").toUpperCase().includes("DRAFT");
+
+  const handleResumeDraft = () => {
+    const sub = String(submissionType || type || category || "").toLowerCase();
+    let path = "/applicant/submissions/create/publication";
+    if (sub.includes("conference")) path = "/applicant/submissions/create/conference";
+    else if (sub.includes("book_chapter")) path = "/applicant/submissions/create/book_chapter";
+    else if (sub.includes("book_section")) path = "/applicant/submissions/create/book_section";
+    else if (sub.includes("book")) path = "/applicant/submissions/create/book";
+    else if (sub.includes("patent")) path = "/applicant/submissions/create/patent";
+    else if (sub.includes("copyright")) path = "/applicant/submissions/create/copyright";
+    else if (sub.includes("startup") || sub.includes("project") || sub.includes("consultancy")) path = "/applicant/submissions/create/project";
+
+    navigate(`${path}?draftId=${id}`);
+  };
+
   const lastReturnHistory =
     isRejected && workflowHistory
       ? [...workflowHistory]
@@ -183,6 +199,16 @@ const ApplicantSubmissionDetails = () => {
             >
               {status || "Unknown Status"}
             </span>
+
+            {isDraftStatus && (
+              <button
+                onClick={handleResumeDraft}
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#8C0404] hover:bg-[#6F0303] text-white text-xs font-bold rounded-xl transition shadow-md cursor-pointer"
+              >
+                <Edit className="h-3.5 w-3.5" />
+                Resume & Complete Draft
+              </button>
+            )}
 
             {isRejected && (
               <button

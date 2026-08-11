@@ -25,7 +25,12 @@ const ApplicantSubmissions = () => {
   const fetchSubmissions = useCallback(async () => {
     try {
       const response = await getSubmissions();
-      setSubmissions(response.data || response.claims || []);
+      const allSubmissions = response.data || response.claims || [];
+      // Filter out draft claims so My Submissions shows active claims only
+      const activeOnly = allSubmissions.filter(
+        (s) => String(s.status || "").toUpperCase() !== "DRAFT"
+      );
+      setSubmissions(activeOnly);
     } catch (error) {
       console.error("Failed to fetch submissions", error);
     } finally {

@@ -36,6 +36,22 @@ const ApplicantDrafts = () => {
     }
   };
 
+  const handleEditDraft = (draft) => {
+    const id = draft.id || draft._id;
+    const sub = String(draft.subtype || draft.typeId || draft.category || "").toLowerCase();
+    
+    let path = "/applicant/submissions/create/publication";
+    if (sub.includes("conference")) path = "/applicant/submissions/create/conference";
+    else if (sub.includes("book_chapter")) path = "/applicant/submissions/create/book_chapter";
+    else if (sub.includes("book_section")) path = "/applicant/submissions/create/book_section";
+    else if (sub.includes("book")) path = "/applicant/submissions/create/book";
+    else if (sub.includes("patent")) path = "/applicant/submissions/create/patent";
+    else if (sub.includes("copyright")) path = "/applicant/submissions/create/copyright";
+    else if (sub.includes("startup") || sub.includes("project") || sub.includes("consultancy")) path = "/applicant/submissions/create/project";
+
+    navigate(`${path}?draftId=${id}`);
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto p-4 md:p-6 text-left">
       <PageHeader
@@ -101,7 +117,7 @@ const ApplicantDrafts = () => {
                         <Trash2 size={16} />
                       </button>
                       <button 
-                        onClick={() => navigate(`/applicant/submissions/${id}`)}
+                        onClick={() => handleEditDraft(draft)}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800 text-white text-xs font-semibold rounded-lg hover:bg-neutral-950 transition-colors shadow-sm cursor-pointer"
                       >
                         <Edit2 size={13} />

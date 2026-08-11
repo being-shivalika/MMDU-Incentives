@@ -1,9 +1,13 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import PublicationForm from "../../../components/Forms/PublicationForm";
-import { createSubmission } from "../../../services/submissionService";
+import { createSubmission, updateSubmission, getSubmissionById } from "../../../services/submissionService";
 
 const ApplicantCreatePublication = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const draftId = searchParams.get("draftId");
+
   const [formData, setFormData] = useState({
     title: "",
     domain: "",
@@ -22,6 +26,38 @@ const ApplicantCreatePublication = () => {
     issueNo: "",
     pageNo: "",
   });
+
+  useEffect(() => {
+    if (!draftId) return;
+    const loadDraft = async () => {
+      try {
+        const res = await getSubmissionById(draftId);
+        const claim = res.data || res.claim || res;
+        const meta = claim.metadata || {};
+        setFormData({
+          title: claim.title || meta.title || "",
+          domain: meta.domain || meta.researchArea || "",
+          dropdown: meta.dropdown || "",
+          firstVerification: meta.firstVerification || meta.doi || "",
+          secondVerification: meta.secondVerification || meta.scopusLink || "",
+          thirdVerification: meta.thirdVerification || "",
+          fourthVerification: meta.fourthVerification || "",
+          authors: meta.authors || [],
+          certified: meta.certified || false,
+          journalName: meta.journalName || "",
+          quartile: meta.quartile || "Q1",
+          impactFactor: meta.impactFactor || "",
+          quartileProof: meta.quartileProof || "",
+          volumeNo: meta.volumeNo || "",
+          issueNo: meta.issueNo || "",
+          pageNo: meta.pageNo || "",
+        });
+      } catch (err) {
+        console.error("Failed to load draft:", err);
+      }
+    };
+    loadDraft();
+  }, [draftId]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -45,18 +81,21 @@ const ApplicantCreatePublication = () => {
     }));
   };
 
-  const navigate = useNavigate();
-
   const onSubmit = async () => {
-    console.log("Submitting Publication API...", formData);
     try {
-      await createSubmission({
-        title: formData.title || "Untitled Publication",
-        typeId: "journal_publication", // Map to a recognized typeId
+      const payload = {
+        title: formData.title || formData.journalName || "Untitled Publication",
+        typeId: "journal_publication",
         category: "research_publications",
         metadata: formData,
-        status: "DEPARTMENT_REVIEW"
-      });
+        status: "DEPARTMENT_REVIEW",
+      };
+
+      if (draftId) {
+        await updateSubmission(draftId, payload);
+      } else {
+        await createSubmission(payload);
+      }
       navigate("/applicant/submissions");
     } catch (err) {
       console.error("Failed to submit publication", err);
@@ -65,16 +104,21 @@ const ApplicantCreatePublication = () => {
   };
 
   const onDraft = async () => {
-    console.log("Saving Publication Draft API...", formData);
     try {
-      await createSubmission({
-        title: formData.title || "Untitled Publication Draft",
+      const payload = {
+        title: formData.title || formData.journalName || "Untitled Publication Draft",
         typeId: "journal_publication",
         category: "research_publications",
         metadata: formData,
-        status: "DRAFT"
-      });
-      navigate("/applicant/submissions");
+        status: "DRAFT",
+      };
+
+      if (draftId) {
+        await updateSubmission(draftId, payload);
+      } else {
+        await createSubmission(payload);
+      }
+      navigate("/applicant/drafts");
     } catch (err) {
       console.error("Failed to save draft", err);
       alert("Error saving draft: " + (err.response?.data?.message || err.message));

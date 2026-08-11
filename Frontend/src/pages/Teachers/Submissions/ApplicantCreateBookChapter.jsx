@@ -1,9 +1,13 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import BookChapterForm from "../../../components/Forms/BookChapterForm";
-import { createSubmission } from "../../../services/submissionService";
+import { createSubmission, updateSubmission, getSubmissionById } from "../../../services/submissionService";
 
 const ApplicantCreateBookChapter = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const draftId = searchParams.get("draftId");
+
   const [formData, setFormData] = useState({
     title: "",
     domain: "",
@@ -22,6 +26,38 @@ const ApplicantCreateBookChapter = () => {
     chapterLink: "",
     indexingLink: "",
   });
+
+  useEffect(() => {
+    if (!draftId) return;
+    const loadDraft = async () => {
+      try {
+        const res = await getSubmissionById(draftId);
+        const claim = res.data || res.claim || res;
+        const meta = claim.metadata || {};
+        setFormData({
+          title: claim.title || meta.title || "",
+          domain: meta.domain || meta.researchArea || "",
+          dropdown: meta.dropdown || "",
+          firstVerification: meta.firstVerification || meta.doi || "",
+          secondVerification: meta.secondVerification || meta.scopusLink || "",
+          thirdVerification: meta.thirdVerification || "",
+          fourthVerification: meta.fourthVerification || "",
+          authors: meta.authors || [],
+          bookTitle: meta.bookTitle || "",
+          chapterNumber: meta.chapterNumber || "",
+          bookEditors: meta.bookEditors || "",
+          publisherName: meta.publisherName || "",
+          publicationYear: meta.publicationYear || "",
+          pageRange: meta.pageRange || "",
+          chapterLink: meta.chapterLink || "",
+          indexingLink: meta.indexingLink || "",
+        });
+      } catch (err) {
+        console.error("Failed to load draft:", err);
+      }
+    };
+    loadDraft();
+  }, [draftId]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -45,18 +81,22 @@ const ApplicantCreateBookChapter = () => {
     }));
   };
 
-  const navigate = useNavigate();
-
   const onSubmit = async () => {
     try {
-      await createSubmission({
+      const payload = {
         title: formData.title || "Untitled Book Chapter",
         typeId: "book_chapter",
         subtype: "book_chapter",
         category: "books_chapters",
         metadata: formData,
-        status: "DEPARTMENT_REVIEW"
-      });
+        status: "DEPARTMENT_REVIEW",
+      };
+
+      if (draftId) {
+        await updateSubmission(draftId, payload);
+      } else {
+        await createSubmission(payload);
+      }
       navigate("/applicant/submissions");
     } catch (err) {
       console.error("Failed to submit book chapter", err);
@@ -66,15 +106,21 @@ const ApplicantCreateBookChapter = () => {
 
   const onDraft = async () => {
     try {
-      await createSubmission({
+      const payload = {
         title: formData.title || "Untitled Book Chapter Draft",
         typeId: "book_chapter",
         subtype: "book_chapter",
         category: "books_chapters",
         metadata: formData,
-        status: "DRAFT"
-      });
-      navigate("/applicant/submissions");
+        status: "DRAFT",
+      };
+
+      if (draftId) {
+        await updateSubmission(draftId, payload);
+      } else {
+        await createSubmission(payload);
+      }
+      navigate("/applicant/drafts");
     } catch (err) {
       console.error("Failed to save book chapter draft", err);
       alert("Error saving draft: " + (err.response?.data?.message || err.message));
