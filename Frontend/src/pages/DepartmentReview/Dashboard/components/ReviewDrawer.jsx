@@ -679,6 +679,41 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
     );
   };
 
+  const getVerificationLabel = (subObj, key) => {
+    const sub = String(subObj.subtype || subObj.category || "").toLowerCase();
+    
+    if (sub.includes("conference")) {
+      if (key === "firstVerification") return "Paper Link / DOI / Proceeding URL";
+      if (key === "secondVerification") return "Scopus / Indexing Link";
+      if (key === "thirdVerification") return "Additional Link";
+      if (key === "fourthVerification") return "Supporting Document";
+    }
+    if (sub.includes("book")) {
+      if (key === "firstVerification") return "ISBN / DOI Link";
+      if (key === "secondVerification") return "Publisher Website / Indexing";
+      if (key === "thirdVerification") return "Book Link";
+      if (key === "fourthVerification") return "Indexing Proof";
+    }
+    if (sub.includes("patent")) {
+      if (key === "firstVerification") return "Patent Number / Application Link";
+      if (key === "secondVerification") return "Patent Office Link";
+      if (key === "thirdVerification") return "Filing Link";
+      if (key === "fourthVerification") return "Verification URL";
+    }
+    if (sub.includes("copyright")) {
+      if (key === "firstVerification") return "Copyright Registration Link";
+      if (key === "secondVerification") return "Work Link / Diary No";
+    }
+
+    // Default Journal Publication
+    if (key === "firstVerification") return "Paper Link / DOI";
+    if (key === "secondVerification") return "Scopus / Indexing Link";
+    if (key === "thirdVerification") return "Publisher URL";
+    if (key === "fourthVerification") return "Journal Website";
+    
+    return key;
+  };
+
   // Shared Card Wrapper for consistent UI
   const SectionCard = ({ icon: Icon, title, children }) => (
     <section className="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-sm">
@@ -723,9 +758,7 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
         {/* CONTENT BODY */}
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           
-          {/* ====================================================== */}
           {/* APPLICANT */}
-          {/* ====================================================== */}
           <SectionCard icon={User} title="Applicant Information">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
               {renderField("Applicant Name", submission.creatorName)}
@@ -739,9 +772,7 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
             </div>
           </SectionCard>
 
-          {/* ====================================================== */}
           {/* SUBMISSION & RESEARCH DETAILS */}
-          {/* ====================================================== */}
           <SectionCard icon={BookOpen} title="Research & Submission Details">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
               <div className="sm:col-span-2">
@@ -779,7 +810,7 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
                         key={author.id || index}
                         className="px-3 py-1 rounded-lg bg-neutral-100 text-neutral-700 text-sm font-medium border border-neutral-200/60"
                       >
-                        {author.name}
+                        {author.name} {author.department ? `(${author.department})` : ''}
                       </span>
                     ))}
                   </div>
@@ -788,14 +819,12 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
             </div>
           </SectionCard>
 
-          {/* ====================================================== */}
           {/* SPECIFIC VERIFICATION DETAILS */}
-          {/* ====================================================== */}
           <SectionCard icon={Building2} title="Verification Details">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
               
               {/* Journal Publication */}
-              {submission.subtype === "journal_publication" && (
+              {(submission.subtype === "journal_publication" || submission.category?.toLowerCase()?.includes("publication")) && (
                 <>
                   {renderField("Name of Journal", metadata.journalName)}
                   {renderField("Volume No.", metadata.volumeNo)}
@@ -805,15 +834,33 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
                 </>
               )}
 
+              {/* Conference / Seminar */}
+              {(submission.subtype?.includes("conference") || submission.category?.toLowerCase()?.includes("conference")) && (
+                <>
+                  {renderField("Name of Conference / Seminar", metadata.conferenceTitle)}
+                  {renderField("Level of Conference", metadata.conferenceLevel)}
+                  {renderField("Presentation Status", metadata.presentationStatus)}
+                  {renderField("Type of Author(s)", metadata.authorType)}
+                  {renderField("Indexing Tier", metadata.indexingTier)}
+                  {renderField("Organised By", metadata.organizedBy)}
+                  {renderField("Conference Start Date", metadata.startDate)}
+                  {renderField("Conference End Date", metadata.endDate)}
+                  {renderField("Venue / Location", metadata.venue)}
+                </>
+              )}
+
               {/* Books */}
-              {(submission.subtype === "book" || submission.subtype === "book_chapter") && (
+              {(submission.subtype === "book" || submission.subtype === "book_chapter" || submission.subtype === "book_section") && (
                 <>
                   {renderField("Author / Editor", metadata.authorEditorName)}
+                  {renderField("Book Title", metadata.bookTitle)}
+                  {renderField("Chapter Number / Title", metadata.chapterNumber)}
+                  {renderField("Book Editors", metadata.bookEditors)}
                   {renderField("Publisher", metadata.publisherName)}
                   {renderField("Publication Year", metadata.publicationYear)}
                   {renderField("Edition", metadata.edition)}
                   {renderField("Chapter Details", metadata.chapterDetails)}
-                  {renderField("Page Count", metadata.pageCount)}
+                  {renderField("Page Count / Range", metadata.pageCount || metadata.pageRange)}
                 </>
               )}
 
@@ -832,27 +879,19 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
               {/* General Verification Links */}
               <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8 mt-2 pt-6 border-t border-neutral-100">
                 {renderLink(
-                  submission.subtype?.includes("patent") ? "Patent Number" 
-                  : (submission.subtype === "book" || submission.subtype === "book_chapter") ? "ISBN" 
-                  : "DOI", 
+                  getVerificationLabel(submission, "firstVerification"), 
                   metadata.firstVerification
                 )}
                 {renderLink(
-                  submission.subtype?.includes("patent") ? "Patent Office" 
-                  : (submission.subtype === "book" || submission.subtype === "book_chapter") ? "Publisher Website" 
-                  : "Scopus Profile", 
+                  getVerificationLabel(submission, "secondVerification"), 
                   metadata.secondVerification
                 )}
                 {renderLink(
-                  submission.subtype?.includes("patent") ? "Filing Link" 
-                  : (submission.subtype === "book" || submission.subtype === "book_chapter") ? "Book Link" 
-                  : "Publisher URL", 
+                  getVerificationLabel(submission, "thirdVerification"), 
                   metadata.thirdVerification
                 )}
                 {renderLink(
-                  submission.subtype?.includes("patent") ? "Verification URL" 
-                  : (submission.subtype === "book" || submission.subtype === "book_chapter") ? "Indexing Link" 
-                  : "Journal Website", 
+                  getVerificationLabel(submission, "fourthVerification"), 
                   metadata.fourthVerification
                 )}
               </div>

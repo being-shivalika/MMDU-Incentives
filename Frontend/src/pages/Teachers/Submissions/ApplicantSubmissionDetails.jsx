@@ -34,13 +34,48 @@ const getStatusStyle = (status) => {
   return "bg-neutral-100 text-neutral-600 border-neutral-200";
 };
 
-const formatKey = (key) => {
+const formatKey = (key, submission = {}) => {
+  const sub = String(submission.subtype || submission.category || "").toLowerCase();
   const keyMap = {
-    firstVerification: "Primary Link (DOI/ISBN)",
-    secondVerification: "Scopus / Indexing Link",
-    thirdVerification: "Additional Link",
-    fourthVerification: "Supporting Document",
-    dropdown: "Publication Type",
+    title: "Title of Work",
+    domain: "Research Area / Domain",
+    dropdown: "Submission Category / Type",
+    journalName: "Name of Journal",
+    quartile: "Quartile Rank",
+    impactFactor: "Impact Factor",
+    quartileProof: "Quartile Proof URL",
+    volumeNo: "Volume No",
+    issueNo: "Issue No",
+    pageNo: "Page No / Range",
+    conferenceTitle: "Name of Conference / Seminar",
+    conferenceLevel: "Conference Level",
+    presentationStatus: "Presentation Status",
+    authorType: "Type of Author(s)",
+    indexingTier: "Indexing Tier",
+    organizedBy: "Organised By",
+    startDate: "Conference Start Date",
+    endDate: "Conference End Date",
+    venue: "Venue / Location",
+    authorEditorName: "Author / Editor",
+    bookTitle: "Book Title",
+    chapterNumber: "Chapter Number / Title",
+    bookEditors: "Book Editors",
+    publisherName: "Publisher Name",
+    publicationYear: "Publication Year",
+    edition: "Edition",
+    chapterDetails: "Chapter Details",
+    pageCount: "Page Count",
+    inventorDetails: "Inventor Details",
+    applicationNumber: "Application Number",
+    patentCategory: "Patent Category",
+    technologyDomain: "Technology Domain",
+    filingDate: "Filing Date",
+    grantDate: "Grant Date",
+    certified: "Self-Certified",
+    firstVerification: sub.includes("conference") ? "Paper Link / DOI / Proceeding URL" : sub.includes("book") ? "ISBN / DOI Link" : sub.includes("patent") ? "Patent Number / Link" : "Paper Link / DOI",
+    secondVerification: sub.includes("conference") ? "Scopus / Indexing Link" : sub.includes("book") ? "Publisher Website / Indexing" : sub.includes("patent") ? "Patent Office Link" : "Scopus / Indexing Link",
+    thirdVerification: sub.includes("patent") ? "Filing Link" : "Publisher / Additional Link",
+    fourthVerification: sub.includes("patent") ? "Verification URL" : "Supporting Document",
   };
   return (
     keyMap[key] ||
@@ -254,24 +289,56 @@ const ApplicantSubmissionDetails = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT COLUMN - MAIN DETAILS */}
         <div className="lg:col-span-2 space-y-6">
-          {/* PUBLICATION DETAILS */}
-          {publicationDetails && (
+          {/* SUBMISSION & PUBLICATION DETAILS */}
+          {submission && (
             <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
               <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50">
                 <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-                  Publication / Claim Details
+                  Submission & Claim Details
                 </h2>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-                  {Object.entries(publicationDetails).map(([key, value]) => {
-                    // Skip verification links if they are nested objects/arrays to handle separately,
-                    // though renderValue handles strings fine.
-                    if (key === "verificationLinks") return null;
+                  {Object.entries(
+                    submission.metadata || submission.fields || submission.publicationDetails || {}
+                  ).map(([key, value]) => {
+                    if (
+                      value === undefined ||
+                      value === null ||
+                      value === "" ||
+                      value === false ||
+                      (Array.isArray(value) && value.length === 0) ||
+                      key === "verificationLinks" ||
+                      key === "_id" ||
+                      key === "__v"
+                    ) {
+                      return null;
+                    }
+
+                    if (key === "authors" && Array.isArray(value)) {
+                      return (
+                        <div key={key} className="space-y-1.5 md:col-span-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                            Authors & Co-authors
+                          </span>
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {value.map((auth, aIdx) => (
+                              <span
+                                key={aIdx}
+                                className="px-3 py-1 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-800"
+                              >
+                                {auth.name || auth} {auth.department ? `(${auth.department})` : ""}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
                     return (
                       <div key={key} className="space-y-1.5 overflow-hidden">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                          {formatKey(key)}
+                          {formatKey(key, submission)}
                         </span>
                         <div className="text-sm">{renderValue(value)}</div>
                       </div>
