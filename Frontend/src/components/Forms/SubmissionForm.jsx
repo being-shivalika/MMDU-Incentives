@@ -257,8 +257,8 @@ const SubmissionForm = ({
     }
 
     // 6. Second Verification Detail
-    if (!formData.secondVerification || !formData.secondVerification.trim()) {
-      setToastMessage(`Field Required: Please enter ${verificationLabels?.second || "Verification Detail #2"}.`);
+    if (verificationLabels?.second && (!formData.secondVerification || !formData.secondVerification.trim())) {
+      setToastMessage(`Field Required: Please enter ${verificationLabels.second}.`);
       setTimeout(() => setToastMessage(null), 5000);
       return false;
     }
@@ -1021,26 +1021,28 @@ const SubmissionForm = ({
             onChange={handleInputChange}
           />
 
-          <Input
-            label={verificationLabels.second}
-            type={
-              verificationLabels.second
-                .toLowerCase()
-                .match(/(link|url|website)/)
-                ? "url"
-                : "text"
-            }
-            placeholder={
-              verificationLabels.second
-                .toLowerCase()
-                .match(/(link|url|website)/)
-                ? "https://..."
-                : "Enter detail"
-            }
-            name="secondVerification"
-            value={formData.secondVerification || ""}
-            onChange={handleInputChange}
-          />
+          {verificationLabels?.second && (
+            <Input
+              label={verificationLabels.second}
+              type={
+                verificationLabels.second
+                  .toLowerCase()
+                  .match(/(link|url|website)/)
+                  ? "url"
+                  : "text"
+              }
+              placeholder={
+                verificationLabels.second
+                  .toLowerCase()
+                  .match(/(link|url|website)/)
+                  ? "https://..."
+                  : "Enter detail"
+              }
+              name="secondVerification"
+              value={formData.secondVerification || ""}
+              onChange={handleInputChange}
+            />
+          )}
         </div>
       </section>
 
