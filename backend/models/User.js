@@ -75,6 +75,11 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
 
+    isFirstLogin: {
+      type: Boolean,
+      default: true,
+    },
+
     // Additional Information
     phone: {
       type: String,

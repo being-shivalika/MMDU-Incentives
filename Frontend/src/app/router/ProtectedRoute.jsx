@@ -1,9 +1,10 @@
 import { Navigate, Outlet } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { ROUTES } from "../../constants/routes";
+import FirstLoginPasswordModal from "../../components/Ui/FirstLoginPasswordModal";
 
 const ProtectedRoute = ({ allowedRoles = [] }) => {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated, updateUser } = useAuth();
 
   if (loading) {
     return (
@@ -16,6 +17,20 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
   // Not authenticated
   if (!isAuthenticated || !user) {
     return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+
+  // First time login password change mandatory modal
+  if (user.isFirstLogin === true) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <FirstLoginPasswordModal
+          isOpen={true}
+          user={user}
+          updateUser={updateUser}
+          onSuccess={() => {}}
+        />
+      </div>
+    );
   }
 
   // No role restriction

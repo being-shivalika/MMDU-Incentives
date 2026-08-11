@@ -68,3 +68,17 @@ export const submitResetPassword = async (email, token, newPassword) => {
     body: JSON.stringify({ email, token, newPassword }),
   });
 };
+
+// Change password on first login
+export const changeFirstPassword = async (newPassword) => {
+  const data = await apiClient("/auth/change-first-password", {
+    method: "POST",
+    body: JSON.stringify({ newPassword }),
+  });
+
+  if (data.success && data.user) {
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  }
+
+  return data.user;
+};

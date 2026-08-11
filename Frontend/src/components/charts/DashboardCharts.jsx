@@ -1,25 +1,35 @@
 import React from "react";
 
 // 1. Line Chart for Submissions Trends
-export const LineChart = ({ data = [], height = 180 }) => {
-  if (data.length === 0)
+export const LineChart = ({ data = [], height = 220 }) => {
+  if (!data || data.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-xs text-brand-gray-400">
-        No data
+      <div className="h-full flex items-center justify-center text-xs text-neutral-400 font-medium">
+        No submission trend data available
       </div>
     );
+  }
 
-  const padding = 30;
-  const chartHeight = height - padding * 2;
-  const width = 400;
-  const chartWidth = width - padding * 2;
+  const paddingLeft = 40;
+  const paddingRight = 30;
+  const paddingTop = 25;
+  const paddingBottom = 35;
 
-  const maxVal = Math.max(...data.map((d) => d.value), 5);
+  const width = 550;
+  const chartWidth = width - (paddingLeft + paddingRight);
+  const chartHeight = height - (paddingTop + paddingBottom);
 
-  // Calculate points
+  const maxDataVal = Math.max(...data.map((d) => Number(d.value) || 0), 0);
+  const maxVal = Math.max(maxDataVal, 5);
+
+  const stepsCount = 5;
+  const yTicks = Array.from({ length: stepsCount + 1 }, (_, i) => {
+    return Math.round((maxVal / stepsCount) * (stepsCount - i));
+  });
+
   const points = data.map((d, idx) => {
-    const x = padding + (idx / (data.length - 1)) * chartWidth;
-    const y = padding + chartHeight - (d.value / maxVal) * chartHeight;
+    const x = paddingLeft + (idx / Math.max(data.length - 1, 1)) * chartWidth;
+    const y = paddingTop + chartHeight - ((Number(d.value) || 0) / maxVal) * chartHeight;
     return { x, y, label: d.label, val: d.value };
   });
 
@@ -27,37 +37,31 @@ export const LineChart = ({ data = [], height = 180 }) => {
     return acc + (idx === 0 ? `M ${p.x} ${p.y}` : ` L ${p.x} ${p.y}`);
   }, "");
 
-  // Area under path
-  const areaD =
-    points.length > 0
-      ? `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`
-      : "";
-
   return (
     <div className="w-full">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full h-auto overflow-visible"
+        className="w-full h-auto overflow-visible font-['Poppins'] select-none"
       >
-        {/* Horizontal gridlines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
-          const y = padding + chartHeight * ratio;
-          const val = Math.round(maxVal * (1 - ratio));
+        {/* Horizontal Dashed Gridlines */}
+        {yTicks.map((val, idx) => {
+          const ratio = idx / stepsCount;
+          const y = paddingTop + chartHeight * ratio;
           return (
-            <g key={idx} className="opacity-10">
+            <g key={idx}>
               <line
-                x1={padding}
+                x1={paddingLeft}
                 y1={y}
-                x2={width - padding}
+                x2={width - paddingRight}
                 y2={y}
-                stroke="currentColor"
-                strokeWidth={1}
-                strokeDasharray="3 3"
+                stroke="#e5e7eb"
+                strokeWidth={1.2}
+                strokeDasharray="4 4"
               />
               <text
-                x={padding - 6}
-                y={y + 3}
-                className="text-[9px] fill-current text-right font-medium"
+                x={paddingLeft - 12}
+                y={y + 4}
+                className="text-[11px] fill-neutral-400 font-semibold"
                 textAnchor="end"
               >
                 {val}
@@ -66,50 +70,47 @@ export const LineChart = ({ data = [], height = 180 }) => {
           );
         })}
 
-        {/* Shaded Area */}
-        {areaD && <path d={areaD} fill="url(#line-grad)" opacity="0.05" />}
-        <defs>
-          <linearGradient id="line-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#000" />
-            <stop offset="100%" stopColor="#000" stopOpacity="0" />
-          </linearGradient>
-        </defs>
+        {/* Solid Sharp Black Trend Line */}
+        <path
+          d={pathD}
+          fill="none"
+          stroke="#111111"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
 
-        {/* Path line */}
-        <path d={pathD} fill="none" stroke="black" strokeWidth={1.5} />
-
-        {/* Data Circles */}
+        {/* Vertex Circular Points (White interior, thick black border matching reference image) */}
         {points.map((p, idx) => (
-          <g key={idx} className="group">
+          <g key={idx} className="group cursor-pointer">
             <circle
               cx={p.x}
               cy={p.y}
-              r={3.5}
-              className="fill-white stroke-black hover:r-5 cursor-pointer transition-all"
-              strokeWidth={1.5}
+              r={5.5}
+              fill="#ffffff"
+              stroke="#111111"
+              strokeWidth={2.5}
+              className="transition-all duration-200 group-hover:r-7"
             />
-            {/* Tooltip on hover */}
+            {/* Hover Tooltip */}
             <title>
-              {p.label}: {p.val} submissions
+              {p.label}: {p.val} submission{p.val === 1 ? "" : "s"}
             </title>
           </g>
         ))}
 
-        {/* X Axis Labels */}
-        {data.map((d, idx) => {
-          const x = padding + (idx / (data.length - 1)) * chartWidth;
-          return (
-            <text
-              key={idx}
-              x={x}
-              y={height - padding + 15}
-              className="text-[8px] fill-brand-gray-400 font-semibold"
-              textAnchor="middle"
-            >
-              {d.label}
-            </text>
-          );
-        })}
+        {/* X Axis Month Labels */}
+        {points.map((p, idx) => (
+          <text
+            key={idx}
+            x={p.x}
+            y={height - 8}
+            className="text-[12px] fill-neutral-900 font-bold"
+            textAnchor="middle"
+          >
+            {p.label}
+          </text>
+        ))}
       </svg>
     </div>
   );

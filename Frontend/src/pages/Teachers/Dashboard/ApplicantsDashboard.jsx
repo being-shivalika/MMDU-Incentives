@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import Card from "../../../components/Ui/Card";
@@ -87,19 +87,36 @@ const ApplicantsDashboard = () => {
       0,
     );
 
-  const chartData = [
-    { label: "Feb", value: 1 },
-    { label: "Mar", value: 0 },
-    { label: "Apr", value: 2 },
-    { label: "May", value: 1 },
-    { label: "Jun", value: 4 },
-    {
-      label: "Jul",
-      value: mySubmissions.filter(
-        (s) => (s?.status || "").toLowerCase() !== "draft" && (s?.originalStatus || "").toLowerCase() !== "draft",
-      ).length,
-    },
-  ];
+  // Dynamically compute real 6-month submission output trend based on actual faculty submissions
+  const chartData = useMemo(() => {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = dayjs().subtract(i, "month");
+      months.push({
+        label: d.format("MMM"),
+        yearMonth: d.format("YYYY-MM"),
+        value: 0,
+      });
+    }
+
+    mySubmissions.forEach((s) => {
+      const isDraft =
+        (s?.status || "").toLowerCase() === "draft" ||
+        (s?.originalStatus || "").toLowerCase() === "draft";
+      if (isDraft) return;
+
+      const dateStr = s.dateSubmitted || s.createdAt || s.submissionDate || s.submittedAt;
+      if (!dateStr) return;
+
+      const subKey = dayjs(dateStr).format("YYYY-MM");
+      const match = months.find((m) => m.yearMonth === subKey);
+      if (match) {
+        match.value += 1;
+      }
+    });
+
+    return months.map(({ label, value }) => ({ label, value }));
+  }, [mySubmissions]);
 
   const getStatusBadge = (status = "") => {
     const safe = String(status).toLowerCase();

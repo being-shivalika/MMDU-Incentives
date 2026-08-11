@@ -8,9 +8,11 @@ import { ROUTES } from "../../constants/routes";
 import { requestForgotPassword, submitResetPassword } from "../../services/authService";
 import { KeyRound, ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
 
+import FirstLoginPasswordModal from "../../components/Ui/FirstLoginPasswordModal";
+
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, updateUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,12 +20,55 @@ const LoginPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // First time login state
+  const [showFirstLoginModal, setShowFirstLoginModal] = useState(false);
+  const [pendingUser, setPendingUser] = useState(null);
+
   // Forgot password state
   const [viewMode, setViewMode] = useState("login"); // 'login' | 'forgot' | 'reset'
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const navigateToDashboard = (loggedInUser) => {
+    const role = loggedInUser.role?.toLowerCase();
+    let dashboardRoute = ROUTES.HOME;
+
+    switch (role) {
+      case "student":
+      case "faculty":
+        dashboardRoute = ROUTES.APPLICANT_DASHBOARD;
+        break;
+      case "hod":
+        dashboardRoute = ROUTES.DEPARTMENT_REVIEW;
+        break;
+      case "principal":
+        dashboardRoute = ROUTES.PRINCIPAL_DASHBOARD;
+        break;
+      case "director":
+        dashboardRoute = ROUTES.DIRECTOR_DASHBOARD;
+        break;
+      case "rd_cell":
+      case "rpc_cell":
+        dashboardRoute = ROUTES.RESEARCH_REVIEW;
+        break;
+      case "accounts":
+        dashboardRoute = ROUTES.ACCOUNTS;
+        break;
+      case "registrar":
+        dashboardRoute = ROUTES.REGISTRAR;
+        break;
+      case "vc":
+        dashboardRoute = ROUTES.VC;
+        break;
+      case "admin":
+        dashboardRoute = ROUTES.ADMIN;
+        break;
+    }
+
+    navigate(dashboardRoute);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -33,42 +78,15 @@ const LoginPage = () => {
 
     try {
       const loggedInUser = await login(email, password);
-      const role = loggedInUser.role?.toLowerCase();
-      let dashboardRoute = ROUTES.HOME;
 
-      switch (role) {
-        case "student":
-        case "faculty":
-          dashboardRoute = ROUTES.APPLICANT_DASHBOARD;
-          break;
-        case "hod":
-          dashboardRoute = ROUTES.DEPARTMENT_REVIEW;
-          break;
-        case "principal":
-          dashboardRoute = ROUTES.PRINCIPAL_DASHBOARD;
-          break;
-        case "director":
-          dashboardRoute = ROUTES.DIRECTOR_DASHBOARD;
-          break;
-        case "rd_cell":
-        case "rpc_cell":
-          dashboardRoute = ROUTES.RESEARCH_REVIEW;
-          break;
-        case "accounts":
-          dashboardRoute = ROUTES.ACCOUNTS;
-          break;
-        case "registrar":
-          dashboardRoute = ROUTES.REGISTRAR;
-          break;
-        case "vc":
-          dashboardRoute = ROUTES.VC;
-          break;
-        case "admin":
-          dashboardRoute = ROUTES.ADMIN;
-          break;
+      if (loggedInUser?.isFirstLogin === true) {
+        setPendingUser(loggedInUser);
+        setShowFirstLoginModal(true);
+        setIsLoading(false);
+        return;
       }
 
-      navigate(dashboardRoute);
+      navigateToDashboard(loggedInUser);
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -337,6 +355,16 @@ const LoginPage = () => {
         )}
 
       </div>
+
+      <FirstLoginPasswordModal
+        isOpen={showFirstLoginModal}
+        user={pendingUser}
+        updateUser={updateUser}
+        onSuccess={(updatedUser) => {
+          setShowFirstLoginModal(false);
+          navigateToDashboard(updatedUser || pendingUser);
+        }}
+      />
     </Card>
   );
 };
