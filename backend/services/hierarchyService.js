@@ -16,31 +16,35 @@ import logger from '../utils/logger.js';
  */
 export const getEffectiveApprover = async (department, institute = 'MMDU') => {
   try {
-    // 1. Check for active HOD in the department
+    // 1. Check for active HOD in the department (MCA department has NO HOD)
     if (department) {
       const cleanDept = department.trim().toLowerCase();
-      let query = { role: 'hod', isActive: true };
+      const isMca = cleanDept === 'mca' || cleanDept.includes('computer applications') || cleanDept.includes('master of computer applications');
 
-      if (cleanDept.includes('computer') || cleanDept.includes('cse')) {
-        query.department = { $regex: /computer|cse/i };
-      } else {
-        query.department = { $regex: new RegExp(`^${department.trim()}$`, 'i') };
-      }
+      if (!isMca) {
+        let query = { role: 'hod', isActive: true };
 
-      const hodUser = await User.findOne(query);
+        if (cleanDept.includes('computer science') || cleanDept.includes('cse')) {
+          query.department = { $regex: /computer science|cse/i };
+        } else {
+          query.department = { $regex: new RegExp(`^${department.trim()}$`, 'i') };
+        }
 
-      if (hodUser) {
-        return {
-          role: 'hod',
-          label: 'HOD',
-          isFallback: false,
-          fallbackReason: null,
-          approverUser: hodUser
-        };
+        const hodUser = await User.findOne(query);
+
+        if (hodUser) {
+          return {
+            role: 'hod',
+            label: 'HOD',
+            isFallback: false,
+            fallbackReason: null,
+            approverUser: hodUser
+          };
+        }
       }
     }
 
-    // 2. Fallback: Check for active Principal
+    // 2. Principal Approval (Direct Approver for MCA & departments without HOD)
     const principalUser = await User.findOne({
       role: 'principal',
       isActive: true
@@ -49,9 +53,9 @@ export const getEffectiveApprover = async (department, institute = 'MMDU') => {
     if (principalUser) {
       return {
         role: 'principal',
-        label: 'Principal (Automatic Fallback)',
+        label: 'Principal',
         isFallback: true,
-        fallbackReason: 'No HOD configured for department. Authority automatically routed to Principal.',
+        fallbackReason: 'MCA Department has no HOD. Authority is assigned to Principal.',
         approverUser: principalUser
       };
     }

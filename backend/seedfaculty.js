@@ -13,7 +13,7 @@ dotenv.config();
 const users = [
   {
     name: "Neelam Oberoi",
-    email: "neelamoberoi1030@mmu-mullana.org",
+    email: "neelamoberoi1030@mmumullana.org",
     password: "112305",
     role: "faculty",
     department: "Computer Science & Engineering",
@@ -24,7 +24,7 @@ const users = [
 
   {
     name: "Dr. Prachi Garg",
-    email: "prachigarg@mmu-mullana.org",
+    email: "prachigarg@mmumullana.org",
     password: "112003",
     role: "faculty",
     department: "Computer Science & Engineering",
@@ -142,6 +142,28 @@ const users = [
     employeeId: "112175",
     isActive: true,
   },
+
+  {
+    name: "Test Faculty User",
+    email: "test@gmail.com",
+    password: "test3456",
+    role: "faculty",
+    department: "MCA",
+    institute: "MMDU",
+    employeeId: "112305-test",
+    isActive: true,
+  },
+
+  {
+    name: "Dr. Tejinder Kaur",
+    email: "tejinder.kaur@mmumullana.org",
+    password: "112540",
+    role: "faculty",
+    department: "MCA",
+    institute: "MMDU",
+    employeeId: "112540",
+    isActive: true,
+  },
 ];
 
 const seedUsers = async () => {
@@ -160,6 +182,7 @@ const seedUsers = async () => {
 
       if (existingUser) {
         existingUser.name = userData.name;
+        existingUser.email = normalizedEmail;
         existingUser.password = userData.password;
         existingUser.role = userData.role;
         existingUser.department = userData.department;
@@ -167,7 +190,7 @@ const seedUsers = async () => {
         existingUser.employeeId = userData.employeeId;
         existingUser.isActive = userData.isActive;
         await existingUser.save();
-        console.log(`🔄 Updated credentials for: ${normalizedEmail}`);
+        console.log(`🔄 Updated credentials & email for: ${normalizedEmail}`);
       } else {
         await User.create(userData);
         console.log(`✅ Created: ${userData.name}`);

@@ -20,6 +20,14 @@ body {
   display: none;
 }
 
+/* Suppress native browser password reveal icons to prevent double eye icons */
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+
 .poppins-regular {
   font-family: "Poppins", sans-serif;
   font-weight: 400;

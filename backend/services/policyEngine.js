@@ -255,7 +255,7 @@ export const calculateIncentive = async (claim) => {
   
   // Create policy snapshot (frozen values at time of calculation)
   const policySnapshot = {
-    ruleId: rule._id,
+    ruleId: rule?._id || null,
     condition,
     totalIncentive,
     mmduAuthorCount,

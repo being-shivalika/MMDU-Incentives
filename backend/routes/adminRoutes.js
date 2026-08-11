@@ -4,7 +4,8 @@ import {
   getAuditLogs,
   listPolicyRules, createPolicyRule, updatePolicyRule,
   listFinancialYears, createFinancialYear, updateFinancialYear,
-  getWorkflowConfig, updateWorkflowConfig
+  getWorkflowConfig, updateWorkflowConfig,
+  listCirculars, createCircular, deleteCircular, toggleCircularActive
 } from '../controllers/adminController.js';
 import protect from '../middleware/auth.js';
 import authorize from '../middleware/authorize.js';
@@ -23,6 +24,13 @@ router.put('/users/:id/toggle-active', authorize('admin'), toggleUserActive);
 
 // Audit Logs
 router.get('/audit-logs', authorize('admin'), getAuditLogs);
+
+// Circulars & Bulletins
+router.route('/circulars')
+  .get(listCirculars)
+  .post(authorize('admin'), createCircular);
+router.delete('/circulars/:id', authorize('admin'), deleteCircular);
+router.put('/circulars/:id/toggle', authorize('admin'), toggleCircularActive);
 
 // Policy Rules
 router.route('/policy-rules')

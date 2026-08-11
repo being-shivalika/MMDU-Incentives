@@ -11,20 +11,27 @@ import WelcomeHero from "./components/WelcomeHero";
 import { getSubmissions } from "../../../services/submissionService";
 import useSubmissionSync from "../../../hooks/useSubmissionSync";
 
+import { getCirculars } from "../../../services/adminService";
+
 const ApplicantsDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const circulars = [];
+  const [circulars, setCirculars] = useState([]);
 
   const fetchSubmissions = useCallback(async () => {
     try {
-      const res = await getSubmissions();
+      const [res, circRes] = await Promise.all([
+        getSubmissions(),
+        getCirculars().catch(() => ({ data: [] }))
+      ]);
       setSubmissions(res.data || res.claims || []);
+      if (circRes?.data) setCirculars(circRes.data);
+      else if (Array.isArray(circRes)) setCirculars(circRes);
     } catch (err) {
-      console.error("Failed to load submissions", err);
+      console.error("Failed to load dashboard data", err);
     } finally {
       setLoading(false);
     }

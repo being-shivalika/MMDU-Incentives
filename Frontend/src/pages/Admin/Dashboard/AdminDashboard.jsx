@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import Card from "../../../components/Ui/Card";
 import { getDashboardStats, getRecentSubmissions } from "../../../services/dashboardService";
-import { Users, FileText, CheckCircle } from "lucide-react";
+import { Users, FileText, CheckCircle, UserPlus, ArrowRight } from "lucide-react";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -41,80 +42,92 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6 text-left">
-      <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Welcome Admin, {user?.name || "Administrator"}
-        </h1>
-        <p className="text-gray-500 mt-1">Manage users, view system metrics and oversee all operations.</p>
+      <div className="bg-white rounded-2xl p-6 border border-neutral-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900">
+            Welcome Admin, {user?.name || "Administrator"}
+          </h1>
+          <p className="text-xs text-neutral-500 mt-1">Manage database users, roles, system metrics, and oversee portal operations.</p>
+        </div>
+
+        <Link
+          to="/admin/users"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#8C0404] hover:bg-[#6F0303] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer shrink-0"
+        >
+          <UserPlus size={16} /> Manage Database Users
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 flex items-center justify-between">
+        <Card className="p-6 flex items-center justify-between border border-neutral-200/80 rounded-2xl bg-white shadow-sm">
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Total Users</p>
-            <h3 className="text-3xl font-bold text-gray-900">{isLoading ? "-" : stats.totalUsers || 0}</h3>
+            <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-1">Total Database Users</p>
+            <h3 className="text-3xl font-extrabold text-neutral-900">{isLoading ? "-" : stats.totalUsers || 0}</h3>
           </div>
-          <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center">
-            <Users className="h-6 w-6 text-blue-600" />
+          <div className="h-12 w-12 rounded-2xl bg-[#8C0404]/10 border border-[#8C0404]/20 flex items-center justify-center text-[#8C0404]">
+            <Users className="h-6 w-6" />
           </div>
         </Card>
 
-        <Card className="p-6 flex items-center justify-between">
+        <Card className="p-6 flex items-center justify-between border border-neutral-200/80 rounded-2xl bg-white shadow-sm">
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Total Claims</p>
-            <h3 className="text-3xl font-bold text-gray-900">{isLoading ? "-" : stats.totalClaims || 0}</h3>
+            <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-1">Total Submissions</p>
+            <h3 className="text-3xl font-extrabold text-neutral-900">{isLoading ? "-" : stats.totalClaims || 0}</h3>
           </div>
-          <div className="h-12 w-12 rounded-full bg-indigo-50 flex items-center justify-center">
-            <FileText className="h-6 w-6 text-indigo-600" />
+          <div className="h-12 w-12 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-700">
+            <FileText className="h-6 w-6" />
           </div>
         </Card>
 
-        <Card className="p-6 flex items-center justify-between">
+        <Card className="p-6 flex items-center justify-between border border-neutral-200/80 rounded-2xl bg-white shadow-sm">
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Completed Claims</p>
-            <h3 className="text-3xl font-bold text-gray-900">{isLoading ? "-" : stats.totalCompleted || 0}</h3>
+            <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-1">Completed & Disbursed</p>
+            <h3 className="text-3xl font-extrabold text-neutral-900">{isLoading ? "-" : stats.totalCompleted || 0}</h3>
           </div>
-          <div className="h-12 w-12 rounded-full bg-green-50 flex items-center justify-center">
-            <CheckCircle className="h-6 w-6 text-green-600" />
+          <div className="h-12 w-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
+            <CheckCircle className="h-6 w-6" />
           </div>
         </Card>
       </div>
 
-      <Card>
-        <div className="mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+      <Card className="p-6 border border-neutral-200/80 rounded-2xl bg-white shadow-sm space-y-4">
+        <div className="flex justify-between items-center border-b border-neutral-100 pb-3">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-900">Recent Portal Activity</h2>
+          <Link to="/admin/audit-logs" className="text-xs font-bold uppercase tracking-wider text-[#8C0404] hover:text-[#6F0303] flex items-center gap-1">
+            View Audit Logs <ArrowRight size={14} />
+          </Link>
         </div>
         
         {isLoading ? (
-          <div className="py-8 text-center text-gray-500">Loading recent activity...</div>
+          <div className="py-8 text-center text-xs text-neutral-400">Loading recent activity...</div>
         ) : error ? (
-          <div className="py-8 text-center text-red-500">{error}</div>
+          <div className="py-8 text-center text-xs text-rose-600 font-semibold">{error}</div>
         ) : recentClaims.length === 0 ? (
-          <div className="py-8 text-center text-gray-500">No recent claims found.</div>
+          <div className="py-8 text-center text-xs text-neutral-400">No recent claims found.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b bg-gray-50 text-sm font-medium text-gray-600">
-                  <th className="p-4">Claim ID</th>
-                  <th className="p-4">Title</th>
-                  <th className="p-4">Applicant</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Date</th>
+                <tr className="border-b border-neutral-200 bg-neutral-50 text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                  <th className="p-3.5">Claim ID</th>
+                  <th className="p-3.5">Title</th>
+                  <th className="p-3.5">Applicant</th>
+                  <th className="p-3.5">Status</th>
+                  <th className="p-3.5">Date</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-neutral-100 font-medium text-neutral-700">
                 {recentClaims.map((claim) => (
-                  <tr key={claim.id || claim._id} className="border-b hover:bg-gray-50 transition-colors">
-                    <td className="p-4 font-medium text-gray-900">{claim.claimNumber || "-"}</td>
-                    <td className="p-4 text-gray-600">{claim.title || "-"}</td>
-                    <td className="p-4 text-gray-600">{claim.applicantName || "-"}</td>
-                    <td className="p-4">
-                      <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                  <tr key={claim.id || claim._id} className="hover:bg-neutral-50 transition-colors">
+                    <td className="p-3.5 font-bold text-neutral-900">{claim.claimNumber || "-"}</td>
+                    <td className="p-3.5 text-neutral-800 font-semibold max-w-xs truncate">{claim.title || "-"}</td>
+                    <td className="p-3.5 text-neutral-600">{claim.applicantName || "-"}</td>
+                    <td className="p-3.5">
+                      <span className="px-2.5 py-1 text-[10px] font-bold uppercase rounded-md bg-neutral-100 text-neutral-800 border border-neutral-200">
                         {claim.status || "-"}
                       </span>
                     </td>
-                    <td className="p-4 text-gray-600">
+                    <td className="p-3.5 text-neutral-500 whitespace-nowrap">
                       {new Date(claim.createdAt).toLocaleDateString()}
                     </td>
                   </tr>

@@ -125,6 +125,73 @@ export const updateFinancialYear = asyncHandler(async (req, res) => {
   return successResponse(res, 'Financial year updated', fy);
 });
 
+import Circular from '../models/Circular.js';
+
+// ═══ Circulars & Announcements ═══
+
+export const listCirculars = asyncHandler(async (req, res) => {
+  const query = {};
+  if (req.query.isActive !== undefined) {
+    query.isActive = req.query.isActive === 'true';
+  }
+  const circulars = await Circular.find(query).sort({ createdAt: -1 });
+  return successResponse(res, 'Circulars retrieved', circulars);
+});
+
+export const createCircular = asyncHandler(async (req, res) => {
+  const { title, content, category, audience } = req.body;
+  if (!title || !title.trim()) {
+    return errorResponse(res, 'Circular title is required', null, 400);
+  }
+
+  const circular = await Circular.create({
+    title: title.trim(),
+    content: content || '',
+    category: category || 'ANNOUNCEMENT',
+    audience: audience || 'All Users',
+    createdBy: req.user._id,
+    createdByName: req.user.name || 'Admin',
+    date: new Date()
+  });
+
+  await createAuditLog({
+    action: 'CIRCULAR_CREATED',
+    entity: 'Circular',
+    entityId: circular._id,
+    performedBy: req.user._id,
+    details: { title: circular.title, audience: circular.audience },
+    ipAddress: req.ip
+  });
+
+  return successResponse(res, 'Circular published successfully', circular, 201);
+});
+
+export const deleteCircular = asyncHandler(async (req, res) => {
+  const circular = await Circular.findByIdAndDelete(req.params.id);
+  if (!circular) return errorResponse(res, 'Circular not found', null, 404);
+
+  await createAuditLog({
+    action: 'CIRCULAR_DELETED',
+    entity: 'Circular',
+    entityId: circular._id,
+    performedBy: req.user._id,
+    details: { title: circular.title },
+    ipAddress: req.ip
+  });
+
+  return successResponse(res, 'Circular deleted successfully', null);
+});
+
+export const toggleCircularActive = asyncHandler(async (req, res) => {
+  const circular = await Circular.findById(req.params.id);
+  if (!circular) return errorResponse(res, 'Circular not found', null, 404);
+
+  circular.isActive = !circular.isActive;
+  await circular.save();
+
+  return successResponse(res, `Circular ${circular.isActive ? 'activated' : 'deactivated'}`, circular);
+});
+
 // ═══ Workflow Config ═══
 
 export const getWorkflowConfig = asyncHandler(async (req, res) => {
