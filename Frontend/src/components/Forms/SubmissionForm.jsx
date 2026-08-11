@@ -348,7 +348,7 @@ const SubmissionForm = ({
   };
 
   const handleFormDraft = async (e) => {
-    if (!validateAllFields()) return;
+    e?.preventDefault?.();
     try {
       if (onDraft) await onDraft(e);
     } catch (err) {

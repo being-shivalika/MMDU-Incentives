@@ -67,6 +67,34 @@ const SubmissionCard = ({ submission, onClick }) => {
     });
   };
 
+  const getWorkflowProgress = (st) => {
+    const s = String(st || "").toUpperCase();
+    if (s.includes("DRAFT")) {
+      return { percent: 20, label: "Draft Saved", color: "bg-amber-500", text: "text-amber-600", step: "Step 1 of 5" };
+    }
+    if (s.includes("DEPARTMENT") || s.includes("HOD") || s.includes("PRINCIPAL")) {
+      return { percent: 40, label: "Dept Review", color: "bg-amber-500", text: "text-amber-600", step: "Step 2 of 5" };
+    }
+    if (s.includes("RPC") || s.includes("R & D") || s.includes("RD")) {
+      return { percent: 60, label: "R & D Review", color: "bg-[#8C0404]", text: "text-[#8C0404]", step: "Step 3 of 5" };
+    }
+    if (s.includes("ACCOUNT") || s.includes("FINANCE")) {
+      return { percent: 80, label: "Finance & Accounts", color: "bg-[#8C0404]", text: "text-[#8C0404]", step: "Step 4 of 5" };
+    }
+    if (s.includes("COMPLETED") || s.includes("APPROVED") || s.includes("RELEASED")) {
+      return { percent: 100, label: "Approved & Paid", color: "bg-emerald-600", text: "text-emerald-700", step: "Step 5 of 5" };
+    }
+    if (s.includes("RETURN") || s.includes("REVISION")) {
+      return { percent: 35, label: "Revision Requested", color: "bg-orange-500", text: "text-orange-600", step: "Action Required" };
+    }
+    if (s.includes("REJECT")) {
+      return { percent: 100, label: "Rejected", color: "bg-rose-600", text: "text-rose-600", step: "Closed" };
+    }
+    return { percent: 40, label: "In Review", color: "bg-amber-500", text: "text-amber-600", step: "Step 2 of 5" };
+  };
+
+  const progress = getWorkflowProgress(status);
+
   return (
     <div
       onClick={() => onClick(submission)}
@@ -103,8 +131,22 @@ const SubmissionCard = ({ submission, onClick }) => {
           {title}
         </h3>
 
+        {/* DYNAMIC PROGRESS BAR */}
+        <div className="space-y-1 pt-1">
+          <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            <span>Workflow Progress</span>
+            <span className={progress.text}>{progress.step}</span>
+          </div>
+          <div className="w-full bg-neutral-100 rounded-full h-1.5 overflow-hidden border border-neutral-200/50">
+            <div
+              className={`${progress.color} h-full rounded-full transition-all duration-500`}
+              style={{ width: `${progress.percent}%` }}
+            />
+          </div>
+        </div>
+
         {/* DETAILS GRID */}
-        <div className="grid grid-cols-2 gap-3 pt-2">
+        <div className="grid grid-cols-2 gap-3 pt-1">
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
               Department

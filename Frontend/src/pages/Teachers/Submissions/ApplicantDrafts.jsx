@@ -78,11 +78,11 @@ const ApplicantDrafts = () => {
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                       <span>Status</span>
-                      <span>Draft</span>
+                      <span className="text-amber-600 font-bold">Draft (Step 1 of 5)</span>
                     </div>
-                    <div className="w-full bg-neutral-100 rounded-full h-1.5 overflow-hidden">
+                    <div className="w-full bg-neutral-100 rounded-full h-2 overflow-hidden border border-neutral-200/50">
                       <div
-                        className="bg-amber-500 h-1.5 rounded-full transition-all duration-500 w-1/2"
+                        className="bg-amber-500 h-full rounded-full transition-all duration-500 w-[20%]"
                       />
                     </div>
                   </div>
