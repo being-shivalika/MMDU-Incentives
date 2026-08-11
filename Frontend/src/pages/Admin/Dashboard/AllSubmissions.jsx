@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { getSubmissions, updateSubmission, deleteSubmission, markClaimAsPaid } from "../../../services/submissionService";
+import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
 import { 
   FileText, 
+  FileSpreadsheet,
   Search, 
   Filter, 
   Trash2, 
@@ -16,7 +18,8 @@ import {
   Building,
   RefreshCw,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Download
 } from "lucide-react";
 import ReviewDrawer from "../../DepartmentReview/Dashboard/components/ReviewDrawer";
 
@@ -162,6 +165,25 @@ const AllSubmissions = () => {
   const pendingCount = submissions.filter(s => !String(s.status || "").toUpperCase().includes("COMPLETED") && !String(s.status || "").toUpperCase().includes("DRAFT")).length;
   const rejectedCount = submissions.filter(s => String(s.status || "").toUpperCase().includes("REJECT") || String(s.status || "").toUpperCase().includes("RETURN")).length;
 
+  // Export Report Handlers
+  const handleExportCSV = () => {
+    exportToCSV(
+      filteredSubmissions, 
+      `MMDU_Admin_Submissions_Report_${deptFilter.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`
+    );
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF(
+      filteredSubmissions, 
+      `MMDU_Admin_Submissions_Statement`, 
+      {
+        financialYear: "2026-2027",
+        filterScope: `Status: ${statusFilter} • Payment: ${paymentFilter} • Dept: ${deptFilter}`
+      }
+    );
+  };
+
   return (
     <div className="space-y-6 text-left max-w-7xl mx-auto p-2 sm:p-4">
       {/* HEADER */}
@@ -176,16 +198,36 @@ const AllSubmissions = () => {
             </h1>
           </div>
           <p className="text-xs text-neutral-500 mt-1">
-            Universal Administrative Access to inspect, edit, track workflow approval progress, verify payouts, and delete any claim.
+            Universal Administrative Access to inspect, edit, track workflow approval progress, verify payouts, generate reports, and delete any claim.
           </p>
         </div>
 
-        <button
-          onClick={loadAllSubmissions}
-          className="flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
-        >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Submissions
-        </button>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-emerald-100 transition-colors shadow-sm cursor-pointer"
+            title="Download CSV report of current submissions"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Download CSV Report
+          </button>
+
+          <button
+            onClick={handleExportPDF}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-100 transition-colors shadow-sm cursor-pointer"
+            title="Download printable PDF statement of current submissions"
+          >
+            <FileText className="h-4 w-4" />
+            Download PDF Statement
+          </button>
+
+          <button
+            onClick={loadAllSubmissions}
+            className="flex items-center gap-2 px-3.5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          </button>
+        </div>
       </div>
 
       {/* METRICS CARDS */}

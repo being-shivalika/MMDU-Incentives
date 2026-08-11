@@ -298,6 +298,12 @@ export const navigationConfig = {
     },
 
     {
+      path: "/admin/submissions",
+      label: "Submissions",
+      icon: FileSpreadsheet,
+    },
+
+    {
       path: "/admin/users",
       label: "User Management",
       icon: Users,
