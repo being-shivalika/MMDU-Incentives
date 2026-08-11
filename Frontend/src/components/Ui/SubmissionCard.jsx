@@ -23,12 +23,28 @@ const getStatusStyle = (status) => {
   return "bg-neutral-100 text-neutral-600 border-neutral-200";
 };
 
-const formatStatus = (status) => {
+const formatStatus = (status, submission = {}) => {
   if (!status) return "UNKNOWN";
   const s = status.replace(/_/g, " ").toUpperCase();
-  if (s.includes("PRINCIPAL") || s.includes("HOD") || s.includes("DEPARTMENT")) {
+  
+  if (s === "DEPARTMENT REVIEW" || s === "DEPARTMENT_REVIEW" || s.includes("DEPARTMENT")) {
+    const dept = String(submission.department || submission.metadata?.department || "").toLowerCase();
+    const isMca = dept.includes("mca") || dept.includes("computer applications");
+    return isMca ? "PENDING PRINCIPAL REVIEW" : "PENDING HOD REVIEW";
+  }
+
+  if (s === "RPC VERIFICATION" || s === "RPC_VERIFICATION" || s.includes("RPC") || s.includes("R & D") || s.includes("RD")) {
     return "PENDING R & D REVIEW";
   }
+
+  if (s === "ACCOUNTS PROCESSING" || s === "ACCOUNTS_PROCESSING" || s.includes("ACCOUNT")) {
+    return "PENDING ACCOUNTS REVIEW";
+  }
+
+  if (s === "COMPLETED" || s === "APPROVED") {
+    return "APPROVED & DISBURSED";
+  }
+
   return s;
 };
 
@@ -67,13 +83,16 @@ const SubmissionCard = ({ submission, onClick }) => {
     });
   };
 
-  const getWorkflowProgress = (st) => {
+  const getWorkflowProgress = (st, submission = {}) => {
     const s = String(st || "").toUpperCase();
     if (s.includes("DRAFT")) {
       return { percent: 20, label: "Draft Saved", color: "bg-amber-500", text: "text-amber-600", step: "Step 1 of 5" };
     }
     if (s.includes("DEPARTMENT") || s.includes("HOD") || s.includes("PRINCIPAL")) {
-      return { percent: 40, label: "Dept Review", color: "bg-amber-500", text: "text-amber-600", step: "Step 2 of 5" };
+      const dept = String(submission.department || submission.metadata?.department || "").toLowerCase();
+      const isMca = dept.includes("mca") || dept.includes("computer applications");
+      const label = isMca ? "Principal Review" : "HOD Review";
+      return { percent: 40, label, color: "bg-amber-500", text: "text-amber-600", step: "Step 2 of 5" };
     }
     if (s.includes("RPC") || s.includes("R & D") || s.includes("RD")) {
       return { percent: 60, label: "R & D Review", color: "bg-[#8C0404]", text: "text-[#8C0404]", step: "Step 3 of 5" };
@@ -93,7 +112,7 @@ const SubmissionCard = ({ submission, onClick }) => {
     return { percent: 40, label: "In Review", color: "bg-amber-500", text: "text-amber-600", step: "Step 2 of 5" };
   };
 
-  const progress = getWorkflowProgress(status);
+  const progress = getWorkflowProgress(status, submission);
 
   return (
     <div
@@ -121,7 +140,7 @@ const SubmissionCard = ({ submission, onClick }) => {
               </span>
             )}
             <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border ${getStatusStyle(status)}`}>
-              {formatStatus(status)}
+              {formatStatus(status, submission)}
             </span>
           </div>
         </div>
