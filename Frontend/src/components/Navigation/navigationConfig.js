@@ -341,11 +341,11 @@ export const navigationConfig = {
       icon: FileSpreadsheet,
     },
 
-    {
-      path: "/registrar/verifications",
-      label: "Verifications",
-      icon: CheckCircle,
-    },
+    // {
+    //   path: "/registrar/verifications",
+    //   label: "Verifications",
+    //   icon: CheckCircle,
+    // },
   ],
 
   vc: [
