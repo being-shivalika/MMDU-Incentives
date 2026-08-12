@@ -78,25 +78,6 @@ const ConferenceForm = ({
             </select>
           </div>
 
-          {/* Status (Presented / Published / Attended) */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-              Presentation Status <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="presentationStatus"
-              value={formData?.presentationStatus || "Presented"}
-              onChange={handleInputChange}
-              required
-              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
-            >
-              <option value="Presented">Presented</option>
-              <option value="Published & Presented">Published & Presented</option>
-              <option value="Keynote Speaker">Keynote Speaker / Session Chair</option>
-              <option value="Attended">Attended</option>
-            </select>
-          </div>
-
           {/* Type of Author(s) */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">

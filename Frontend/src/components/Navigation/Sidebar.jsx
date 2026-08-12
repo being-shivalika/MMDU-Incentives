@@ -162,12 +162,11 @@ const Sidebar = ({
                     end={item.end}
                     onClick={closeMobileSidebar}
                     className={({ isActive: isRouterActive }) => {
+                      const isExactMatch = location.pathname === item.path;
+                      const isSubPathMatch = !item.end && item.path !== "/" && location.pathname.startsWith(item.path + "/");
                       const isItemActive = item.isActive
                         ? item.isActive(location)
-                        : isRouterActive ||
-                          (!item.end &&
-                            item.path !== "/" &&
-                            location.pathname.startsWith(item.path));
+                        : (item.end ? isExactMatch : isExactMatch || isSubPathMatch);
 
                       return `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 ${
                         isItemActive
@@ -177,12 +176,11 @@ const Sidebar = ({
                     }}
                   >
                     {({ isActive: isRouterActive }) => {
+                      const isExactMatch = location.pathname === item.path;
+                      const isSubPathMatch = !item.end && item.path !== "/" && location.pathname.startsWith(item.path + "/");
                       const isItemActive = item.isActive
                         ? item.isActive(location)
-                        : isRouterActive ||
-                          (!item.end &&
-                            item.path !== "/" &&
-                            location.pathname.startsWith(item.path));
+                        : (item.end ? isExactMatch : isExactMatch || isSubPathMatch);
 
                       return (
                         <>

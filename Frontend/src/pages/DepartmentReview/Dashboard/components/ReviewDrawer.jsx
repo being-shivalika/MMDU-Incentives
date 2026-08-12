@@ -845,7 +845,6 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
                 <>
                   {renderField("Name of Conference / Seminar", metadata.conferenceTitle)}
                   {renderField("Level of Conference", metadata.conferenceLevel)}
-                  {renderField("Presentation Status", metadata.presentationStatus)}
                   {renderField("Type of Author(s)", metadata.authorType)}
                   {renderField("Indexing Tier", metadata.indexingTier)}
                   {renderField("Organised By", metadata.organizedBy)}
@@ -856,7 +855,7 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
               )}
 
               {/* Books */}
-              {(submission.subtype === "book" || submission.subtype === "book_chapter" || submission.subtype === "book_section") && (
+              {(submission.subtype === "book" || submission.subtype === "book_chapter") && (
                 <>
                   {renderField("Author / Editor", metadata.authorEditorName)}
                   {renderField("Book Title", metadata.bookTitle)}

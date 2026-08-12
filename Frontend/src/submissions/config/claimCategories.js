@@ -17,13 +17,12 @@ export const CLAIM_CATEGORIES = [
   },
   {
     id: "books_chapters",
-    title: "Book Chapter & Book Section",
-    description: "Incentive claims for book chapters, book sections, authored reference books, or edited volumes.",
+    title: "Books & Book Chapters",
+    description: "Incentive claims for book chapters, books (ISBN) published as author, or edited volumes.",
     icon: "Book",
     subtypes: [
       { id: "book_chapter", label: "Book Chapter", schemaKey: "bookChapterSchema" },
-      { id: "book_section", label: "Book Section", schemaKey: "bookChapterSchema" },
-      { id: "book", label: "Authored Book", schemaKey: "bookSchema" },
+      { id: "book", label: "Books (ISBN) only as author", schemaKey: "bookSchema" },
       { id: "edited_book", label: "Edited Book", schemaKey: "editedBookSchema" }
     ]
   },

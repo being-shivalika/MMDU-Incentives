@@ -22,11 +22,10 @@ const policyRules = [
   { category: 'research_publications', subtype: 'conference', condition: 'OTHER_INDEXED', conditionLabel: 'Other Indexed Conference', applicantType: 'both', incentiveAmount: 8000, currency: 'INR', scorePoints: 10, multiAuthorRule: 'divide_equally', description: 'Other indexed conference proceedings' },
   
   // Books & Chapters
-  { category: 'books_chapters', subtype: 'book', condition: 'INTERNATIONAL_PUBLISHER', conditionLabel: 'Book (ISBN) as Author', applicantType: 'both', incentiveAmount: 15000, currency: 'INR', scorePoints: 25, multiAuthorRule: 'divide_equally', description: 'Book published as author (not edited books)' },
-  { category: 'books_chapters', subtype: 'book', condition: 'NATIONAL_PUBLISHER', conditionLabel: 'Book (ISBN) as Author', applicantType: 'both', incentiveAmount: 15000, currency: 'INR', scorePoints: 15, multiAuthorRule: 'divide_equally', description: 'Book published as author' },
+  { category: 'books_chapters', subtype: 'book', condition: 'INTERNATIONAL_PUBLISHER', conditionLabel: 'Books (ISBN) only as author', applicantType: 'both', incentiveAmount: 15000, currency: 'INR', scorePoints: 25, multiAuthorRule: 'divide_equally', description: 'Book published as author (not edited books)' },
+  { category: 'books_chapters', subtype: 'book', condition: 'NATIONAL_PUBLISHER', conditionLabel: 'Books (ISBN) only as author', applicantType: 'both', incentiveAmount: 15000, currency: 'INR', scorePoints: 15, multiAuthorRule: 'divide_equally', description: 'Book published as author' },
+  { category: 'books_chapters', subtype: 'book', condition: 'ANY', conditionLabel: 'Books (ISBN) only as author', applicantType: 'both', incentiveAmount: 15000, currency: 'INR', scorePoints: 20, multiAuthorRule: 'divide_equally', description: 'Book published as author (ISBN)' },
   { category: 'books_chapters', subtype: 'book_chapter', condition: 'ANY', conditionLabel: 'Book Chapter (Indexed in Scopus/WoS)', applicantType: 'both', incentiveAmount: 8000, currency: 'INR', scorePoints: 10, multiAuthorRule: 'divide_equally', description: 'Chapter in an edited book indexed in Scopus/WoS' },
-  { category: 'books_chapters', subtype: 'book_chapter_vol', condition: 'ANY', conditionLabel: 'Book Chapter (Volume)', applicantType: 'both', incentiveAmount: 8000, currency: 'INR', scorePoints: 10, multiAuthorRule: 'divide_equally', description: 'Chapter in a book volume' },
-  { category: 'books_chapters', subtype: 'book_section', condition: 'ANY', conditionLabel: 'Book Section', applicantType: 'both', incentiveAmount: 8000, currency: 'INR', scorePoints: 10, multiAuthorRule: 'divide_equally', description: 'Section in a book' },
   { category: 'books_chapters', subtype: 'edited_book', condition: 'ANY', conditionLabel: 'Edited Book', applicantType: 'both', incentiveAmount: 8000, currency: 'INR', scorePoints: 20, multiAuthorRule: 'divide_equally', description: 'Edited book volume' },
   
   // Intellectual Property

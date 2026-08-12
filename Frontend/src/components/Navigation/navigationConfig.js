@@ -333,6 +333,7 @@ export const navigationConfig = {
       path: "/registrar",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
 
     {
@@ -340,12 +341,6 @@ export const navigationConfig = {
       label: "Academic Records",
       icon: FileSpreadsheet,
     },
-
-    // {
-    //   path: "/registrar/verifications",
-    //   label: "Verifications",
-    //   icon: CheckCircle,
-    // },
   ],
 
   vc: [
@@ -353,6 +348,7 @@ export const navigationConfig = {
       path: "/vc",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
 
     {

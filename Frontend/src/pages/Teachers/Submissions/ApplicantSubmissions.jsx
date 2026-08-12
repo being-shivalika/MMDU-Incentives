@@ -90,12 +90,7 @@ const ApplicantSubmissions = () => {
       icon: Layers,
     },
     {
-      label: "Book Section",
-      path: "/applicant/submissions/create/book_section",
-      icon: Layers,
-    },
-    {
-      label: "Authored Book",
+      label: "Books",
       path: "/applicant/submissions/create/book",
       icon: BookOpen,
     },

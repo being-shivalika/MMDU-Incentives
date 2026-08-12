@@ -49,7 +49,6 @@ const formatKey = (key, submission = {}) => {
     pageNo: "Page No / Range",
     conferenceTitle: "Name of Conference / Seminar",
     conferenceLevel: "Conference Level",
-    presentationStatus: "Presentation Status",
     authorType: "Type of Author(s)",
     indexingTier: "Indexing Tier",
     organizedBy: "Organised By",
@@ -181,7 +180,6 @@ const ApplicantSubmissionDetails = () => {
     let path = "/applicant/submissions/create/publication";
     if (sub.includes("conference")) path = "/applicant/submissions/create/conference";
     else if (sub.includes("book_chapter")) path = "/applicant/submissions/create/book_chapter";
-    else if (sub.includes("book_section")) path = "/applicant/submissions/create/book_section";
     else if (sub.includes("book")) path = "/applicant/submissions/create/book";
     else if (sub.includes("patent")) path = "/applicant/submissions/create/patent";
     else if (sub.includes("copyright")) path = "/applicant/submissions/create/copyright";

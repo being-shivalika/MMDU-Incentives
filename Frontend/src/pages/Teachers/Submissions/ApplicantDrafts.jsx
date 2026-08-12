@@ -43,7 +43,6 @@ const ApplicantDrafts = () => {
     let path = "/applicant/submissions/create/publication";
     if (sub.includes("conference")) path = "/applicant/submissions/create/conference";
     else if (sub.includes("book_chapter")) path = "/applicant/submissions/create/book_chapter";
-    else if (sub.includes("book_section")) path = "/applicant/submissions/create/book_section";
     else if (sub.includes("book")) path = "/applicant/submissions/create/book";
     else if (sub.includes("patent")) path = "/applicant/submissions/create/patent";
     else if (sub.includes("copyright")) path = "/applicant/submissions/create/copyright";
