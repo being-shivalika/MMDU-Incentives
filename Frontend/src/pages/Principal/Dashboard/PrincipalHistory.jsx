@@ -9,10 +9,6 @@ import {
   FileText,
   RotateCcw,
   RefreshCw,
-  Award,
-  CheckCircle2,
-  Clock,
-  AlertTriangle
 } from "lucide-react";
 import { getSubmissions } from "../../../services/submissionService";
 import ReviewDrawer from "../../DepartmentReview/Dashboard/components/ReviewDrawer";
@@ -73,7 +69,6 @@ const PrincipalHistory = () => {
     try {
       const res = await getSubmissions();
       const data = res.data || res.claims || [];
-      // Filter claims that have history/activity
       setSubmissions(data);
     } catch (err) {
       console.error("Failed to load approval history for Principal:", err);
@@ -309,42 +304,12 @@ const PrincipalHistory = () => {
                 <th className="p-4 font-medium">Submission Title</th>
                 <th className="p-4 font-medium">Type</th>
                 <th className="p-4 font-medium">Incentive</th>
-                {/* <th className="p-4 font-medium">Status</th> */}
+                <th className="p-4 font-medium">Status</th>
+                <th className="p-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredHistory.length > 0 ? (
-                filteredHistory.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4">
-                      <div className="font-medium text-gray-900">{item.id}</div>
-                      <div className="text-xs text-gray-500 mt-1">{item.date}</div>
-                    </td>
-                    <td className="p-4">
-                      <div className="font-medium text-gray-900">{item.applicant}</div>
-                      <div className="text-xs text-gray-500 mt-1">{item.department}</div>
-                    </td>
-                    <td className="p-4 max-w-[200px] truncate" title={item.title}>
-                      {item.title}
-                    </td>
-                    <td className="p-4">
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                        {item.type}
-                      </span>
-                    </td>
-                    <td className="p-4 font-medium text-gray-900">{item.amount}</td>
-                    {/* <td className="p-4">
-                      <StatusBadge status={item.status} />
-                    </td> */}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-neutral-400">
-                    No approval history records match your search or filter criteria.
-                  </td>
-                </tr>
-              ) : (
                 filteredHistory.map((item) => {
                   const id = item.id || item._id;
                   const share = Number(item.userShare || item.approvedAmount || item.estimatedIncentive || 0);
@@ -391,6 +356,12 @@ const PrincipalHistory = () => {
                     </tr>
                   );
                 })
+              ) : (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-neutral-400">
+                    No approval history records match your search or filter criteria.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
