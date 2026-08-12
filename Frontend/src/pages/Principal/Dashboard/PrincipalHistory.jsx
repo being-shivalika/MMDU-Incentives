@@ -9,10 +9,6 @@ import {
   FileText,
   RotateCcw,
   RefreshCw,
-  Award,
-  CheckCircle2,
-  Clock,
-  AlertTriangle
 } from "lucide-react";
 import { getSubmissions } from "../../../services/submissionService";
 import ReviewDrawer from "../../DepartmentReview/Dashboard/components/ReviewDrawer";
@@ -73,7 +69,6 @@ const PrincipalHistory = () => {
     try {
       const res = await getSubmissions();
       const data = res.data || res.claims || [];
-      // Filter claims that have history/activity
       setSubmissions(data);
     } catch (err) {
       console.error("Failed to load approval history for Principal:", err);
