@@ -13,13 +13,18 @@ import {
   Award,
   Copyright as CopyrightIcon,
   Rocket,
+  Search,
+  Download,
 } from "lucide-react";
+
+import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
 
 const ApplicantSubmissions = () => {
   const navigate = useNavigate();
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
 
   const fetchSubmissions = useCallback(async () => {
@@ -34,7 +39,7 @@ const ApplicantSubmissions = () => {
     } catch (error) {
       console.error("Failed to fetch submissions", error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, []);
 
@@ -50,6 +55,19 @@ const ApplicantSubmissions = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const filteredSubmissions = submissions.filter((item) => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return true;
+    return [
+      item.id,
+      item.claimNumber,
+      item.title,
+      item.category,
+      item.subtype,
+      item.status
+    ].some(field => String(field || '').toLowerCase().includes(term));
+  });
 
   const handleCardClick = (submission) => {
     navigate(`/applicant/submissions/${submission._id || submission.id}`);
@@ -112,44 +130,73 @@ const ApplicantSubmissions = () => {
           </p>
         </div>
 
-        {/* DROPDOWN CONTAINER */}
-        <div className="relative" ref={dropdownRef}>
+        {/* DROPDOWN CONTAINER & ACTIONS */}
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-neutral-900 transition-all shadow-sm active:scale-95 cursor-pointer"
+            onClick={() => exportToCSV(filteredSubmissions, "My_Submissions_Report.csv")}
+            className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors shadow-sm cursor-pointer"
+            title="Download CSV"
           >
-            <Plus className="h-4 w-4" />
-            Create New Submission
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
-            />
+            <Download className="h-4 w-4" /> CSV
+          </button>
+          <button
+            onClick={() => exportToPDF(filteredSubmissions, "My_Submissions_Report.pdf")}
+            className="flex items-center gap-1.5 px-3 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors shadow-sm cursor-pointer"
+            title="Download PDF"
+          >
+            <FileText className="h-4 w-4" /> PDF
           </button>
 
-          {/* DROPDOWN MENU */}
-          {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-neutral-200 rounded-xl shadow-lg py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 mb-1">
-                Select Claim Category
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-neutral-900 transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              Create New Submission
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {/* DROPDOWN MENU */}
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-neutral-200 rounded-xl shadow-lg py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 mb-1">
+                  Select Claim Category
+                </div>
+                {submissionTypes.map((item, idx) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate(item.path);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 transition-colors text-left cursor-pointer"
+                    >
+                      <IconComponent className="h-4 w-4 text-neutral-500" />
+                      {item.label}
+                    </button>
+                  );
+                })}
               </div>
-              {submissionTypes.map((item, idx) => {
-                const IconComponent = item.icon;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      navigate(item.path);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950 transition-colors text-left cursor-pointer"
-                  >
-                    <IconComponent className="h-4 w-4 text-neutral-500" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* SEARCH BAR */}
+      <div className="relative w-full">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+        <input
+          type="text"
+          placeholder="Search your submissions by Claim #, Title, Category..."
+          className="w-full bg-white border border-neutral-200 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all shadow-xs"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       {/* DYNAMIC CONTENT AREA */}
@@ -171,7 +218,7 @@ const ApplicantSubmissions = () => {
             </div>
           ))}
         </div>
-      ) : submissions.length === 0 ? (
+      ) : filteredSubmissions.length === 0 ? (
         /* BEAUTIFUL EMPTY STATE */
         <div className="flex flex-col justify-center items-center h-[45vh] bg-neutral-50/50 rounded-2xl border border-dashed border-neutral-200 p-8 text-center">
           <div className="h-14 w-14 bg-white rounded-full flex items-center justify-center border border-neutral-200 mb-4 shadow-sm">
@@ -181,8 +228,7 @@ const ApplicantSubmissions = () => {
             No submissions found
           </h3>
           <p className="text-sm text-neutral-500 max-w-sm mb-6 leading-relaxed">
-            You haven't logged any research incentive claims yet. Get started by
-            creating a new submission.
+            You haven't logged any research incentive claims yet or no submissions match your search.
           </p>
           <button
             onClick={() => navigate("/applicant/submissions/create")}
@@ -194,7 +240,7 @@ const ApplicantSubmissions = () => {
       ) : (
         /* SUBMISSIONS GRID */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {submissions.map((submission, idx) => (
+          {filteredSubmissions.map((submission, idx) => (
             <div
               key={submission._id || submission.id || idx}
               className="transition-transform duration-200 hover:-translate-y-1"

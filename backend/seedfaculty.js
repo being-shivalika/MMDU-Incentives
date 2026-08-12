@@ -13,7 +13,7 @@ dotenv.config();
 const users = [
   {
     name: "Neelam Oberoi",
-    email: "neelamoberoi1030@mmumullana.org",
+    email: "neelamoberoi1030@mmu-mullana.org",
     password: "112305",
     role: "faculty",
     department: "Computer Science & Engineering",
@@ -21,10 +21,9 @@ const users = [
     employeeId: "112305",
     isActive: true,
   },
-
   {
     name: "Dr. Prachi Garg",
-    email: "prachigarg@mmumullana.org",
+    email: "Prachigarg@mmu-mullana.org",
     password: "112003",
     role: "faculty",
     department: "Computer Science & Engineering",
@@ -32,7 +31,6 @@ const users = [
     employeeId: "112003",
     isActive: true,
   },
-
   {
     name: "Dr. Shaweta Sachdeva",
     email: "shaweta.sachdeva@mmumullana.org",
@@ -43,7 +41,6 @@ const users = [
     employeeId: "150142",
     isActive: true,
   },
-
   {
     name: "Dr. Poonam Singh",
     email: "poonam.singh@mmumullana.org",
@@ -54,7 +51,6 @@ const users = [
     employeeId: "112602",
     isActive: true,
   },
-
   {
     name: "Dr. Priyanka Tuli",
     email: "priyanka.tuli@mmumullana.org",
@@ -65,7 +61,6 @@ const users = [
     employeeId: "112625",
     isActive: true,
   },
-
   {
     name: "Sh. R.K. Kaushik",
     email: "mmu.acs@mmumullana.org",
@@ -76,7 +71,6 @@ const users = [
     employeeId: "102236",
     isActive: true,
   },
-
   {
     name: "Dr. Tejbir Singh",
     email: "tejbir.singh@mmumullana.org",
@@ -87,7 +81,6 @@ const users = [
     employeeId: "150102",
     isActive: true,
   },
-
   {
     name: "Dr. Sumit Mittal",
     email: "registrarmmu@mmumullana.org",
@@ -98,7 +91,6 @@ const users = [
     employeeId: "150092",
     isActive: true,
   },
-
   {
     name: "Dr. Adesh Saini",
     email: "sainiade@mmumullana.org",
@@ -109,10 +101,9 @@ const users = [
     employeeId: "112117",
     isActive: true,
   },
-
   {
     name: "Dr. Vishal Gupta",
-    email: "vishal.gupta@mmumullana.org",
+    email: "Vishal.Gupta@mmumullana.org",
     password: "112235",
     role: "faculty",
     department: "Computer Science & Engineering",
@@ -120,7 +111,6 @@ const users = [
     employeeId: "112235",
     isActive: true,
   },
-
   {
     name: "Dr. Mani Goyal",
     email: "dr.mani.goyal@mmumullana.org",
@@ -131,7 +121,6 @@ const users = [
     employeeId: "112473",
     isActive: true,
   },
-
   {
     name: "Dr. Sandip Kumar Goel",
     email: "skgmmec@mmumullana.org",
@@ -142,18 +131,6 @@ const users = [
     employeeId: "112175",
     isActive: true,
   },
-
-  {
-    name: "Test Faculty User",
-    email: "test@gmail.com",
-    password: "test3456",
-    role: "faculty",
-    department: "MCA",
-    institute: "MMDU",
-    employeeId: "112305-test",
-    isActive: true,
-  },
-
   {
     name: "Dr. Tejinder Kaur",
     email: "tejinder.kaur@mmumullana.org",
@@ -174,7 +151,6 @@ const seedUsers = async () => {
 
     for (const userData of users) {
       const normalizedEmail = userData.email.toLowerCase().trim();
-      userData.email = normalizedEmail;
 
       let existingUser = await User.findOne({
         email: normalizedEmail,
@@ -182,22 +158,26 @@ const seedUsers = async () => {
 
       if (existingUser) {
         existingUser.name = userData.name;
-        existingUser.email = normalizedEmail;
-        existingUser.password = userData.password;
         existingUser.role = userData.role;
         existingUser.department = userData.department;
         existingUser.institute = userData.institute;
         existingUser.employeeId = userData.employeeId;
         existingUser.isActive = userData.isActive;
+        existingUser.isFirstLogin = false;
         await existingUser.save();
-        console.log(`🔄 Updated credentials & email for: ${normalizedEmail}`);
+        console.log(`🔄 Updated details for: ${normalizedEmail}`);
       } else {
-        await User.create(userData);
+        await User.create({
+          ...userData,
+          email: normalizedEmail,
+          isFirstLogin: false,
+        });
         console.log(`✅ Created: ${userData.name}`);
-        console.log(`   Email: ${normalizedEmail}`);
-        console.log(`   Employee ID: ${userData.employeeId}`);
       }
     }
+
+    // Ensure all existing users in MongoDB Atlas have isFirstLogin set to false
+    await User.updateMany({}, { $set: { isFirstLogin: false } });
 
     console.log("\n🎉 Seeding completed successfully!");
 

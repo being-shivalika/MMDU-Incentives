@@ -1,5 +1,5 @@
 import React from "react";
-import { Search } from "lucide-react";
+import { Search, Download, FileText } from "lucide-react";
 
 const ReviewFilters = ({
   searchTerm,
@@ -8,6 +8,8 @@ const ReviewFilters = ({
   setFilterType,
   filterStatus,
   setFilterStatus,
+  onExportCSV,
+  onExportPDF,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
@@ -18,7 +20,7 @@ const ReviewFilters = ({
         />
         <input
           className="w-full bg-white border border-neutral-200/80 rounded-xl pl-10 pr-4 py-2 text-xs font-medium text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-xs"
-          placeholder="Search Claim #, Title or Applicant..."
+          placeholder="Search by Claim #, Title, Applicant, Department, Category..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -55,6 +57,27 @@ const ReviewFilters = ({
         <option value="Revision Requested">Revision Requested</option>
         <option value="Rejected">Rejected</option>
       </select>
+
+      {/* Export Buttons */}
+      {onExportCSV && (
+        <button
+          onClick={onExportCSV}
+          className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors cursor-pointer whitespace-nowrap"
+          title="Download Filtered Report as CSV"
+        >
+          <Download className="w-3.5 h-3.5" /> CSV
+        </button>
+      )}
+
+      {onExportPDF && (
+        <button
+          onClick={onExportPDF}
+          className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors cursor-pointer whitespace-nowrap"
+          title="Download Filtered Report as PDF"
+        >
+          <FileText className="w-3.5 h-3.5" /> PDF
+        </button>
+      )}
     </div>
   );
 };

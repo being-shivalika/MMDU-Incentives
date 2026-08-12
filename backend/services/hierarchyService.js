@@ -149,15 +149,23 @@ export const getClaimPermissions = async (claim, user) => {
     }
   }
 
-  // 2. Department Approval Stage ('DEPARTMENT_REVIEW')
+  // 2. Department & Principal Approval Stages ('DEPARTMENT_REVIEW', 'PRINCIPAL_REVIEW')
   if (status === 'DEPARTMENT_REVIEW') {
-    if (user.role === effectiveApprover.role || isAdmin) {
+    if (user.role === effectiveApprover.role || user.role === 'principal' || isAdmin) {
       canApprove = true;
       canReject = true;
       canReturn = true;
       isEffectiveApprover = true;
     }
-    // Principal & Director are view-only when HOD exists and user is not effective approver
+  }
+
+  if (status === 'PRINCIPAL_REVIEW') {
+    if (user.role === 'principal' || user.role === 'director' || isAdmin) {
+      canApprove = true;
+      canReject = true;
+      canReturn = true;
+      isEffectiveApprover = true;
+    }
   }
 
   // 3. RPC Verification Stage ('RPC_VERIFICATION')

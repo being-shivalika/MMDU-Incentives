@@ -56,7 +56,7 @@ export const login = async (req, res, next) => {
         department: user.department,
         institute: user.institute,
         designation: user.designation,
-        isFirstLogin: user.isFirstLogin !== false,
+        isFirstLogin: user.isFirstLogin === true,
       },
     });
   } catch (error) {
@@ -79,7 +79,7 @@ export const getMe = async (req, res, next) => {
         department: req.user.department,
         institute: req.user.institute,
         designation: req.user.designation,
-        isFirstLogin: req.user.isFirstLogin !== false,
+        isFirstLogin: req.user.isFirstLogin === true,
       },
     });
   } catch (error) {

@@ -1,5 +1,6 @@
 import Claim from '../models/Claim.js';
 import ApprovalHistory from '../models/ApprovalHistory.js';
+import User from '../models/User.js';
 import { generateClaimNumber } from './counterService.js';
 import FinancialYear from '../models/FinancialYear.js';
 import { checkDuplicateDOI, checkDuplicateSubmission, calculateIncentive, syncApplicantQ3Q4Claims } from './policyEngine.js';
@@ -294,7 +295,7 @@ export const saveDraft = async (claimId, draftData, user) => {
 /**
  * Get a claim by ID with full approval history.
  */
-export const getClaimById = async (claimId) => {
+export const getClaimById = async (claimId, user = null) => {
   const claim = await Claim.findById(claimId);
   if (!claim) {
     const error = new Error('Claim not found');
@@ -302,6 +303,16 @@ export const getClaimById = async (claimId) => {
     throw error;
   }
   
+  if (claim.status === CLAIM_STATUSES.DRAFT && user && user.role !== 'admin') {
+    const isOwner = (claim.applicant && claim.applicant.toString() === user._id.toString()) ||
+      (user.name && claim.applicantName && claim.applicantName.toLowerCase().trim() === user.name.toLowerCase().trim());
+    if (!isOwner) {
+      const error = new Error('Access denied to draft submission');
+      error.statusCode = 403;
+      throw error;
+    }
+  }
+
   const approvalHistory = await ApprovalHistory.find({ claim: claimId })
     .sort({ date: 1 });
   
@@ -317,35 +328,110 @@ export const listClaims = async (filters = {}, pagination = {}, user) => {
   
   const query = {};
   
-  // Role-based filtering (matches user._id or applicantName so claims persist across seeder runs)
+  // 1. Role-based Visibility Rules:
+  // - Registrar & VC (and Admin, RPC, Accounts, Director): Sees submissions from all departments/institutes across the entire portal.
+  // - HOD: Sees submissions ONLY from their own department.
+  // - Principal:
+  //     * If department HAS NO HOD (e.g. MCA): Sees submissions ONLY from their own department.
+  //     * If department HAS AN HOD (e.g. MMEC): Sees submissions from the entire MMEC institute (CSE, IT, Software Eng, ECE, EE, ME, CE, Biotech, Physics, Chemistry, Math, Humanities).
+  // - Faculty / Student: Sees only their own claims.
+
   if (user.role === 'faculty' || user.role === 'student') {
     query.$or = [
       { applicant: user._id },
       { applicantName: { $regex: new RegExp(`^${user.name.trim()}$`, 'i') } }
     ];
   } else if (user.role === 'hod') {
-    // HOD sees claims in their department currently at their desk
-    if (!status) {
-      query.department = user.department;
+    if (user.department) {
+      const cleanDept = user.department.trim();
+      if (cleanDept.toLowerCase().includes('computer science') || cleanDept.toLowerCase().includes('cse')) {
+        query.department = { $regex: /computer science|cse/i };
+      } else {
+        query.department = { $regex: new RegExp(`^${cleanDept}$`, 'i') };
+      }
+    }
+  } else if (user.role === 'principal') {
+    const userDept = user.department ? user.department.trim() : '';
+    const isMcaDept = userDept && (userDept.toLowerCase().includes('mca') || userDept.toLowerCase().includes('computer applications'));
+    
+    // Check if user's department has an active HOD
+    let hasHodInDept = false;
+    if (userDept && !isMcaDept) {
+      let deptQuery = { role: 'hod', isActive: true };
+      if (userDept.toLowerCase().includes('computer science') || userDept.toLowerCase().includes('cse')) {
+        deptQuery.department = { $regex: /computer science|cse/i };
+      } else {
+        deptQuery.department = { $regex: new RegExp(`^${userDept}$`, 'i') };
+      }
+      const hodUser = await User.findOne(deptQuery);
+      if (hodUser) hasHodInDept = true;
+    }
+
+    if (!hasHodInDept) {
+      // Department HAS NO HOD: Principal can view submissions ONLY from their own department
+      if (userDept) {
+        query.department = { $regex: new RegExp(`^${userDept}$`, 'i') };
+      }
     } else {
-      query.department = user.department;
+      // Department HAS AN HOD (e.g. MMEC Principal): Principal views submissions from the entire MMEC institute
+      const mmecDepts = [
+        /computer science|cse/i,
+        /information technology|\bit\b/i,
+        /software engineering/i,
+        /electronics & communication|ece/i,
+        /electrical engineering|\bee\b/i,
+        /mechanical engineering|\bme\b/i,
+        /civil engineering|\bce\b/i,
+        /biotechnology/i,
+        /physics/i,
+        /chemistry/i,
+        /mathematics/i,
+        /humanities/i
+      ];
+      query.$or = mmecDepts.map(d => ({ department: { $regex: d } }));
     }
   }
-  // Other roles see all claims (filtered by status/desk if needed)
-  
+  // Registrar, VC, Admin, RPC, Accounts, Director: see submissions from all departments/institutes across the entire portal.
+
   // Apply filters
   if (status) query.status = status;
   if (category) query.category = category;
   if (creatorId) query.applicant = creatorId;
-  if (department && user.role !== 'hod') query.department = department;
+  if (department && user.role !== 'hod' && user.role !== 'principal') query.department = department;
   if (financialYear) query.financialYear = financialYear;
-  if (search) {
-    query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { claimNumber: { $regex: search, $options: 'i' } },
-      { applicantName: { $regex: search, $options: 'i' } }
+  
+  if (search && search.trim() !== '') {
+    const searchRegex = new RegExp(search.trim(), 'i');
+    const searchCondition = [
+      { title: searchRegex },
+      { claimNumber: searchRegex },
+      { applicantName: searchRegex },
+      { category: searchRegex },
+      { subtype: searchRegex },
+      { department: searchRegex },
+      { status: searchRegex }
     ];
+    if (query.$or) {
+      query.$and = query.$and || [];
+      query.$and.push({ $or: searchCondition });
+    } else {
+      query.$or = searchCondition;
+    }
   }
+
+  // Ensure DRAFT claims are ONLY visible to their creator / applicant
+  const isOwnerCondition = [
+    { applicant: user._id },
+    { applicantName: { $regex: new RegExp(`^${user.name.trim()}$`, 'i') } }
+  ];
+
+  query.$and = query.$and || [];
+  query.$and.push({
+    $or: [
+      { status: { $ne: CLAIM_STATUSES.DRAFT } },
+      ...isOwnerCondition
+    ]
+  });
   
   const sortObj = {};
   sortObj[sortBy] = order === 'asc' ? 1 : -1;

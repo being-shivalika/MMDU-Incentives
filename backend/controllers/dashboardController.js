@@ -88,8 +88,20 @@ export const getRecentSubmissions = asyncHandler(async (req, res) => {
   } else if (user.role === 'hod') {
     query.department = user.department;
   }
-  // Other roles see all recent claims
-  
+
+  const isOwnerCondition = [
+    { applicant: user._id },
+    { applicantName: { $regex: new RegExp(`^${user.name.trim()}$`, 'i') } }
+  ];
+
+  query.$and = query.$and || [];
+  query.$and.push({
+    $or: [
+      { status: { $ne: CLAIM_STATUSES.DRAFT } },
+      ...isOwnerCondition
+    ]
+  });
+
   const claims = await Claim.find(query)
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -108,6 +120,19 @@ export const getChartData = asyncHandler(async (req, res) => {
   } else if (user.role === 'hod') {
     matchQuery.department = user.department;
   }
+
+  const isOwnerCondition = [
+    { applicant: user._id },
+    { applicantName: { $regex: new RegExp(`^${user.name.trim()}$`, 'i') } }
+  ];
+
+  matchQuery.$and = matchQuery.$and || [];
+  matchQuery.$and.push({
+    $or: [
+      { status: { $ne: CLAIM_STATUSES.DRAFT } },
+      ...isOwnerCondition
+    ]
+  });
   
   const startDate = new Date();
   startDate.setMonth(startDate.getMonth() - months);

@@ -7,11 +7,11 @@ import { authLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
 
-router.post("/login", authLimiter, login);
+router.post("/login", login);
 
-router.post("/forgot-password", authLimiter, forgotPassword);
+router.post("/forgot-password", forgotPassword);
 
-router.post("/reset-password", authLimiter, resetPassword);
+router.post("/reset-password", resetPassword);
 
 router.post("/change-first-password", protect, changeFirstPassword);
 

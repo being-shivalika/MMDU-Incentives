@@ -9,6 +9,8 @@ import { getSubmissions } from "../../../services/submissionService";
 import useSubmissionSync from "../../../hooks/useSubmissionSync";
 import { processTransition } from "../../../services/workflowService";
 
+import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
+
 const PrincipalDashboard = () => {
   const { user } = useAuth();
 
@@ -55,14 +57,26 @@ const PrincipalDashboard = () => {
 
   // Filter data
   const filteredData = submissions.filter((item) => {
-    const matchesSearch =
-      (item.id && item.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.title &&
-        item.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    const term = searchTerm.toLowerCase().trim();
+    const matchesSearch = !term || [
+      item.id,
+      item.claimNumber,
+      item.title,
+      item.creatorName,
+      item.applicantName,
+      item.creatorDept,
+      item.department,
+      item.category,
+      item.subtype,
+      item.status
+    ].some(field => String(field || '').toLowerCase().includes(term));
+
     const matchesType =
       filterType === "All" ||
       item.submissionType === filterType ||
-      item.type === filterType;
+      item.type === filterType ||
+      (item.category && item.category.toLowerCase().includes(filterType.toLowerCase()));
+
     const matchesStatus =
       filterStatus === "All" || item.status === filterStatus;
 
@@ -106,11 +120,7 @@ const PrincipalDashboard = () => {
         <p className="text-gray-500 mt-1">
           Review and manage institutional research submissions.
         </p>
-        <div className="mt-3 inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-blue-100">
-          <span className="flex h-2 w-2 rounded-full bg-blue-500"></span>
-          Authorization Logic Active: Acting as HOD for departments without
-          assigned HODs.
-        </div>
+
       </div>
 
       <ReviewStats
@@ -134,6 +144,8 @@ const PrincipalDashboard = () => {
           setFilterType={setFilterType}
           filterStatus={filterStatus}
           setFilterStatus={setFilterStatus}
+          onExportCSV={() => exportToCSV(filteredData, "Principal_Submissions_Report.csv")}
+          onExportPDF={() => exportToPDF(filteredData, "Principal_Submissions_Report.pdf")}
         />
 
         {isLoading ? (

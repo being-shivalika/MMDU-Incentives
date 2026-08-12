@@ -162,9 +162,14 @@ export const processTransition = async (submissionId, actionType, user, comment,
   // 3. Get stage config
   let stageConfig = await workflowConfigService.getStageConfig(currentStatus);
   if (!stageConfig) {
-    const error = new Error(`No workflow configuration found for status '${currentStatus}'`);
-    error.statusCode = 400;
-    throw error;
+    stageConfig = {
+      stageKey: currentStatus,
+      allowedActions: [
+        { type: 'approve', isForward: true, isTerminal: false },
+        { type: 'reject', isForward: false, isTerminal: true, targetStage: CLAIM_STATUSES.REJECTED },
+        { type: 'return', isForward: false, isTerminal: false, targetStage: CLAIM_STATUSES.RETURNED }
+      ]
+    };
   }
   
   // 4. Find action definition

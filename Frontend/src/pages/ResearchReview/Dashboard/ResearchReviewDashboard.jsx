@@ -13,6 +13,8 @@ import { getSubmissions } from "../../../services/submissionService";
 import useSubmissionSync from "../../../hooks/useSubmissionSync";
 import { ROUTES } from "../../../constants/routes";
 
+import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
+
 const ResearchReviewDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -79,13 +81,23 @@ const ResearchReviewDashboard = () => {
 
   // Search & Filters
   const filteredData = submissions.filter((item) => {
-    const term = filters.searchTerm.toLowerCase();
+    const term = filters.searchTerm.toLowerCase().trim();
 
     const matchesSearch =
       !term ||
-      item.id?.toLowerCase().includes(term) ||
-      item.title?.toLowerCase().includes(term) ||
-      item.submittedBy?.toLowerCase().includes(term);
+      [
+        item.id,
+        item.claimNumber,
+        item.title,
+        item.submittedBy,
+        item.creatorName,
+        item.applicantName,
+        item.creatorDept,
+        item.department,
+        item.category,
+        item.subtype,
+        item.status
+      ].some(field => String(field || '').toLowerCase().includes(term));
 
     const matchesDepartment =
       filters.department === "All" || item.department === filters.department;
@@ -93,7 +105,8 @@ const ResearchReviewDashboard = () => {
     const matchesResearchType =
       filters.researchType === "All" ||
       item.submissionType === filters.researchType ||
-      item.type === filters.researchType;
+      item.type === filters.researchType ||
+      (item.category && item.category.toLowerCase().includes(filters.researchType.toLowerCase()));
 
     const matchesStatus =
       filters.status === "All" || item.status === filters.status;
@@ -110,7 +123,8 @@ const ResearchReviewDashboard = () => {
       matchesStatus &&
       matchesQuartile
     );
-  }); // Open Submission Details
+  });
+
   const handleRowClick = (submission) => {
     navigate(ROUTES.RESEARCH_REVIEW_DETAILS.replace(":id", submission.id));
   };
@@ -179,7 +193,12 @@ const ResearchReviewDashboard = () => {
           <h2 className="text-xl font-bold text-gray-900">{getQueueTitle()}</h2>
         </div>
 
-        <VerificationFilters filters={filters} setFilters={setFilters} />
+        <VerificationFilters
+          filters={filters}
+          setFilters={setFilters}
+          onExportCSV={() => exportToCSV(filteredData, "Research_Review_Submissions_Report.csv")}
+          onExportPDF={() => exportToPDF(filteredData, "Research_Review_Submissions_Report.pdf")}
+        />
 
         {isLoading ? (
           <div className="py-16 flex flex-col items-center">

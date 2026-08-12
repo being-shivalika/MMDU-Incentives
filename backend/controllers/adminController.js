@@ -35,37 +35,90 @@ export const listUsers = asyncHandler(async (req, res) => {
 
 export const createUser = asyncHandler(async (req, res) => {
   const { name, email, password, role, department, institute, employeeId, studentId, phone, designation } = req.body;
-  const user = await User.create({ name, email, password, role, department, institute, employeeId, studentId, phone, designation });
+  
+  if (!name || !email || !password) {
+    return errorResponse(res, 'Name, email, and password are required', null, 400);
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  const existingUser = await User.findOne({ email: normalizedEmail });
+  if (existingUser) {
+    return errorResponse(res, `User with email '${normalizedEmail}' already exists in database`, null, 400);
+  }
+
+  const user = await User.create({
+    name: name.trim(),
+    email: normalizedEmail,
+    password,
+    role: role || 'faculty',
+    department: department || null,
+    institute: institute || 'MMDU',
+    employeeId: employeeId || null,
+    studentId: studentId || null,
+    phone: phone || null,
+    designation: designation || null,
+    isActive: true,
+    isFirstLogin: false
+  });
   
   await createAuditLog({
     action: AUDIT_ACTIONS.USER_CREATED,
     entity: 'User',
     entityId: user._id,
-    performedBy: req.user._id,
-    details: { name, email, role },
+    performedBy: req.user?._id,
+    details: { name: user.name, email: user.email, role: user.role },
     ipAddress: req.ip
   });
   
-  return successResponse(res, 'User created successfully', {
-    id: user._id, name: user.name, email: user.email, role: user.role,
-    department: user.department, isActive: user.isActive
+  return successResponse(res, 'User created successfully in database', {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    department: user.department,
+    isActive: user.isActive,
+    isFirstLogin: user.isFirstLogin
   }, 201);
 });
 
 export const updateUser = asyncHandler(async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).select('-password');
+  const user = await User.findById(req.params.id);
   if (!user) return errorResponse(res, 'User not found', null, 404);
-  
+
+  const { name, email, password, role, department, institute, employeeId, studentId, phone, designation, isActive, isFirstLogin } = req.body;
+
+  if (name !== undefined) user.name = name.trim();
+  if (email !== undefined) user.email = email.toLowerCase().trim();
+  if (role !== undefined) user.role = role;
+  if (department !== undefined) user.department = department;
+  if (institute !== undefined) user.institute = institute;
+  if (employeeId !== undefined) user.employeeId = employeeId;
+  if (studentId !== undefined) user.studentId = studentId;
+  if (phone !== undefined) user.phone = phone;
+  if (designation !== undefined) user.designation = designation;
+  if (isActive !== undefined) user.isActive = isActive;
+  if (isFirstLogin !== undefined) user.isFirstLogin = isFirstLogin;
+
+  if (password && password.trim().length > 0) {
+    user.password = password.trim();
+    user.isFirstLogin = false;
+  }
+
+  await user.save();
+
   await createAuditLog({
     action: AUDIT_ACTIONS.USER_UPDATED,
     entity: 'User',
     entityId: user._id,
-    performedBy: req.user._id,
-    details: req.body,
+    performedBy: req.user?._id,
+    details: { name: user.name, email: user.email, role: user.role },
     ipAddress: req.ip
   });
-  
-  return successResponse(res, 'User updated', user);
+
+  const returnedUser = user.toObject();
+  delete returnedUser.password;
+
+  return successResponse(res, 'User updated successfully in database', returnedUser);
 });
 
 export const toggleUserActive = asyncHandler(async (req, res) => {

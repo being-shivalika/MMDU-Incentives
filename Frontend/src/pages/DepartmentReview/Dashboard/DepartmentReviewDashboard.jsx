@@ -9,6 +9,8 @@ import { getSubmissions } from "../../../services/submissionService";
 import useSubmissionSync from "../../../hooks/useSubmissionSync";
 import { processTransition } from "../../../services/workflowService";
 
+import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
+
 const DepartmentReviewDashboard = () => {
   const { user } = useAuth();
   
@@ -49,11 +51,28 @@ const DepartmentReviewDashboard = () => {
 
   // Filter data
   const filteredData = submissions.filter((item) => {
-    const matchesSearch = 
-      (item.id && item.id.toLowerCase().includes(searchTerm.toLowerCase())) || 
-      (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesType = filterType === "All" || item.submissionType === filterType || item.type === filterType;
-    const matchesStatus = filterStatus === "All" || item.status === filterStatus;
+    const term = searchTerm.toLowerCase().trim();
+    const matchesSearch = !term || [
+      item.id,
+      item.claimNumber,
+      item.title,
+      item.creatorName,
+      item.applicantName,
+      item.creatorDept,
+      item.department,
+      item.category,
+      item.subtype,
+      item.status
+    ].some(field => String(field || '').toLowerCase().includes(term));
+
+    const matchesType =
+      filterType === "All" ||
+      item.submissionType === filterType ||
+      item.type === filterType ||
+      (item.category && item.category.toLowerCase().includes(filterType.toLowerCase()));
+
+    const matchesStatus =
+      filterStatus === "All" || item.status === filterStatus;
     
     return matchesSearch && matchesType && matchesStatus;
   });
@@ -116,6 +135,8 @@ const DepartmentReviewDashboard = () => {
           setFilterType={setFilterType}
           filterStatus={filterStatus}
           setFilterStatus={setFilterStatus}
+          onExportCSV={() => exportToCSV(filteredData, `HOD_${user?.department || 'Dept'}_Submissions.csv`)}
+          onExportPDF={() => exportToPDF(filteredData, `HOD_${user?.department || 'Dept'}_Submissions.pdf`)}
         />
         
         {isLoading ? (
