@@ -162,8 +162,11 @@ const Sidebar = ({
                     end={item.end}
                     onClick={closeMobileSidebar}
                     className={({ isActive: isRouterActive }) => {
+                      const hasExactSiblingMatch = navItems.some(
+                        (n) => n.path && n.path === location.pathname
+                      );
                       const isExactMatch = location.pathname === item.path;
-                      const isSubPathMatch = !item.end && item.path !== "/" && location.pathname.startsWith(item.path + "/");
+                      const isSubPathMatch = !item.end && !hasExactSiblingMatch && item.path !== "/" && location.pathname.startsWith(item.path + "/");
                       const isItemActive = item.isActive
                         ? item.isActive(location)
                         : (item.end ? isExactMatch : isExactMatch || isSubPathMatch);
@@ -176,8 +179,11 @@ const Sidebar = ({
                     }}
                   >
                     {({ isActive: isRouterActive }) => {
+                      const hasExactSiblingMatch = navItems.some(
+                        (n) => n.path && n.path === location.pathname
+                      );
                       const isExactMatch = location.pathname === item.path;
-                      const isSubPathMatch = !item.end && item.path !== "/" && location.pathname.startsWith(item.path + "/");
+                      const isSubPathMatch = !item.end && !hasExactSiblingMatch && item.path !== "/" && location.pathname.startsWith(item.path + "/");
                       const isItemActive = item.isActive
                         ? item.isActive(location)
                         : (item.end ? isExactMatch : isExactMatch || isSubPathMatch);

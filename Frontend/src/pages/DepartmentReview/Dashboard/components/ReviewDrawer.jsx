@@ -612,6 +612,7 @@ import {
 
 import Badge from "../../../../components/Ui/Badge";
 import ActionButton from "../../../../shared/components/ActionButton";
+import WorkflowProgressTracker from "../../../../components/Ui/WorkflowProgressTracker";
 
 const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
   const [remarks, setRemarks] = useState("");
@@ -625,17 +626,136 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
     {};
 
   const incentive = submission.incentiveInfo || {};
-  const history = submission.workflowHistory || [];
+  const history =
+    submission.workflowHistory ||
+    submission.history ||
+    submission.reviewHistory ||
+    submission.workflow ||
+    [];
 
   const timeline = useMemo(() => {
-    return [...history]
+    const items = [...history]
       .filter((h) => {
-        const act = String(h.action || "").toUpperCase();
+        const act = String(h.action || h.status || "").toUpperCase();
         const step = String(h.step || h.level || "").toUpperCase();
         return !act.includes("DRAFT") && !step.includes("DRAFT");
       })
       .sort((a, b) => new Date(a.date) - new Date(b.date));
-  }, [history]);
+
+    if (items.length > 0) {
+      return items;
+    }
+
+    // Synthesize live workflow timeline if history array is empty
+    const synthesized = [];
+    const createdDate = submission.dateSubmitted || submission.createdAt || Date.now();
+    const applicantName = submission.creatorName || submission.applicantName || "Faculty Member";
+
+    // 1. Initial Submission Event
+    synthesized.push({
+      level: submission.applicantRole === 'student' ? 'Student Submission' : 'Faculty Submission',
+      action: 'Submitted',
+      by: applicantName,
+      date: createdDate,
+      status: 'Submitted'
+    });
+
+    // 2. Synthesize from workflowProgress steps if present
+    if (submission.workflowProgress && Array.isArray(submission.workflowProgress.steps)) {
+      submission.workflowProgress.steps.forEach((st) => {
+        if (st.id === 'submit') return;
+        if (st.status === 'completed' || st.status === 'active' || st.status === 'rejected' || st.status === 'returned') {
+          synthesized.push({
+            level: st.label,
+            action: st.status === 'completed' ? 'Approved & Forwarded' : st.status === 'active' ? 'Under Active Review' : st.status === 'rejected' ? 'Rejected' : 'Revision Requested',
+            by: st.actorName || st.label,
+            date: st.date || submission.updatedAt || createdDate,
+            status: st.status === 'completed' ? 'Approved' : st.status === 'active' ? 'Pending Action' : st.status
+          });
+        }
+      });
+    } else {
+      // 3. Fallback based on current workflow status
+      const currentStatus = String(submission.status || 'Pending Review');
+      if (currentStatus.includes('HOD')) {
+        synthesized.push({
+          level: 'HOD Review',
+          action: 'Under Review',
+          by: 'Department HOD',
+          date: submission.updatedAt || createdDate,
+          status: 'Pending HOD'
+        });
+      } else if (currentStatus.includes('Principal')) {
+        synthesized.push({
+          level: 'HOD Review',
+          action: 'Approved & Forwarded',
+          by: 'HOD',
+          date: createdDate,
+          status: 'Approved'
+        });
+        synthesized.push({
+          level: 'Principal Review',
+          action: 'Under Review',
+          by: 'Principal',
+          date: submission.updatedAt || createdDate,
+          status: 'Pending Principal'
+        });
+      } else if (currentStatus.includes('RPC') || currentStatus.includes('R & D') || currentStatus.includes('Verification')) {
+        synthesized.push({
+          level: 'HOD Review',
+          action: 'Approved & Forwarded',
+          by: 'HOD',
+          date: createdDate,
+          status: 'Approved'
+        });
+        synthesized.push({
+          level: 'Principal Review',
+          action: 'Approved & Forwarded',
+          by: 'Principal',
+          date: createdDate,
+          status: 'Approved'
+        });
+        synthesized.push({
+          level: 'R & D Verification',
+          action: 'Under Verification',
+          by: 'RPC / R&D Cell',
+          date: submission.updatedAt || createdDate,
+          status: 'Pending Verification'
+        });
+      } else if (currentStatus.includes('Accounts') || currentStatus.includes('Payment') || currentStatus.includes('Approved') || currentStatus.includes('Completed')) {
+        synthesized.push({
+          level: 'HOD Review',
+          action: 'Approved & Forwarded',
+          by: 'HOD',
+          date: createdDate,
+          status: 'Approved'
+        });
+        synthesized.push({
+          level: 'Principal Review',
+          action: 'Approved & Forwarded',
+          by: 'Principal',
+          date: createdDate,
+          status: 'Approved'
+        });
+        synthesized.push({
+          level: 'R & D Verification',
+          action: 'Verified',
+          by: 'RPC / R&D Cell',
+          date: createdDate,
+          status: 'Verified'
+        });
+        synthesized.push({
+          level: 'Accounts Disbursement',
+          action: currentStatus.includes('Completed') || currentStatus.includes('Disbursed') ? 'Payment Released' : 'Disbursement Pending',
+          by: 'Accounts Office',
+          date: submission.updatedAt || createdDate,
+          status: currentStatus
+        });
+      }
+    }
+
+    return synthesized;
+  }, [submission, history]);
 
   const handleAction = (action) => {
     onAction(action, remarks);
@@ -926,6 +1046,15 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
               </div>
             </div>
           </SectionCard>
+
+          {/* WORKFLOW PROGRESS TRACKER DIAGRAM */}
+          {submission.workflowProgress && (
+            <WorkflowProgressTracker
+              workflowProgress={submission.workflowProgress}
+              isHeld={submission.isHeld}
+              heldReason={submission.heldReason}
+            />
+          )}
 
           {/* ====================================================== */}
           {/* TIMELINE */}

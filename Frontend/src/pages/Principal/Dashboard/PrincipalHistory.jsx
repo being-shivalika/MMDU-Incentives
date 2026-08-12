@@ -299,17 +299,35 @@ const PrincipalHistory = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-neutral-50 text-neutral-500 uppercase font-bold tracking-wider border-b border-neutral-200 text-[10px]">
               <tr>
-                <th className="p-4 font-medium">ID & Date</th>
-                <th className="p-4 font-medium">Applicant</th>
-                <th className="p-4 font-medium">Submission Title</th>
-                <th className="p-4 font-medium">Type</th>
-                <th className="p-4 font-medium">Incentive</th>
-                <th className="p-4 font-medium">Status</th>
-                <th className="p-4 font-medium text-right">Actions</th>
+                <th className="p-4">Claim # & Date</th>
+                <th className="p-4">Applicant & Dept</th>
+                <th className="p-4">Submission Title</th>
+                <th className="p-4">Category</th>
+                <th className="p-4">Incentive Share</th>
+                <th className="p-4">Status</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredHistory.length > 0 ? (
+            <tbody className="divide-y divide-neutral-100 font-medium text-neutral-700">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-neutral-400 font-medium">
+                    Loading Principal approval history...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-rose-600 font-semibold">
+                    {error}
+                  </td>
+                </tr>
+              ) : filteredHistory.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-neutral-400">
+                    No approval history records match your search or filter criteria.
+                  </td>
+                </tr>
+              ) : (
                 filteredHistory.map((item) => {
                   const id = item.id || item._id;
                   const share = Number(item.userShare || item.approvedAmount || item.estimatedIncentive || 0);
@@ -356,12 +374,6 @@ const PrincipalHistory = () => {
                     </tr>
                   );
                 })
-              ) : (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-neutral-400">
-                    No approval history records match your search or filter criteria.
-                  </td>
-                </tr>
               )}
             </tbody>
           </table>
