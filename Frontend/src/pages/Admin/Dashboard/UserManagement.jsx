@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import PageHeader from "../../../shared/components/PageHeader";
-import { Users, Search, UserPlus, RefreshCw, AlertCircle, CheckCircle2, X, Edit2, Trash2, Download, FileText } from "lucide-react";
-import { getUsers, createUser, updateUser, deleteUser, toggleUserActive } from "../../../services/adminService";
+import { Users, Search, UserPlus, RefreshCw, AlertCircle, CheckCircle2, X, Edit2, Trash2, Download, FileText, Upload, FileSpreadsheet } from "lucide-react";
+import { getUsers, createUser, bulkImportUsers, updateUser, deleteUser, toggleUserActive } from "../../../services/adminService";
 import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
 
 const ROLES = [
@@ -56,9 +56,9 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRoleFilter, setSelectedRoleFilter] = useState("ALL");
 
-  // Modal State
+  // Single Add / Edit Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState(null); // null = Add mode, object = Edit mode
+  const [editingUser, setEditingUser] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -74,6 +74,15 @@ const UserManagement = () => {
   });
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Bulk Import State
+  const fileInputRef = useRef(null);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [bulkParsedUsers, setBulkParsedUsers] = useState([]);
+  const [bulkFileName, setBulkFileName] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+  const [bulkResult, setBulkResult] = useState(null);
+  const [bulkError, setBulkError] = useState("");
 
   // Fetch users from database
   const loadUsers = useCallback(async () => {
@@ -107,6 +116,140 @@ const UserManagement = () => {
     loadUsers();
   }, [loadUsers]);
 
+  // Bulk File Selection Handler
+  const handleBulkFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setBulkFileName(file.name);
+    setBulkError("");
+    setBulkResult(null);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const text = evt.target.result;
+        const lines = text.split(/\r\n|\n/).filter((line) => line.trim().length > 0);
+        if (lines.length <= 1) {
+          setBulkError("CSV file must contain a header row and at least 1 data row.");
+          setIsBulkModalOpen(true);
+          return;
+        }
+
+        // Parse Header
+        const rawHeaders = lines[0].split(",").map((h) => h.trim().replace(/^["']|["']$/g, "").toLowerCase());
+        
+        const getColIndex = (names) => rawHeaders.findIndex((h) => names.some((n) => h.includes(n)));
+
+        const nameIdx = getColIndex(["name", "full name", "user"]);
+        const emailIdx = getColIndex(["email", "mail"]);
+        const roleIdx = getColIndex(["role", "designation", "userrole"]);
+        const deptIdx = getColIndex(["department", "dept", "branch"]);
+        const empIdIdx = getColIndex(["employeeid", "employee_id", "empid", "studentid", "id"]);
+        const passIdx = getColIndex(["password", "pass"]);
+        const desigIdx = getColIndex(["designation", "title"]);
+        const phoneIdx = getColIndex(["phone", "mobile", "contact"]);
+
+        if (nameIdx === -1 || emailIdx === -1) {
+          setBulkError("CSV header must contain 'name' and 'email' columns.");
+          setIsBulkModalOpen(true);
+          return;
+        }
+
+        const parsedList = [];
+        for (let i = 1; i < lines.length; i++) {
+          // Simple regex to parse CSV line respecting quotes
+          const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(",");
+          const cleanCols = cols.map((c) => c.trim().replace(/^["']|["']$/g, ""));
+
+          const name = cleanCols[nameIdx] || "";
+          const email = cleanCols[emailIdx] || "";
+          let role = roleIdx !== -1 ? cleanCols[roleIdx] || "faculty" : "faculty";
+          const department = deptIdx !== -1 ? cleanCols[deptIdx] || "Computer Science & Engineering" : "Computer Science & Engineering";
+          const employeeId = empIdIdx !== -1 ? cleanCols[empIdIdx] || "" : "";
+          const password = passIdx !== -1 ? cleanCols[passIdx] || "MMDU@12345" : "MMDU@12345";
+          const designation = desigIdx !== -1 ? cleanCols[desigIdx] || "" : "";
+          const phone = phoneIdx !== -1 ? cleanCols[phoneIdx] || "" : "";
+
+          // Normalize role
+          role = role.toLowerCase().trim();
+          if (role.includes("teach") || role.includes("prof") || role.includes("facult")) role = "faculty";
+          else if (role.includes("head") || role.includes("hod")) role = "hod";
+          else if (role.includes("princ")) role = "principal";
+          else if (role.includes("direct")) role = "director";
+          else if (role.includes("account") || role.includes("finan")) role = "accounts";
+          else if (role.includes("rpc") || role.includes("r&d") || role.includes("rd")) role = "rpc_cell";
+          else if (role.includes("regis")) role = "registrar";
+          else if (role.includes("vc") || role.includes("chanc")) role = "vc";
+          else if (role.includes("stud")) role = "student";
+          else if (role.includes("admin")) role = "admin";
+
+          if (name && email) {
+            parsedList.push({
+              name,
+              email,
+              role,
+              department,
+              employeeId,
+              password,
+              designation,
+              phone,
+              institute: "MMDU",
+            });
+          }
+        }
+
+        setBulkParsedUsers(parsedList);
+        setIsBulkModalOpen(true);
+      } catch (err) {
+        console.error("Failed to parse CSV:", err);
+        setBulkError("Failed to parse CSV file: " + err.message);
+        setIsBulkModalOpen(true);
+      }
+    };
+    reader.readAsText(file);
+    // Reset file input value so user can upload same file again if desired
+    e.target.value = "";
+  };
+
+  // Confirm Bulk Import
+  const handleConfirmBulkImport = async () => {
+    if (!bulkParsedUsers || bulkParsedUsers.length === 0) return;
+
+    setIsImporting(true);
+    setBulkError("");
+    try {
+      const res = await bulkImportUsers(bulkParsedUsers);
+      const data = res.data || res;
+      setBulkResult(data);
+      setSuccessMessage(`Successfully imported ${data.createdCount || bulkParsedUsers.length} users into MongoDB!`);
+      await loadUsers();
+    } catch (err) {
+      console.error("Bulk import failed:", err);
+      setBulkError(err.message || "Failed to import bulk users into database.");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Download Sample CSV Template
+  const handleDownloadSampleCSV = () => {
+    const sampleCsv = `name,email,role,department,employeeId,password,designation,phone
+Dr. Anjali Sharma,anjali.sharma@mmumullana.org,faculty,Computer Science & Engineering,10928,MMDU@12345,Associate Professor,9876543210
+Dr. Rajesh Kumar,rajesh.kumar@mmumullana.org,hod,Electrical Engineering,10929,MMDU@12345,Head of Department,9876543211
+Prof. Priya Singh,priya.singh@mmumullana.org,principal,Biotechnology,10930,MMDU@12345,Principal,9876543212
+Dr. Amit Patel,accounts.office@mmumullana.org,accounts,Accounts,10931,MMDU@12345,Senior Accountant,9876543213`;
+
+    const blob = new Blob([sampleCsv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "MMDU_Bulk_Users_Import_Template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Handle open modal for Add
   const handleOpenAddModal = () => {
     setEditingUser(null);
@@ -131,7 +274,7 @@ const UserManagement = () => {
     setFormData({
       name: user.name || "",
       email: user.email || "",
-      password: "", // Leave blank if not changing password
+      password: "",
       role: user.role || "faculty",
       department: user.department || "Computer Science & Engineering",
       employeeId: user.employeeId || "",
@@ -163,7 +306,6 @@ const UserManagement = () => {
 
     try {
       if (editingUser) {
-        // Edit mode
         const updatePayload = {
           name: formData.name.trim(),
           email: formData.email.trim(),
@@ -178,10 +320,9 @@ const UserManagement = () => {
           updatePayload.password = formData.password;
         }
 
-        const res = await updateUser(editingUser._id || editingUser.id, updatePayload);
+        await updateUser(editingUser._id || editingUser.id, updatePayload);
         setSuccessMessage(`User "${formData.name}" updated successfully!`);
       } else {
-        // Add mode
         const createPayload = {
           name: formData.name.trim(),
           email: formData.email.trim(),
@@ -194,7 +335,7 @@ const UserManagement = () => {
           institute: formData.institute || "MMDU",
         };
 
-        const res = await createUser(createPayload);
+        await createUser(createPayload);
         setSuccessMessage(`New User "${formData.name}" created successfully in database!`);
       }
 
@@ -276,8 +417,17 @@ const UserManagement = () => {
     <div className="space-y-6 text-left">
       <PageHeader
         title="Database User Management"
-        subtitle="Create, update, delete, and monitor activity for system accounts directly in the database."
+        subtitle="Create, bulk-import, update, delete, and monitor activity for system accounts directly in MongoDB."
         icon={Users}
+      />
+
+      {/* Hidden File Input for Bulk User Import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleBulkFileSelect}
+        accept=".csv, .txt"
+        className="hidden"
       />
 
       {/* Global Success Notification */}
@@ -307,7 +457,7 @@ const UserManagement = () => {
           />
         </div>
 
-        {/* Role Filter, Export & Add User Button */}
+        {/* Role Filter, Bulk Import, Sample CSV & Add User Button */}
         <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
           <select
             className="px-3.5 py-2.5 border border-neutral-200 bg-white rounded-xl text-xs font-bold text-neutral-700 focus:outline-none focus:border-[#8C0404]"
@@ -331,6 +481,22 @@ const UserManagement = () => {
           </button>
 
           <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors cursor-pointer shadow-sm"
+            title="Upload CSV / Excel file to add multiple users in one go"
+          >
+            <Upload size={14} /> Bulk Import CSV
+          </button>
+
+          <button
+            onClick={handleDownloadSampleCSV}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-xl text-xs font-bold hover:bg-neutral-200 transition-colors cursor-pointer"
+            title="Download Sample CSV Template"
+          >
+            <FileSpreadsheet size={14} /> Sample CSV
+          </button>
+
+          <button
             onClick={handleExportUserCSV}
             className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors cursor-pointer"
             title="Download User Activity Report CSV"
@@ -350,7 +516,7 @@ const UserManagement = () => {
             onClick={handleOpenAddModal}
             className="flex items-center gap-2 px-5 py-2.5 bg-[#8C0404] hover:bg-[#6F0303] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ml-auto md:ml-0"
           >
-            <UserPlus size={16} /> Add New User
+            <UserPlus size={16} /> Add Single User
           </button>
         </div>
       </div>
@@ -632,6 +798,151 @@ const UserManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Bulk User Import Preview Modal */}
+      {isBulkModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/60 animate-in fade-in duration-200">
+          <div className="w-full max-w-3xl rounded-2xl bg-white p-6 sm:p-8 shadow-2xl border border-neutral-100 text-left relative overflow-hidden max-h-[90vh] flex flex-col">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-neutral-100 shrink-0">
+              <div>
+                <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+                  <Upload className="text-indigo-600" size={20} />
+                  Bulk User Import via CSV
+                </h3>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  File: <span className="font-semibold text-neutral-800">{bulkFileName}</span> • Found <span className="font-bold text-indigo-700">{bulkParsedUsers.length}</span> user accounts to import
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsBulkModalOpen(false);
+                  setBulkResult(null);
+                }}
+                className="text-neutral-400 hover:text-neutral-600 p-1 rounded-lg cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Bulk Error Alert */}
+            {bulkError && (
+              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-800 flex items-center gap-2 shrink-0">
+                <AlertCircle size={16} className="shrink-0 text-rose-600" />
+                <span>{bulkError}</span>
+              </div>
+            )}
+
+            {/* Bulk Import Success Summary */}
+            {bulkResult && (
+              <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 shrink-0 space-y-2">
+                <div className="flex items-center gap-2 font-bold text-sm">
+                  <CheckCircle2 size={18} className="text-emerald-600" />
+                  <span>Bulk Import Completed Successfully!</span>
+                </div>
+                <p className="font-medium">
+                  • <span className="font-bold text-emerald-800">{bulkResult.createdCount || 0}</span> new user accounts created in MongoDB database.
+                </p>
+                {bulkResult.skippedCount > 0 && (
+                  <p className="font-medium text-amber-800">
+                    • <span className="font-bold">{bulkResult.skippedCount}</span> accounts skipped (duplicate email or missing required fields).
+                  </p>
+                )}
+                {bulkResult.errors && bulkResult.errors.length > 0 && (
+                  <div className="mt-2 text-[11px] font-mono bg-white/80 p-2.5 rounded-lg border border-emerald-200/60 max-h-24 overflow-y-auto space-y-1 text-neutral-700">
+                    {bulkResult.errors.map((err, idx) => (
+                      <div key={idx}>{err}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Parsed Users Preview Table */}
+            {!bulkResult && (
+              <div className="flex-1 overflow-y-auto border border-neutral-200/80 rounded-xl mb-4">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-neutral-50 text-neutral-500 uppercase font-bold text-[10px] tracking-wider border-b border-neutral-200 sticky top-0">
+                    <tr>
+                      <th className="p-3">#</th>
+                      <th className="p-3">Name</th>
+                      <th className="p-3">Email</th>
+                      <th className="p-3">Role</th>
+                      <th className="p-3">Department</th>
+                      <th className="p-3">Emp / Student ID</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-100 font-medium text-neutral-700">
+                    {bulkParsedUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="p-6 text-center text-neutral-400">
+                          No valid rows parsed from CSV file.
+                        </td>
+                      </tr>
+                    ) : (
+                      bulkParsedUsers.map((u, index) => (
+                        <tr key={index} className="hover:bg-neutral-50">
+                          <td className="p-3 text-neutral-400 font-mono">{index + 1}</td>
+                          <td className="p-3 font-bold text-neutral-900">{u.name}</td>
+                          <td className="p-3 text-neutral-600">{u.email}</td>
+                          <td className="p-3 font-bold uppercase text-indigo-700 text-[10px]">{u.role}</td>
+                          <td className="p-3">{u.department || "-"}</td>
+                          <td className="p-3 font-mono text-neutral-500">{u.employeeId || "-"}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Footer Action Bar */}
+            <div className="pt-3 border-t border-neutral-100 flex justify-between items-center shrink-0">
+              <button
+                type="button"
+                onClick={handleDownloadSampleCSV}
+                className="flex items-center gap-1.5 text-xs font-bold text-neutral-600 hover:text-neutral-900 cursor-pointer"
+              >
+                <FileSpreadsheet size={14} /> Download CSV Format
+              </button>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsBulkModalOpen(false);
+                    setBulkResult(null);
+                  }}
+                  className="px-4 py-2.5 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-600 hover:bg-neutral-50 cursor-pointer"
+                >
+                  {bulkResult ? "Close" : "Cancel"}
+                </button>
+
+                {!bulkResult && (
+                  <button
+                    type="button"
+                    disabled={isImporting || bulkParsedUsers.length === 0}
+                    onClick={handleConfirmBulkImport}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-md disabled:opacity-50 cursor-pointer"
+                  >
+                    {isImporting ? (
+                      <>
+                        <RefreshCw size={14} className="animate-spin" /> Importing Users...
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={14} /> Confirm & Import {bulkParsedUsers.length} Users
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       )}

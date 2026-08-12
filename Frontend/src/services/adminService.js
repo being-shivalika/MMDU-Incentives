@@ -25,6 +25,14 @@ export const createUser = async (userData) => {
   });
 };
 
+// Bulk import users into database
+export const bulkImportUsers = async (usersList) => {
+  return await apiClient("/admin/users/bulk-import", {
+    method: "POST",
+    body: JSON.stringify({ users: usersList }),
+  });
+};
+
 // Update existing user details
 export const updateUser = async (userId, userData) => {
   return await apiClient(`/admin/users/${userId}`, {

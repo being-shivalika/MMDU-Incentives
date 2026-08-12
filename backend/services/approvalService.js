@@ -33,15 +33,27 @@ export const buildWorkflowProgress = async (claim, approvalHistory = []) => {
     const firstStepLabel = claim.applicantRole === 'student' ? 'Student' : 'Faculty';
     
     const isMca = String(claim.department || '').toLowerCase().includes('mca') || String(claim.department || '').toLowerCase().includes('computer applications');
-    const deptStepLabel = isMca ? 'Principal' : (effectiveApprover.role === 'principal' ? 'Principal' : 'HOD');
-    
-    const stepsConfig = [
-      { id: 'DRAFT', key: 'DRAFT', label: firstStepLabel, role: 'faculty' },
-      { id: 'DEPARTMENT_REVIEW', key: 'DEPARTMENT_REVIEW', label: deptStepLabel, role: effectiveApprover.role },
-      { id: 'RPC_VERIFICATION', key: 'RPC_VERIFICATION', label: 'R & D Cell', role: 'rpc_cell' },
-      { id: 'ACCOUNTS_PROCESSING', key: 'ACCOUNTS_PROCESSING', label: 'Finance & Accounts', role: 'accounts' },
-      { id: 'COMPLETED', key: 'COMPLETED', label: finalStepLabel, role: 'accounts' }
-    ];
+    const hasHod = effectiveApprover.role === 'hod' && !isMca;
+
+    let stepsConfig = [];
+    if (hasHod) {
+      stepsConfig = [
+        { id: 'DRAFT', key: 'DRAFT', label: firstStepLabel, role: 'faculty' },
+        { id: 'DEPARTMENT_REVIEW', key: 'DEPARTMENT_REVIEW', label: 'HOD Review', role: 'hod' },
+        { id: 'PRINCIPAL_REVIEW', key: 'PRINCIPAL_REVIEW', label: 'Principal Review', role: 'principal' },
+        { id: 'RPC_VERIFICATION', key: 'RPC_VERIFICATION', label: 'R & D Cell', role: 'rpc_cell' },
+        { id: 'ACCOUNTS_PROCESSING', key: 'ACCOUNTS_PROCESSING', label: 'Finance & Accounts', role: 'accounts' },
+        { id: 'COMPLETED', key: 'COMPLETED', label: finalStepLabel, role: 'accounts' }
+      ];
+    } else {
+      stepsConfig = [
+        { id: 'DRAFT', key: 'DRAFT', label: firstStepLabel, role: 'faculty' },
+        { id: 'DEPARTMENT_REVIEW', key: 'DEPARTMENT_REVIEW', label: 'Principal Direct Review', role: 'principal' },
+        { id: 'RPC_VERIFICATION', key: 'RPC_VERIFICATION', label: 'R & D Cell', role: 'rpc_cell' },
+        { id: 'ACCOUNTS_PROCESSING', key: 'ACCOUNTS_PROCESSING', label: 'Finance & Accounts', role: 'accounts' },
+        { id: 'COMPLETED', key: 'COMPLETED', label: finalStepLabel, role: 'accounts' }
+      ];
+    }
 
     const totalSteps = stepsConfig.length;
     let activeIndex = stepsConfig.findIndex(s => s.key === claim.status);

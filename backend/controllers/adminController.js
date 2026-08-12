@@ -107,6 +107,96 @@ export const createUser = asyncHandler(async (req, res) => {
   }, 201);
 });
 
+export const bulkImportUsers = asyncHandler(async (req, res) => {
+  const { users } = req.body;
+  if (!Array.isArray(users) || users.length === 0) {
+    return errorResponse(res, 'An array of user objects is required for bulk import', null, 400);
+  }
+
+  let createdCount = 0;
+  let skippedCount = 0;
+  const errors = [];
+  const createdUsers = [];
+
+  for (let i = 0; i < users.length; i++) {
+    const rawUser = users[i];
+    const name = rawUser.name ? String(rawUser.name).trim() : '';
+    const email = rawUser.email ? String(rawUser.email).toLowerCase().trim() : '';
+    const password = rawUser.password ? String(rawUser.password).trim() : 'MMDU@12345';
+    let role = rawUser.role ? String(rawUser.role).toLowerCase().trim() : 'faculty';
+    const department = rawUser.department ? String(rawUser.department).trim() : null;
+    const institute = rawUser.institute ? String(rawUser.institute).trim() : 'MMDU';
+    const employeeId = rawUser.employeeId ? String(rawUser.employeeId).trim() : null;
+    const studentId = rawUser.studentId ? String(rawUser.studentId).trim() : null;
+    const phone = rawUser.phone ? String(rawUser.phone).trim() : null;
+    const designation = rawUser.designation ? String(rawUser.designation).trim() : null;
+
+    // Role mapping normalization
+    if (role === 'teacher' || role === 'faculty member') role = 'faculty';
+    if (role === 'head of department' || role === 'head') role = 'hod';
+    if (role === 'finance' || role === 'accountant') role = 'accounts';
+
+    if (!name || !email) {
+      skippedCount++;
+      errors.push(`Row ${i + 1}: Missing name or email.`);
+      continue;
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      skippedCount++;
+      errors.push(`Row ${i + 1}: Email '${email}' already exists.`);
+      continue;
+    }
+
+    try {
+      const newUser = await User.create({
+        name,
+        email,
+        password,
+        role,
+        department,
+        institute,
+        employeeId,
+        studentId,
+        phone,
+        designation,
+        isActive: true,
+        isFirstLogin: false
+      });
+
+      createdCount++;
+      createdUsers.push({
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        department: newUser.department
+      });
+    } catch (err) {
+      skippedCount++;
+      errors.push(`Row ${i + 1} (${email}): ${err.message}`);
+    }
+  }
+
+  if (createdCount > 0) {
+    await createAuditLog({
+      action: 'BULK_USERS_IMPORTED',
+      entity: 'User',
+      performedBy: req.user?._id,
+      details: { createdCount, skippedCount, totalProcessed: users.length },
+      ipAddress: req.ip
+    });
+  }
+
+  return successResponse(res, `Bulk user import completed. ${createdCount} imported, ${skippedCount} skipped.`, {
+    createdCount,
+    skippedCount,
+    errors,
+    createdUsers
+  }, 201);
+});
+
 export const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return errorResponse(res, 'User not found', null, 404);

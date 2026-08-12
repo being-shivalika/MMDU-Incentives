@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  listUsers, createUser, updateUser, deleteUser, toggleUserActive,
+  listUsers, createUser, bulkImportUsers, updateUser, deleteUser, toggleUserActive,
   getAuditLogs,
   listPolicyRules, createPolicyRule, updatePolicyRule,
   listFinancialYears, createFinancialYear, updateFinancialYear,
@@ -18,6 +18,7 @@ router.use(protect);
 router.route('/users')
   .get(authorize('admin'), listUsers)
   .post(authorize('admin'), createUser);
+router.post('/users/bulk-import', authorize('admin'), bulkImportUsers);
 router.route('/users/:id')
   .put(authorize('admin'), updateUser)
   .delete(authorize('admin'), deleteUser);

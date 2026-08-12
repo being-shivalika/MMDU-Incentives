@@ -89,6 +89,38 @@ const seedDatabase = async () => {
         institute: "MMDU",
       },
 
+      // Dr. Vishal Bharti Accounts
+      {
+        name: "Dr. Vishal Bharti",
+        email: "principalmmec@mmulullana.org",
+        password: "112423",
+        role: "principal",
+        department: "Principal",
+        institute: "MMEC",
+        employeeId: "112423",
+        isActive: true,
+      },
+      {
+        name: "Dr. Vishal Bharti",
+        email: "vishal.bharti@mmumullana.org",
+        password: "112423",
+        role: "faculty",
+        department: "Computer Science & Engineering",
+        institute: "MMDU",
+        employeeId: "112423",
+        isActive: true,
+      },
+      {
+        name: "Dr. Vishal Bharti",
+        email: "principalmmictbm@mmumullana.org",
+        password: "150092",
+        role: "principal",
+        department: "Principal",
+        institute: "MMICTBM",
+        employeeId: "150092",
+        isActive: true,
+      },
+
       // =========================
       // STUDENT
       // =========================

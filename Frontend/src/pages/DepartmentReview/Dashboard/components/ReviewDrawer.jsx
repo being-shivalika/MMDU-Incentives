@@ -675,26 +675,26 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
         }
       });
     } else {
-      // 3. Fallback based on current workflow status
+      // 3. Fallback based on department hierarchy & current workflow status
+      const deptStr = String(submission.creatorDept || submission.department || '').toLowerCase();
+      const isMcaDept = deptStr.includes('mca') || deptStr.includes('computer applications');
+      const hasDepartmentHod = !isMcaDept && submission.effectiveApproverRole !== 'principal';
+
       const currentStatus = String(submission.status || 'Pending Review');
-      if (currentStatus.includes('HOD')) {
+
+      if (hasDepartmentHod) {
         synthesized.push({
           level: 'HOD Review',
-          action: 'Under Review',
+          action: currentStatus.includes('HOD') ? 'Under Review' : 'Approved & Forwarded',
           by: 'Department HOD',
-          date: submission.updatedAt || createdDate,
-          status: 'Pending HOD'
-        });
-      } else if (currentStatus.includes('Principal')) {
-        synthesized.push({
-          level: 'HOD Review',
-          action: 'Approved & Forwarded',
-          by: 'HOD',
           date: createdDate,
-          status: 'Approved'
+          status: currentStatus.includes('HOD') ? 'Pending HOD' : 'Approved'
         });
+      }
+
+      if (currentStatus.includes('Principal') || (currentStatus.includes('DEPARTMENT_REVIEW') && !hasDepartmentHod)) {
         synthesized.push({
-          level: 'Principal Review',
+          level: isMcaDept ? 'Principal Review (Direct)' : 'Principal Review',
           action: 'Under Review',
           by: 'Principal',
           date: submission.updatedAt || createdDate,
@@ -702,14 +702,7 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
         });
       } else if (currentStatus.includes('RPC') || currentStatus.includes('R & D') || currentStatus.includes('Verification')) {
         synthesized.push({
-          level: 'HOD Review',
-          action: 'Approved & Forwarded',
-          by: 'HOD',
-          date: createdDate,
-          status: 'Approved'
-        });
-        synthesized.push({
-          level: 'Principal Review',
+          level: isMcaDept ? 'Principal Review (Direct)' : 'Principal Review',
           action: 'Approved & Forwarded',
           by: 'Principal',
           date: createdDate,
@@ -724,14 +717,7 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
         });
       } else if (currentStatus.includes('Accounts') || currentStatus.includes('Payment') || currentStatus.includes('Approved') || currentStatus.includes('Completed')) {
         synthesized.push({
-          level: 'HOD Review',
-          action: 'Approved & Forwarded',
-          by: 'HOD',
-          date: createdDate,
-          status: 'Approved'
-        });
-        synthesized.push({
-          level: 'Principal Review',
+          level: isMcaDept ? 'Principal Review (Direct)' : 'Principal Review',
           action: 'Approved & Forwarded',
           by: 'Principal',
           date: createdDate,
