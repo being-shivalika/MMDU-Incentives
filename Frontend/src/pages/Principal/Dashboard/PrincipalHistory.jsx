@@ -69,7 +69,7 @@ const PrincipalHistory = () => {
                 <th className="p-4 font-medium">Submission Title</th>
                 <th className="p-4 font-medium">Type</th>
                 <th className="p-4 font-medium">Incentive</th>
-                <th className="p-4 font-medium">Status</th>
+                {/* <th className="p-4 font-medium">Status</th> */}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -93,9 +93,9 @@ const PrincipalHistory = () => {
                       </span>
                     </td>
                     <td className="p-4 font-medium text-gray-900">{item.amount}</td>
-                    <td className="p-4">
+                    {/* <td className="p-4">
                       <StatusBadge status={item.status} />
-                    </td>
+                    </td> */}
                   </tr>
                 ))
               ) : (

@@ -113,7 +113,7 @@ const PrincipalDashboard = () => {
 
   return (
     <div className="space-y-6 text-left">
-      <div className="bg-white rounded-xl p-6 border shadow-sm">
+     <div className="bg-gray-100 border border-gray-200 rounded-lg p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-gray-900">
           Welcome Principal, {user?.department || "Dr. Smith"}
         </h1>

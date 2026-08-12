@@ -199,11 +199,11 @@ export const navigationConfig = {
       icon: LayoutDashboard,
     },
 
-    {
-      path: "/principal/approvals",
-      label: "Final Approvals",
-      icon: CheckCircle,
-    },
+    // {
+    //   path: "/principal/approvals",
+    //   label: "Final Approvals",
+    //   icon: CheckCircle,
+    // },
 
     {
       path: "/principal/history",
