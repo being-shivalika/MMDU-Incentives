@@ -69,6 +69,7 @@ export const navigationConfig = {
       path: "/applicant",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
 
     {
@@ -134,6 +135,7 @@ export const navigationConfig = {
       path: "/applicant",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
 
     {
@@ -183,6 +185,7 @@ export const navigationConfig = {
       path: "/hod",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
   ],
 
@@ -197,13 +200,8 @@ export const navigationConfig = {
       path: "/principal",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
-
-    // {
-    //   path: "/principal/approvals",
-    //   label: "Final Approvals",
-    //   icon: CheckCircle,
-    // },
 
     {
       path: "/principal/history",
@@ -223,6 +221,7 @@ export const navigationConfig = {
       path: "/director",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
 
     {
@@ -243,6 +242,7 @@ export const navigationConfig = {
       path: "/research-review",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
 
     {
@@ -269,6 +269,7 @@ export const navigationConfig = {
       path: "/accounts",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
 
     {
@@ -295,6 +296,7 @@ export const navigationConfig = {
       path: "/admin",
       label: "Dashboard",
       icon: LayoutDashboard,
+      end: true,
     },
 
     {

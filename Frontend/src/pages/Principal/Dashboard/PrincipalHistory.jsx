@@ -304,7 +304,6 @@ const PrincipalHistory = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-neutral-50 text-neutral-500 uppercase font-bold tracking-wider border-b border-neutral-200 text-[10px]">
               <tr>
-<<<<<<< HEAD
                 <th className="p-4">Claim # & Date</th>
                 <th className="p-4">Applicant & Dept</th>
                 <th className="p-4">Submission Title</th>
@@ -316,43 +315,6 @@ const PrincipalHistory = () => {
             </thead>
             <tbody className="divide-y divide-neutral-100 font-medium text-neutral-700">
               {loading ? (
-=======
-                <th className="p-4 font-medium">ID & Date</th>
-                <th className="p-4 font-medium">Applicant</th>
-                <th className="p-4 font-medium">Submission Title</th>
-                <th className="p-4 font-medium">Type</th>
-                <th className="p-4 font-medium">Incentive</th>
-                {/* <th className="p-4 font-medium">Status</th> */}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredHistory.length > 0 ? (
-                filteredHistory.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4">
-                      <div className="font-medium text-gray-900">{item.id}</div>
-                      <div className="text-xs text-gray-500 mt-1">{item.date}</div>
-                    </td>
-                    <td className="p-4">
-                      <div className="font-medium text-gray-900">{item.applicant}</div>
-                      <div className="text-xs text-gray-500 mt-1">{item.department}</div>
-                    </td>
-                    <td className="p-4 max-w-[200px] truncate" title={item.title}>
-                      {item.title}
-                    </td>
-                    <td className="p-4">
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                        {item.type}
-                      </span>
-                    </td>
-                    <td className="p-4 font-medium text-gray-900">{item.amount}</td>
-                    {/* <td className="p-4">
-                      <StatusBadge status={item.status} />
-                    </td> */}
-                  </tr>
-                ))
-              ) : (
->>>>>>> 9e60a247191f344f86f916609c40f7877fb092d0
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-neutral-400 font-medium">
                     Loading Principal approval history...
