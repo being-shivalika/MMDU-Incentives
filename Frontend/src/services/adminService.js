@@ -33,6 +33,13 @@ export const updateUser = async (userId, userData) => {
   });
 };
 
+// Delete user from database
+export const deleteUser = async (userId) => {
+  return await apiClient(`/admin/users/${userId}`, {
+    method: "DELETE",
+  });
+};
+
 // Toggle user active status
 export const toggleUserActive = async (userId) => {
   return await apiClient(`/admin/users/${userId}/toggle-active`, {

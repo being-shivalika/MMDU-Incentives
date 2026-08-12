@@ -179,8 +179,17 @@ export const calculateIncentive = async (claim) => {
     }
   }
 
-  // Clause d: Conference category — "either registration fees or an incentive whichever is less will be given"
+  // Exact policy rule overrides for Books, Book Chapters, and Conferences per MMDU Policy Table
+  if (claim.category === 'books_chapters') {
+    if (claim.subtype === 'book') {
+      totalIncentive = 15000; // Books (ISBN) only as author (not edited books) = ₹15,000
+    } else if (claim.subtype === 'book_chapter' || claim.subtype === 'edited_book') {
+      totalIncentive = 8000; // Book Chapter (indexed in Scopus/WoS) = ₹8,000
+    }
+  }
+
   if (claim.category === 'conferences' || claim.subtype === 'conference') {
+    totalIncentive = 8000; // Full-length Paper Publications in Conference (indexed in Scopus/WoS) = ₹8,000
     const regFee = Number(claim.metadata?.registrationFee || claim.metadata?.registrationAmount || claim.metadata?.fee || claim.metadata?.registrationFees);
     if (!isNaN(regFee) && regFee > 0) {
       totalIncentive = Math.min(totalIncentive, regFee);

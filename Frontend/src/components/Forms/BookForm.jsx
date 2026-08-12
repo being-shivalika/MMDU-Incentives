@@ -12,17 +12,16 @@ const BookForm = ({
 }) => {
   return (
     <SubmissionForm
-      title="Book Chapter & Section Submission"
-      category="Book Chapter / Section"
+      title="Books & Book Chapters Submission"
+      category="Books & Chapters"
       basicFields={{
-        title: "Title (Chapter / Section / Book)",
+        title: "Title (Chapter / Book)",
         domain: "Domain / Discipline",
         dropdown: "Publication Type",
       }}
       dropdownOptions={[
         "Book Chapter",
-        "Book Section",
-        "Authored Book",
+        "Books (ISBN) only as author",
         "Edited Book",
         "Reference Book",
       ]}

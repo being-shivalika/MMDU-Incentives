@@ -1,6 +1,8 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 import User from '../models/User.js';
+import Claim from '../models/Claim.js';
+import ApprovalHistory from '../models/ApprovalHistory.js';
 import PolicyRule from '../models/PolicyRule.js';
 import FinancialYear from '../models/FinancialYear.js';
 import WorkflowConfig from '../models/WorkflowConfig.js';
@@ -11,9 +13,9 @@ import { AUDIT_ACTIONS } from '../constants/auditActions.js';
 // ═══ User Management ═══
 
 export const listUsers = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 20, role, search, isActive } = req.query;
+  const { page = 1, limit = 100, role, search, isActive } = req.query;
   const query = {};
-  if (role) query.role = role;
+  if (role && role !== 'ALL') query.role = role;
   if (isActive !== undefined) query.isActive = isActive === 'true';
   if (search) {
     query.$or = [
@@ -29,8 +31,32 @@ export const listUsers = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(parseInt(limit));
+
+  const usersWithStats = await Promise.all(users.map(async (u) => {
+    const userObj = u.toObject();
+
+    const submissionsCount = await Claim.countDocuments({
+      $or: [
+        { creator: u._id },
+        { creatorEmail: u.email }
+      ]
+    });
+
+    const approvalsCount = await ApprovalHistory.countDocuments({
+      $or: [
+        { actionBy: u._id },
+        { actionByName: u.name }
+      ]
+    });
+
+    return {
+      ...userObj,
+      submissionsCount,
+      approvalsCount
+    };
+  }));
   
-  return successResponse(res, 'Users retrieved', { users, total, page: Number(page), pages: Math.ceil(total / limit) });
+  return successResponse(res, 'Users retrieved', { users: usersWithStats, total, page: Number(page), pages: Math.ceil(total / limit) });
 });
 
 export const createUser = asyncHandler(async (req, res) => {
@@ -127,6 +153,22 @@ export const toggleUserActive = asyncHandler(async (req, res) => {
   user.isActive = !user.isActive;
   await user.save();
   return successResponse(res, `User ${user.isActive ? 'activated' : 'deactivated'}`, { id: user._id, isActive: user.isActive });
+});
+
+export const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+  if (!user) return errorResponse(res, 'User not found', null, 404);
+
+  await createAuditLog({
+    action: AUDIT_ACTIONS.USER_DELETED || 'USER_DELETED',
+    entity: 'User',
+    entityId: user._id,
+    performedBy: req.user?._id,
+    details: { name: user.name, email: user.email, role: user.role },
+    ipAddress: req.ip
+  });
+
+  return successResponse(res, 'User deleted successfully', null);
 });
 
 // ═══ Audit Logs ═══

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PageHeader from "../../../shared/components/PageHeader";
-import { Users, Search, UserPlus, RefreshCw, AlertCircle, CheckCircle2, X, Edit2, ShieldAlert } from "lucide-react";
-import { getUsers, createUser, updateUser, toggleUserActive } from "../../../services/adminService";
+import { Users, Search, UserPlus, RefreshCw, AlertCircle, CheckCircle2, X, Edit2, Trash2, Download, FileText } from "lucide-react";
+import { getUsers, createUser, updateUser, deleteUser, toggleUserActive } from "../../../services/adminService";
+import { exportToCSV, exportToPDF } from "../../../utils/exportUtils";
 
 const ROLES = [
   { value: "faculty", label: "Faculty Member" },
@@ -221,11 +222,61 @@ const UserManagement = () => {
     }
   };
 
+  // Delete user from database
+  const handleDeleteUser = async (user) => {
+    if (!window.confirm(`Are you sure you want to permanently delete user "${user.name}" (${user.email}) from database?`)) {
+      return;
+    }
+    try {
+      const userId = user._id || user.id;
+      await deleteUser(userId);
+      setSuccessMessage(`User "${user.name}" deleted successfully.`);
+      await loadUsers();
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      alert(err.message || "Failed to delete user.");
+    }
+  };
+
+  // Export User Activity Report CSV
+  const handleExportUserCSV = () => {
+    const reportData = users.map((u) => ({
+      claimNumber: u.employeeId || u.studentId || u._id || "N/A",
+      applicantName: u.name,
+      department: u.department || "N/A",
+      applicantRole: u.role,
+      category: `Submissions: ${u.submissionsCount || 0}`,
+      subtype: `Approvals: ${u.approvalsCount || 0}`,
+      title: `${u.designation || 'Staff'} • ${u.email}`,
+      userShare: u.submissionsCount || 0,
+      paymentStatus: u.isActive !== false ? "Active" : "Inactive"
+    }));
+    exportToCSV(reportData, "MMDU_User_Activity_Report.csv");
+  };
+
+  // Export User Activity Report PDF
+  const handleExportUserPDF = () => {
+    const reportData = users.map((u) => ({
+      id: u._id,
+      claimNumber: u.employeeId || u.studentId || "N/A",
+      applicantName: u.name,
+      department: u.department || "N/A",
+      category: `Submissions: ${u.submissionsCount || 0}`,
+      subtype: `Approvals: ${u.approvalsCount || 0}`,
+      title: `${u.role.toUpperCase()} • ${u.email}`,
+      userShare: u.submissionsCount || 0,
+      paymentStatus: u.isActive !== false ? "ACTIVE" : "INACTIVE"
+    }));
+    exportToPDF(reportData, "MMDU_User_Activity_Report.pdf", {
+      filterScope: "User Submissions & Approvals Activity Report"
+    });
+  };
+
   return (
     <div className="space-y-6 text-left">
       <PageHeader
         title="Database User Management"
-        subtitle="Create, update, and manage active system accounts directly in the database."
+        subtitle="Create, update, delete, and monitor activity for system accounts directly in the database."
         icon={Users}
       />
 
@@ -256,8 +307,8 @@ const UserManagement = () => {
           />
         </div>
 
-        {/* Role Filter & Add User Button */}
-        <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
+        {/* Role Filter, Export & Add User Button */}
+        <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
           <select
             className="px-3.5 py-2.5 border border-neutral-200 bg-white rounded-xl text-xs font-bold text-neutral-700 focus:outline-none focus:border-[#8C0404]"
             value={selectedRoleFilter}
@@ -280,6 +331,22 @@ const UserManagement = () => {
           </button>
 
           <button
+            onClick={handleExportUserCSV}
+            className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors cursor-pointer"
+            title="Download User Activity Report CSV"
+          >
+            <Download size={14} /> CSV Report
+          </button>
+
+          <button
+            onClick={handleExportUserPDF}
+            className="flex items-center gap-1.5 px-3 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors cursor-pointer"
+            title="Download User Activity Report PDF"
+          >
+            <FileText size={14} /> PDF Report
+          </button>
+
+          <button
             onClick={handleOpenAddModal}
             className="flex items-center gap-2 px-5 py-2.5 bg-[#8C0404] hover:bg-[#6F0303] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ml-auto md:ml-0"
           >
@@ -297,7 +364,8 @@ const UserManagement = () => {
                 <th className="p-4">User Details</th>
                 <th className="p-4">System Role</th>
                 <th className="p-4">Department / Designation</th>
-                <th className="p-4">Employee ID</th>
+                <th className="p-4 text-center">Submissions Submitted</th>
+                <th className="p-4 text-center">Approvals Conducted</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -305,13 +373,13 @@ const UserManagement = () => {
             <tbody className="divide-y divide-neutral-100 font-medium text-neutral-700">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-neutral-400 font-medium">
-                    Loading database users...
+                  <td colSpan={7} className="p-8 text-center text-neutral-400 font-medium">
+                    Loading database users & activity records...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-rose-600 font-semibold">
+                  <td colSpan={7} className="p-8 text-center text-rose-600 font-semibold">
                     <div className="flex items-center justify-center gap-2">
                       <AlertCircle size={18} />
                       <span>{error}</span>
@@ -320,7 +388,7 @@ const UserManagement = () => {
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-neutral-400">
+                  <td colSpan={7} className="p-8 text-center text-neutral-400">
                     No users found matching your search.
                   </td>
                 </tr>
@@ -334,6 +402,7 @@ const UserManagement = () => {
                       <td className="p-4">
                         <div className="font-bold text-neutral-900 text-sm">{u.name}</div>
                         <div className="text-[11px] text-neutral-500">{u.email}</div>
+                        <div className="text-[10px] text-neutral-400 font-mono">ID: {u.employeeId || u.studentId || "-"}</div>
                       </td>
                       <td className="p-4">
                         <span className="inline-block px-2.5 py-1 rounded-lg bg-[#8C0404]/10 text-[#8C0404] border border-[#8C0404]/20 font-bold text-[11px]">
@@ -344,7 +413,16 @@ const UserManagement = () => {
                         <div className="font-semibold text-neutral-800">{u.department || "-"}</div>
                         <div className="text-[11px] text-neutral-500">{u.designation || "-"}</div>
                       </td>
-                      <td className="p-4 font-mono font-bold text-neutral-800">{u.employeeId || u.studentId || "-"}</td>
+                      <td className="p-4 text-center">
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg font-bold text-xs">
+                          {u.submissionsCount || 0}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg font-bold text-xs">
+                          {u.approvalsCount || 0}
+                        </span>
+                      </td>
                       <td className="p-4">
                         <button
                           onClick={() => handleToggleActive(u)}
@@ -359,12 +437,22 @@ const UserManagement = () => {
                         </button>
                       </td>
                       <td className="p-4 text-right">
-                        <button
-                          onClick={() => handleOpenEditModal(u)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-700 hover:border-[#8C0404] hover:text-[#8C0404] text-xs font-bold transition-colors cursor-pointer"
-                        >
-                          <Edit2 size={13} /> Edit
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditModal(u)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-700 hover:border-[#8C0404] hover:text-[#8C0404] text-xs font-bold transition-colors cursor-pointer"
+                            title="Edit user details"
+                          >
+                            <Edit2 size={13} /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(u)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition-colors cursor-pointer"
+                            title="Delete user from database"
+                          >
+                            <Trash2 size={13} /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

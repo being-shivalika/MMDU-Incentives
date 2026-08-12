@@ -159,12 +159,14 @@ const Sidebar = ({
                   <NavLink
                     key={item.path}
                     to={item.path}
-                    end={item.end !== undefined ? item.end : true}
+                    end={item.end}
                     onClick={closeMobileSidebar}
-                    className={({ isActive }) => {
+                    className={({ isActive: isRouterActive }) => {
+                      const isExactMatch = location.pathname === item.path;
+                      const isSubPathMatch = !item.end && item.path !== "/" && location.pathname.startsWith(item.path + "/");
                       const isItemActive = item.isActive
                         ? item.isActive(location)
-                        : isActive;
+                        : (item.end ? isExactMatch : isExactMatch || isSubPathMatch);
 
                       return `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 ${
                         isItemActive
@@ -173,10 +175,12 @@ const Sidebar = ({
                       }`;
                     }}
                   >
-                    {({ isActive }) => {
+                    {({ isActive: isRouterActive }) => {
+                      const isExactMatch = location.pathname === item.path;
+                      const isSubPathMatch = !item.end && item.path !== "/" && location.pathname.startsWith(item.path + "/");
                       const isItemActive = item.isActive
                         ? item.isActive(location)
-                        : isActive;
+                        : (item.end ? isExactMatch : isExactMatch || isSubPathMatch);
 
                       return (
                         <>

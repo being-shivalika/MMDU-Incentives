@@ -57,11 +57,28 @@ const AccountsDashboard = () => {
 
   // Filter data
   const filteredData = submissions.filter((item) => {
-    const matchesSearch = 
-      (item.id && item.id.toLowerCase().includes(searchTerm.toLowerCase())) || 
-      (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesType = filterType === "All" || item.submissionType === filterType || item.type === filterType;
-    const matchesStatus = filterStatus === "All" || item.status === filterStatus;
+    const term = searchTerm.toLowerCase().trim();
+    const matchesSearch = !term || [
+      item.id,
+      item.claimNumber,
+      item.title,
+      item.creatorName,
+      item.applicantName,
+      item.creatorDept,
+      item.department,
+      item.category,
+      item.subtype,
+      item.status
+    ].some(field => String(field || '').toLowerCase().includes(term));
+
+    const matchesType =
+      filterType === "All" ||
+      item.submissionType === filterType ||
+      item.type === filterType ||
+      (item.category && item.category.toLowerCase().includes(filterType.toLowerCase()));
+
+    const matchesStatus =
+      filterStatus === "All" || item.status === filterStatus;
     
     return matchesSearch && matchesType && matchesStatus;
   });
@@ -108,24 +125,6 @@ const AccountsDashboard = () => {
       <Card>
         <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-xl font-bold text-gray-900 mb-2 sm:mb-0">Payment Processing Queue</h2>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => exportToCSV(filteredData, "MMDU_Annual_Incentives_Accounts.csv")}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-emerald-100 transition-colors shadow-sm cursor-pointer"
-            >
-              <FileSpreadsheet className="h-4 w-4" />
-              Export CSV
-            </button>
-
-            <button
-              onClick={() => exportToPDF(filteredData, "MMDU_Annual_Incentives_Accounts", { financialYear: "2026-2027" })}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-100 transition-colors shadow-sm cursor-pointer"
-            >
-              <FileText className="h-4 w-4" />
-              Export PDF
-            </button>
-          </div>
         </div>
         
         <ReviewFilters 
@@ -135,6 +134,8 @@ const AccountsDashboard = () => {
           setFilterType={setFilterType}
           filterStatus={filterStatus}
           setFilterStatus={setFilterStatus}
+          onExportCSV={() => exportToCSV(filteredData, "MMDU_Accounts_Payment_Processing_Queue.csv")}
+          onExportPDF={() => exportToPDF(filteredData, "MMDU_Accounts_Payment_Processing_Queue.pdf")}
         />
         
         {isLoading ? (

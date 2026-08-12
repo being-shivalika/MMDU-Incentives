@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  listUsers, createUser, updateUser, toggleUserActive,
+  listUsers, createUser, updateUser, deleteUser, toggleUserActive,
   getAuditLogs,
   listPolicyRules, createPolicyRule, updatePolicyRule,
   listFinancialYears, createFinancialYear, updateFinancialYear,
@@ -19,7 +19,8 @@ router.route('/users')
   .get(authorize('admin'), listUsers)
   .post(authorize('admin'), createUser);
 router.route('/users/:id')
-  .put(authorize('admin'), updateUser);
+  .put(authorize('admin'), updateUser)
+  .delete(authorize('admin'), deleteUser);
 router.put('/users/:id/toggle-active', authorize('admin'), toggleUserActive);
 
 // Audit Logs
