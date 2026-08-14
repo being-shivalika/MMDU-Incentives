@@ -31,7 +31,7 @@ const PublicationForm = ({
       ]}
       verificationLabels={{
         first: "DOI",
-        second: "Scopus Link",
+        second: "Scopus Link FOR PUBLICATIONS",
       }}
       formData={formData}
       handleInputChange={handleInputChange}
@@ -48,11 +48,12 @@ const PublicationForm = ({
             policyLink="/policies"
           />
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
-              <span>Name of Journal</span> <span className="text-red-500 font-bold">*</span>
+              <span>Name of Journal</span>{" "}
+              <span className="text-red-500 font-bold">*</span>
               <FieldTooltip
                 text="Journal must be indexed in Scopus or Web of Science (WoS) database per MMDU Policy Sec 5(b)."
                 policyLink="/policies"
@@ -71,7 +72,8 @@ const PublicationForm = ({
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
-              <span>Quartile</span> <span className="text-red-500 font-bold">*</span>
+              <span>Quartile</span>{" "}
+              <span className="text-red-500 font-bold">*</span>
               <FieldTooltip
                 text="Incentive per Policy Table 1: Q1 (₹25,000) | Q2 (₹20,000) | Q3/Q4 (3-5 papers: ₹10,000; 6+ papers: ₹15,000)."
                 policyLink="/policies"
@@ -91,10 +93,11 @@ const PublicationForm = ({
               <option value="Q4">Q4</option>
             </select>
           </div>
-          
+
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
-              <span>Impact Factor</span> <span className="text-neutral-400 font-normal">(Optional)</span>
+              <span>Impact Factor</span>{" "}
+              <span className="text-neutral-400 font-normal">(Optional)</span>
               <FieldTooltip
                 text="Thomson Reuters (TR) / JCR Impact Factor. >10 (15 pts), 3-10 (10 pts), <3 (8 pts) per Policy Table 4."
                 policyLink="/policies"
@@ -113,7 +116,8 @@ const PublicationForm = ({
 
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
-              <span>Quartile Proof (Scimago / SJR Link or Proof URL)</span> <span className="text-red-500 font-bold">*</span>
+              <span>Quartile Proof (Scimago / SJR Link or Proof URL)</span>{" "}
+              <span className="text-red-500 font-bold">*</span>
               <FieldTooltip
                 text="Provide valid SJR / Scimago link or official URL proving journal quartile."
                 policyLink="/policies"
@@ -132,7 +136,8 @@ const PublicationForm = ({
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
-              <span>Volume No.</span> <span className="text-red-500 font-bold">*</span>
+              <span>Volume No.</span>{" "}
+              <span className="text-red-500 font-bold">*</span>
               <FieldTooltip
                 text="Official journal volume number per publisher record."
                 policyLink="/policies"
@@ -151,7 +156,8 @@ const PublicationForm = ({
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
-              <span>Issue No.</span> <span className="text-red-500 font-bold">*</span>
+              <span>Issue No.</span>{" "}
+              <span className="text-red-500 font-bold">*</span>
               <FieldTooltip
                 text="Official journal issue number per publisher record."
                 policyLink="/policies"
@@ -170,7 +176,8 @@ const PublicationForm = ({
 
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
-              <span>Page No.</span> <span className="text-red-500 font-bold">*</span>
+              <span>Page No.</span>{" "}
+              <span className="text-red-500 font-bold">*</span>
               <FieldTooltip
                 text="Official page range (e.g. pp. 102-115) per publisher record."
                 policyLink="/policies"
