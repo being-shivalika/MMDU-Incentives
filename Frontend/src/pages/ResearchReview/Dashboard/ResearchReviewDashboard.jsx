@@ -50,39 +50,78 @@ const ResearchReviewDashboard = () => {
   useSubmissionSync(loadSubmissions, 3000);
   // Dashboard Statistics
   const stats = {
-    pendingAnalysis: submissions.filter((s) => s.status?.includes("Pending"))
-      .length,
+    pendingAnalysis: submissions.filter((s) => {
+      const ost = String(s.originalStatus || "").toUpperCase();
+      const st = String(s.status || "").toUpperCase();
+      return ost === "RPC_VERIFICATION" || ost === "PRINCIPAL_REVIEW" || st.includes("PENDING R & D") || st.includes("PENDING RPC");
+    }).length,
 
-    underReview: submissions.filter((s) =>
-      ["Under Review", "RPC Review"].includes(s.status),
-    ).length,
+    underReview: submissions.filter((s) => {
+      const ost = String(s.originalStatus || "").toUpperCase();
+      return ost === "RPC_VERIFICATION" || ost === "PRINCIPAL_REVIEW";
+    }).length,
 
-    readyForAccounts: submissions.filter(
-      (s) => s.status === "Pending Accounts Review",
-    ).length,
+    readyForAccounts: submissions.filter((s) => {
+      const ost = String(s.originalStatus || "").toUpperCase();
+      const st = String(s.status || "").toUpperCase();
+      return ost === "ACCOUNTS_PROCESSING" || s.isAccountsApproved || st.includes("ACCOUNTS");
+    }).length,
 
-    returnedForClarification: submissions.filter((s) =>
-      ["Revision Requested", "Returned"].includes(s.status),
-    ).length,
+    returnedForClarification: submissions.filter((s) => {
+      const ost = String(s.originalStatus || "").toUpperCase();
+      const st = String(s.status || "").toUpperCase();
+      return ost === "RETURNED" || st.includes("RETURN") || st.includes("REVISION");
+    }).length,
 
-    rejected: submissions.filter((s) => s.status === "Rejected").length,
+    rejected: submissions.filter((s) => {
+      const ost = String(s.originalStatus || "").toUpperCase();
+      const st = String(s.status || "").toUpperCase();
+      return ost === "REJECTED" || st.includes("REJECT");
+    }).length,
 
     completedToday: submissions.filter((s) => {
-      if (!["Approved", "Rejected"].includes(s.status)) return false;
+      const ost = String(s.originalStatus || "").toUpperCase();
+      const st = String(s.status || "").toUpperCase();
+      if (!(ost === "COMPLETED" || ost === "ACCOUNTS_PROCESSING" || s.isAccountsApproved || st.includes("APPROVED") || st.includes("ACCOUNTS"))) return false;
 
       const date = s.updatedAt || s.submittedAt;
       return date && dayjs(date).isSame(dayjs(), "day");
     }).length,
 
     totalIncentiveValue: submissions
-      .filter((s) => s.status === "Approved")
-      .reduce((total, s) => total + Number(s.incentiveAmount || 0), 0),
+      .filter((s) => s.originalStatus === "COMPLETED" || s.isPaid || s.isAccountsApproved)
+      .reduce((total, s) => total + Number(s.userShare || s.approvedAmount || s.incentiveAmount || 0), 0),
   };
 
   // Search & Filters
   const filteredData = submissions.filter((item) => {
-    const term = filters.searchTerm.toLowerCase().trim();
+    const ost = String(item.originalStatus || "").toUpperCase();
+    const st = String(item.status || "").toUpperCase();
+    const itemDept = String(item.department || item.creatorDept || "").toLowerCase();
+    const itemCategory = String(item.category || item.submissionType || item.type || "").toLowerCase();
+    const itemQuartile = String(item.metadata?.quartile || item.fields?.quartile || item.quartile || "").toUpperCase();
+    const itemDate = item.submittedAt || item.dateSubmitted || item.createdAt;
+    const itemYear = itemDate ? dayjs(itemDate).format("YYYY") : "";
 
+    // 1. Status Filter
+    if (filters.status !== "All") {
+      if (filters.status === "Pending" || filters.status === "Under Review") {
+        const isPending = ost === "RPC_VERIFICATION" || ost === "PRINCIPAL_REVIEW" || st.includes("PENDING R & D") || st.includes("PENDING RPC") || st.includes("UNDER REVIEW");
+        if (!isPending) return false;
+      } else if (filters.status === "Approved") {
+        const isApproved = ost === "ACCOUNTS_PROCESSING" || ost === "COMPLETED" || item.isAccountsApproved || st.includes("ACCOUNTS") || st.includes("APPROVED") || st.includes("DISBURSED");
+        if (!isApproved) return false;
+      } else if (filters.status === "Revision Requested") {
+        const isReturned = ost === "RETURNED" || st.includes("RETURN") || st.includes("REVISION");
+        if (!isReturned) return false;
+      } else if (filters.status === "Rejected") {
+        const isRejected = ost === "REJECTED" || st.includes("REJECT");
+        if (!isRejected) return false;
+      }
+    }
+
+    // 2. Search Term Filter
+    const term = filters.searchTerm.toLowerCase().trim();
     const matchesSearch =
       !term ||
       [
@@ -99,30 +138,35 @@ const ResearchReviewDashboard = () => {
         item.status
       ].some(field => String(field || '').toLowerCase().includes(term));
 
-    const matchesDepartment =
-      filters.department === "All" || item.department === filters.department;
+    if (!matchesSearch) return false;
 
-    const matchesResearchType =
-      filters.researchType === "All" ||
-      item.submissionType === filters.researchType ||
-      item.type === filters.researchType ||
-      (item.category && item.category.toLowerCase().includes(filters.researchType.toLowerCase()));
+    // 3. Department Filter
+    if (filters.department !== "All") {
+      const targetDept = filters.department.toLowerCase();
+      if (!itemDept.includes(targetDept)) return false;
+    }
 
-    const matchesStatus =
-      filters.status === "All" || item.status === filters.status;
+    // 4. Research Type Filter
+    if (filters.researchType !== "All") {
+      const targetType = filters.researchType.toLowerCase();
+      if (!itemCategory.includes(targetType)) return false;
+    }
 
-    const matchesQuartile =
-      filters.quartile === "All" ||
-      item.metadata?.quartile === filters.quartile ||
-      item.fields?.quartile === filters.quartile;
+    // 5. Quartile Filter
+    if (filters.quartile !== "All") {
+      if (filters.quartile === "Unranked") {
+        if (itemQuartile && itemQuartile !== "-") return false;
+      } else if (itemQuartile !== filters.quartile) {
+        return false;
+      }
+    }
 
-    return (
-      matchesSearch &&
-      matchesDepartment &&
-      matchesResearchType &&
-      matchesStatus &&
-      matchesQuartile
-    );
+    // 6. Year Filter
+    if (filters.year !== "All") {
+      if (itemYear !== filters.year) return false;
+    }
+
+    return true;
   });
 
   const handleRowClick = (submission) => {

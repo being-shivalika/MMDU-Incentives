@@ -1,6 +1,7 @@
 import PolicyRule from '../models/PolicyRule.js';
 import Claim from '../models/Claim.js';
 import logger from '../utils/logger.js';
+import { recalculateClaimAuthorShares } from './authorDistributionService.js';
 
 /**
  * Determine the policy condition key from claim metadata.
@@ -211,23 +212,12 @@ export const calculateIncentive = async (claim) => {
     return true;
   };
 
-  const mmduAuthors = rawAuthors.filter(checkIsMmdu);
-  const mmduAuthorCount = Math.max(1, mmduAuthors.length);
-  const individualShare = Math.round(totalIncentive / mmduAuthorCount);
+  claim.totalIncentive = totalIncentive;
+  await recalculateClaimAuthorShares(claim);
 
-  const authorPayments = rawAuthors.map(author => {
-    const isMmdu = checkIsMmdu(author);
-    return {
-      name: author.name || 'Author',
-      employeeId: author.employeeId || author.id || '',
-      department: author.department || claim.department,
-      institution: isMmdu ? 'MMDU' : (author.institution || 'External'),
-      isMmdu: isMmdu,
-      payableAmount: isMmdu ? individualShare : 0,
-      paymentStatus: 'HELD'
-    };
-  });
-
+  const mmduAuthorCount = claim.mmduAuthorCount || 1;
+  const individualShare = claim.individualShare || Math.round(totalIncentive / mmduAuthorCount);
+  const authorPayments = claim.authorPayments || [];
   let amount = individualShare; // Applicant's share of total incentive
   
   // Check annual limits safely

@@ -9,6 +9,30 @@ import WorkflowConfig from '../models/WorkflowConfig.js';
 import * as auditService from '../services/auditService.js';
 import { createAuditLog } from '../services/auditService.js';
 import { AUDIT_ACTIONS } from '../constants/auditActions.js';
+import { recalculateClaimAuthorShares } from '../services/authorDistributionService.js';
+
+const syncUserUnpaidClaims = async (user) => {
+  if (!user) return;
+  try {
+    const unpaidClaims = await Claim.find({
+      isPaid: { $ne: true },
+      status: { $ne: 'COMPLETED' },
+      $or: [
+        { applicant: user._id },
+        { applicantName: user.name },
+        { 'authorPayments.employeeId': user.employeeId },
+        { 'authorPayments.name': user.name }
+      ]
+    });
+
+    for (const claim of unpaidClaims) {
+      await recalculateClaimAuthorShares(claim);
+      await claim.save();
+    }
+  } catch (err) {
+    console.error('Error syncing user unpaid claims:', err);
+  }
+};
 
 // ═══ User Management ═══
 
@@ -221,6 +245,7 @@ export const updateUser = asyncHandler(async (req, res) => {
   }
 
   await user.save();
+  await syncUserUnpaidClaims(user);
 
   await createAuditLog({
     action: AUDIT_ACTIONS.USER_UPDATED,
@@ -242,6 +267,7 @@ export const toggleUserActive = asyncHandler(async (req, res) => {
   if (!user) return errorResponse(res, 'User not found', null, 404);
   user.isActive = !user.isActive;
   await user.save();
+  await syncUserUnpaidClaims(user);
   return successResponse(res, `User ${user.isActive ? 'activated' : 'deactivated'}`, { id: user._id, isActive: user.isActive });
 });
 

@@ -425,11 +425,11 @@ const RegistrarRecords = () => {
                       </td>
                       <td className="p-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
-                          String(item.status).includes("Approved") || String(item.status).includes("Completed") ? "bg-emerald-50 text-emerald-800 border-emerald-200" :
+                          item.isPaid || String(item.status).includes("Approved") || String(item.status).includes("Completed") ? "bg-emerald-50 text-emerald-800 border-emerald-200" :
                           String(item.status).includes("Rejected") || String(item.status).includes("Revision") ? "bg-rose-50 text-rose-800 border-rose-200" :
                           "bg-amber-50 text-amber-800 border-amber-200"
                         }`}>
-                          {item.status || "DEPARTMENT_REVIEW"}
+                          {item.isPaid ? "Approved & Disbursed" : (item.status || "Pending Review")}
                         </span>
                       </td>
                       <td className="p-4 text-right whitespace-nowrap">

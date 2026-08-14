@@ -392,11 +392,11 @@ const AllSubmissions = () => {
                       {/* WORKFLOW STATUS */}
                       <td className="p-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
-                          String(claim.status).includes("Approved") || String(claim.status).includes("Completed") ? "bg-emerald-50 text-emerald-800 border-emerald-200" :
+                          isPaid || String(claim.status).includes("Approved") || String(claim.status).includes("Completed") ? "bg-emerald-50 text-emerald-800 border-emerald-200" :
                           String(claim.status).includes("Rejected") || String(claim.status).includes("Revision") ? "bg-rose-50 text-rose-800 border-rose-200" :
                           "bg-amber-50 text-amber-800 border-amber-200"
                         }`}>
-                          {claim.status || "Unknown"}
+                          {isPaid ? "Approved & Disbursed" : (claim.status || "Unknown")}
                         </span>
                       </td>
 

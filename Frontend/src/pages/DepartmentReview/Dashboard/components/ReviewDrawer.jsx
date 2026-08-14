@@ -458,73 +458,11 @@ const ReviewDrawer = ({ submission, isOpen, onClose, onAction }) => {
             </div>
           </SectionCard>
 
-          {/* WORKFLOW PROGRESS TRACKER DIAGRAM */}
-          {submission.workflowProgress && (
-            <WorkflowProgressTracker
-              workflowProgress={submission.workflowProgress}
-              isHeld={submission.isHeld}
-              heldReason={submission.heldReason}
-            />
-          )}
-
-          {/* ====================================================== */}
-          {/* TIMELINE */}
-          {/* ====================================================== */}
-          {/* ====================================================== */}
-          {/* TIMELINE */}
-          {/* ====================================================== */}
-          <SectionCard icon={Clock} title="Workflow Timeline">
-            {timeline.length === 0 ? (
-              <div className="text-center py-6 text-neutral-400 font-medium text-sm">
-                No workflow history available.
-              </div>
-            ) : (
-              <div className="relative pl-4 space-y-8 before:absolute before:inset-y-2 before:left-[7px] before:w-0.5 before:bg-neutral-100">
-                {timeline.map((item, index) => {
-                  const variant = getStatusVariant(item.status || item.action);
-                  
-                  // Dynamic colors for the timeline dots based on status
-                  let dotClasses = "bg-neutral-300 ring-neutral-50";
-                  if (variant === "success") dotClasses = "bg-emerald-500 ring-emerald-50";
-                  else if (variant === "danger") dotClasses = "bg-rose-500 ring-rose-50";
-                  else if (variant === "warning") dotClasses = "bg-amber-500 ring-amber-50";
-
-                  return (
-                    <div key={index} className="relative pl-6">
-                      {/* Timeline Node */}
-                      <span className={`absolute left-[-13px] top-1 h-3.5 w-3.5 rounded-full border-2 border-white ring-4 ${dotClasses}`} />
-                      
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                        <div>
-                          <p className="font-bold text-neutral-900">
-                            {item.level || item.step}
-                          </p>
-                          <p className="text-sm font-medium text-neutral-500 mt-0.5">
-                            {item.action}
-                          </p>
-                          <p className="text-[11px] font-semibold tracking-wide text-neutral-400 mt-2 uppercase">
-                            By: {item.by || item.actionByName || "System"} • {dayjs(item.date).format("DD MMM YYYY, hh:mm A")}
-                          </p>
-                        </div>
-                        <Badge variant={variant}>
-                          {item.status || item.action}
-                        </Badge>
-                      </div>
-
-                      {item.remarks && (
-                        <div className="mt-4 rounded-xl bg-neutral-50/80 border border-neutral-200/60 p-4">
-                          <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-1.5">
-                            Remarks
-                          </p>
-                          <p className="text-sm text-neutral-700 font-medium">{item.remarks}</p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </SectionCard>
+          {/* UNIFIED WORKFLOW PROGRESS BLOCK */}
+          <WorkflowProgressTracker
+            submission={submission}
+            title="Workflow Progress"
+          />
 
           {/* ====================================================== */}
           {/* REVIEWER REMARKS */}

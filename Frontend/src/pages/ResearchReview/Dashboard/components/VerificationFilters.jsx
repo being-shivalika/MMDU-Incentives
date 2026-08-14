@@ -58,12 +58,17 @@ const VerificationFilters = ({ filters, setFilters, onExportCSV, onExportPDF }) 
             onChange={handleChange}
           >
             <option value="All">All Departments</option>
-            <option value="Computer Science">Computer Science</option>
+            <option value="Computer Science">Computer Science & Engg</option>
+            <option value="MCA">MCA / Computer Applications</option>
             <option value="Electrical Engineering">Electrical Engineering</option>
             <option value="Mechanical Engineering">Mechanical Engineering</option>
+            <option value="Civil Engineering">Civil Engineering</option>
+            <option value="Biotechnology">Biotechnology</option>
             <option value="Physics">Physics</option>
             <option value="Chemistry">Chemistry</option>
             <option value="Mathematics">Mathematics</option>
+            <option value="Pharmacy">Pharmacy</option>
+            <option value="Management">Management</option>
           </select>
         </div>
 

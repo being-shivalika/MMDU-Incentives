@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, Check } from "lucide-react";
 import dayjs from "dayjs";
 import Badge from "../../../components/Ui/Badge";
+import WorkflowProgressTracker from "../../../components/Ui/WorkflowProgressTracker";
 
 const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
   const [remarks, setRemarks] = useState("");
@@ -57,6 +58,13 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
               </p>
             </div>
           </section>
+
+          {/* UNIFIED WORKFLOW PROGRESS BLOCK */}
+          <WorkflowProgressTracker 
+            workflowProgress={submission.workflowProgress} 
+            submission={submission}
+            title="Accounts Workflow Progress" 
+          />
 
           <section>
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
