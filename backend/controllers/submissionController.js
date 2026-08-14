@@ -112,10 +112,10 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
 
   // Mapping currentDesk to currentLevel
   let currentLevel = 'Applicant';
-  if (claimObj.currentDesk === 'rpc_cell' || claimObj.currentDesk === 'rpc' || claimObj.currentDesk === 'rd_cell' || claimObj.status === 'RPC_VERIFICATION') currentLevel = 'R & D';
+  if (claimObj.currentDesk === 'rpc_cell' || claimObj.currentDesk === 'rpc' || claimObj.currentDesk === 'rd_cell' || claimObj.status === 'RPC_VERIFICATION' || claimObj.status === 'PRINCIPAL_REVIEW') currentLevel = 'R & D';
+  else if (claimObj.currentDesk === 'accounts' || claimObj.status === 'ACCOUNTS_PROCESSING') currentLevel = 'Accounts';
   else if (claimObj.currentDesk === 'hod' || claimObj.currentDesk === 'principal' || claimObj.status === 'DEPARTMENT_REVIEW') currentLevel = effectiveApprover.role === 'principal' ? 'Principal' : 'HOD';
   else if (claimObj.currentDesk === 'director') currentLevel = 'Director';
-  else if (claimObj.currentDesk === 'accounts' || claimObj.status === 'ACCOUNTS_PROCESSING') currentLevel = 'Accounts';
   else if (claimObj.status === 'COMPLETED') currentLevel = 'Completed';
   else if (claimObj.status === 'REJECTED') currentLevel = 'Applicant';
   
@@ -288,9 +288,19 @@ export const approveClaimPayment = asyncHandler(async (req, res) => {
     claim.paymentStatus = 'APPROVED_BY_ACCOUNTS';
   }
 
+  if (req.body.approvedAmount !== undefined && req.body.approvedAmount !== null && Number(req.body.approvedAmount) >= 0) {
+    const customAmt = Number(req.body.approvedAmount);
+    claim.approvedAmount = customAmt;
+    claim.individualShare = customAmt;
+    claim.userShare = customAmt;
+  }
+
   if (claim.authorPayments && claim.authorPayments.length > 0) {
     claim.authorPayments.forEach(p => {
-      if (p.isMmdu && p.paymentStatus !== 'PAID') p.paymentStatus = 'READY_FOR_RELEASE';
+      if (p.isMmdu && p.paymentStatus !== 'PAID') {
+        p.paymentStatus = 'READY_FOR_RELEASE';
+        if (req.body.approvedAmount !== undefined) p.payableAmount = Number(req.body.approvedAmount);
+      }
     });
   }
 
@@ -324,10 +334,17 @@ export const markClaimAsPaid = asyncHandler(async (req, res) => {
     return errorResponse(res, 'Claim not found', null, 404);
   }
 
+  if (req.body.approvedAmount !== undefined && req.body.approvedAmount !== null && Number(req.body.approvedAmount) >= 0) {
+    const customAmt = Number(req.body.approvedAmount);
+    claim.approvedAmount = customAmt;
+    claim.individualShare = customAmt;
+    claim.userShare = customAmt;
+  }
+
   claim.isAccountsApproved = true;
   claim.isPaid = true;
   claim.paymentStatus = 'PAID';
-  const amount = claim.individualShare || claim.userShare || claim.approvedAmount || claim.totalIncentive || claim.calculatedAmount || claim.incentiveAmount || 0;
+  const amount = claim.approvedAmount || claim.individualShare || claim.userShare || claim.totalIncentive || claim.calculatedAmount || claim.incentiveAmount || 0;
   claim.releasedAmount = amount;
   claim.paidAmount = amount;
   claim.paymentDetails = {

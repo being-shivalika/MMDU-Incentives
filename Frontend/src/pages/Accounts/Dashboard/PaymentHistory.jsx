@@ -96,8 +96,8 @@ const PaymentHistory = () => {
     const itemStatus = String(item.status || item.originalStatus || "").toUpperCase();
     let matchesStatus = true;
     if (selectedStatus !== "All") {
-      if (selectedStatus === "COMPLETED") matchesStatus = itemStatus.includes("DISBURSED") || itemStatus.includes("COMPLETED") || itemStatus.includes("RELEASED");
-      else if (selectedStatus === "APPROVED") matchesStatus = itemStatus.includes("APPROVED") || itemStatus.includes("ACCOUNTS");
+      if (selectedStatus === "COMPLETED") matchesStatus = itemStatus.includes("DISBURSED") || itemStatus.includes("COMPLETED") || itemStatus.includes("RELEASED") || item.isPaid === true || item.paymentStatus === "PAID";
+      else if (selectedStatus === "APPROVED") matchesStatus = itemStatus.includes("APPROVED") || itemStatus.includes("ACCOUNTS") || item.isAccountsApproved === true || item.paymentStatus === "APPROVED_BY_ACCOUNTS";
     }
 
     return matchesSearch && matchesCategory && matchesStatus;

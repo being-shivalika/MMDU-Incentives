@@ -1,14 +1,16 @@
 import React from "react";
 import { motion } from "motion/react";
+import FieldTooltip from "./FieldTooltip";
 
 const Input = React.forwardRef(
-  ({ label, error, className = "", type = "text", ...props }, ref) => {
+  ({ label, tooltip, policyLink = "/policies", error, className = "", type = "text", ...props }, ref) => {
     return (
       <div className="w-full flex flex-col gap-0 text-left">
         {label && (
-          <label className="text-xs font-semibold text-neutral-600 tracking-wide uppercase mb-1 flex items-center">
-            {label}
-            {props.required !== false && <span className="text-red-500 ml-1 font-bold">*</span>}
+          <label className="text-xs font-semibold text-neutral-600 tracking-wide uppercase mb-1 flex items-center gap-1">
+            <span>{label}</span>
+            {props.required !== false && <span className="text-red-500 font-bold">*</span>}
+            {tooltip && <FieldTooltip text={tooltip} policyLink={policyLink} />}
           </label>
         )}
         <motion.input

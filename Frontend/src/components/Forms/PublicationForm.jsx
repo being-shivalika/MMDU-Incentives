@@ -1,4 +1,6 @@
+import React from "react";
 import SubmissionForm from "./SubmissionForm";
+import FieldTooltip from "../Ui/FieldTooltip";
 
 const PublicationForm = ({
   formData,
@@ -39,14 +41,22 @@ const PublicationForm = ({
       onDraft={onDraft}
     >
       <div className="flex flex-col gap-5">
-        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
-          Publication Specifics
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-1 flex items-center gap-1">
+          <span>Publication Specifics</span>
+          <FieldTooltip
+            text="Publication incentives are awarded per MMDU Research Promotion Policy Table 1 guidelines."
+            policyLink="/policies"
+          />
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
-              Name of Journal <span className="text-red-500 ml-1 font-bold">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Name of Journal</span> <span className="text-red-500 font-bold">*</span>
+              <FieldTooltip
+                text="Journal must be indexed in Scopus or Web of Science (WoS) database per MMDU Policy Sec 5(b)."
+                policyLink="/policies"
+              />
             </label>
             <input
               type="text"
@@ -60,8 +70,12 @@ const PublicationForm = ({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
-              Quartile <span className="text-red-500 ml-1 font-bold">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Quartile</span> <span className="text-red-500 font-bold">*</span>
+              <FieldTooltip
+                text="Incentive per Policy Table 1: Q1 (₹25,000) | Q2 (₹20,000) | Q3/Q4 (3-5 papers: ₹10,000; 6+ papers: ₹15,000)."
+                policyLink="/policies"
+              />
             </label>
             <select
               name="quartile"
@@ -79,24 +93,31 @@ const PublicationForm = ({
           </div>
           
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
-              Impact Factor <span className="text-red-500 ml-1 font-bold">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Impact Factor</span> <span className="text-neutral-400 font-normal">(Optional)</span>
+              <FieldTooltip
+                text="Thomson Reuters (TR) / JCR Impact Factor. >10 (15 pts), 3-10 (10 pts), <3 (8 pts) per Policy Table 4."
+                policyLink="/policies"
+              />
             </label>
             <input
               type="number"
               step="0.01"
               name="impactFactor"
-              placeholder="e.g. 5.4"
+              placeholder="e.g. 5.4 (Optional)"
               value={formData?.impactFactor || ""}
               onChange={handleInputChange}
-              required
               className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none transition-all focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800 placeholder:text-neutral-400"
             />
           </div>
 
           <div className="flex flex-col gap-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
-              Quartile Proof (Scimago / SJR Link or Proof URL) <span className="text-red-500 ml-1 font-bold">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Quartile Proof (Scimago / SJR Link or Proof URL)</span> <span className="text-red-500 font-bold">*</span>
+              <FieldTooltip
+                text="Provide valid SJR / Scimago link or official URL proving journal quartile."
+                policyLink="/policies"
+              />
             </label>
             <input
               type="text"
@@ -110,8 +131,12 @@ const PublicationForm = ({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
-              Volume No. <span className="text-red-500 ml-1 font-bold">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Volume No.</span> <span className="text-red-500 font-bold">*</span>
+              <FieldTooltip
+                text="Official journal volume number per publisher record."
+                policyLink="/policies"
+              />
             </label>
             <input
               type="text"
@@ -125,8 +150,12 @@ const PublicationForm = ({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
-              Issue No. <span className="text-red-500 ml-1 font-bold">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Issue No.</span> <span className="text-red-500 font-bold">*</span>
+              <FieldTooltip
+                text="Official journal issue number per publisher record."
+                policyLink="/policies"
+              />
             </label>
             <input
               type="text"
@@ -140,8 +169,12 @@ const PublicationForm = ({
           </div>
 
           <div className="flex flex-col gap-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
-              Page No. <span className="text-red-500 ml-1 font-bold">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Page No.</span> <span className="text-red-500 font-bold">*</span>
+              <FieldTooltip
+                text="Official page range (e.g. pp. 102-115) per publisher record."
+                policyLink="/policies"
+              />
             </label>
             <input
               type="text"

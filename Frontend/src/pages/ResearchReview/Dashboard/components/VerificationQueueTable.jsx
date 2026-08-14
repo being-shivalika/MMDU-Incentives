@@ -40,7 +40,6 @@ const VerificationQueueTable = ({ data, onRowClick }) => {
             <th className="px-4 py-3 font-semibold">Research Details</th>
             <th className="px-4 py-3 font-semibold">Metrics (Q / IF)</th>
             <th className="px-4 py-3 font-semibold">Dates & Status</th>
-            <th className="px-4 py-3 font-semibold">Priority</th>
             <th className="px-4 py-3 font-semibold text-center">Action</th>
           </tr>
         </thead>
@@ -78,9 +77,6 @@ const VerificationQueueTable = ({ data, onRowClick }) => {
               <td className="px-4 py-4 whitespace-nowrap">
                 <p className="text-xs text-gray-500 mb-1">{dayjs(row.submittedAt || row.dateSubmitted).format("DD MMM YYYY")}</p>
                 {getStatusBadge(row.status)}
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                {getPriorityBadge(row.metadata?.quartile || row.fields?.quartile, row.status)}
               </td>
               <td className="px-4 py-4 text-center whitespace-nowrap">
                 <button className="inline-flex items-center justify-center p-2 rounded-lg bg-gray-50 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors">

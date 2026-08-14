@@ -3,6 +3,7 @@ import Card from "../Ui/Card";
 import Badge from "../Ui/Badge";
 import Input from "../Ui/Input";
 import Button from "../Ui/Button";
+import FieldTooltip from "../Ui/FieldTooltip";
 import {
   Users,
   UserCheck,
@@ -249,6 +250,38 @@ const SubmissionForm = ({
       return false;
     }
 
+    // Scopus Link Validation Helper
+    const validateScopusLink = (url, fieldName) => {
+      if (!url || !url.trim()) return true;
+      const lower = url.trim().toLowerCase();
+      const isValid =
+        lower.startsWith("https://www.scopus.com/pages/publications/") ||
+        lower.startsWith("http://www.scopus.com/pages/publications/") ||
+        lower.startsWith("https://scopus.com/pages/publications/") ||
+        lower.startsWith("http://scopus.com/pages/publications/") ||
+        lower.startsWith("www.scopus.com/pages/publications/") ||
+        lower.startsWith("scopus.com/pages/publications/") ||
+        lower.startsWith("https://www.scopus.com/inward/") ||
+        lower.startsWith("https://www.scopus.com/authid/") ||
+        lower.startsWith("https://www.scopus.com/");
+      if (!isValid) {
+        setToastMessage(`Validation Error (${fieldName}): Scopus link must begin with https://www.scopus.com/pages/publications/`);
+        setTimeout(() => setToastMessage(null), 6000);
+        return false;
+      }
+      return true;
+    };
+
+    // Validate Scopus Link Fields
+    const v1Label = (verificationLabels?.first || "").toLowerCase();
+    const v2Label = (verificationLabels?.second || "").toLowerCase();
+    const v3Label = (verificationLabels?.third || "").toLowerCase();
+
+    if (v1Label.includes("scopus") && !validateScopusLink(formData.firstVerification, verificationLabels?.first || "Verification Detail #1")) return false;
+    if (v2Label.includes("scopus") && !validateScopusLink(formData.secondVerification, verificationLabels?.second || "Verification Detail #2")) return false;
+    if (v3Label.includes("scopus") && !validateScopusLink(formData.thirdVerification, verificationLabels?.third || "Verification Detail #3")) return false;
+    if (formData.scopusLink && !validateScopusLink(formData.scopusLink, "Scopus Link")) return false;
+
     // 5. First Verification Detail
     if (!formData.firstVerification || !formData.firstVerification.trim()) {
       setToastMessage(`Field Required: Please enter ${verificationLabels?.first || "Verification Detail #1"}.`);
@@ -263,7 +296,7 @@ const SubmissionForm = ({
       return false;
     }
 
-    // 7. Research Publication Specifics (Journal Name, Quartile, Impact Factor, Quartile Proof, Volume, Issue, Page No)
+    // 7. Research Publication Specifics (Journal Name, Quartile, Quartile Proof, Volume, Issue, Page No)
     if (category === "Publication" || showResearchSection) {
       if (!formData.journalName || !formData.journalName.trim()) {
         setToastMessage("Field Required: Please enter Name of Journal.");
@@ -275,11 +308,7 @@ const SubmissionForm = ({
         setTimeout(() => setToastMessage(null), 5000);
         return false;
       }
-      if (formData.impactFactor === undefined || formData.impactFactor === null || String(formData.impactFactor).trim() === "") {
-        setToastMessage("Field Required: Please enter Impact Factor.");
-        setTimeout(() => setToastMessage(null), 5000);
-        return false;
-      }
+      // Impact Factor is optional per requirement 4
       if (!formData.quartileProof || !formData.quartileProof.trim()) {
         setToastMessage("Field Required: Please enter Quartile Proof (Scimago / SJR Link or Proof URL).");
         setTimeout(() => setToastMessage(null), 5000);
@@ -577,6 +606,7 @@ const SubmissionForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label={basicFields.title}
+            tooltip="Enter full research work title. Must be affiliated with Maharishi Markandeshwar (Deemed to be University) per Policy Sec 19(iv)."
             name="title"
             value={formData.title || ""}
             onChange={handleInputChange}
@@ -585,6 +615,7 @@ const SubmissionForm = ({
 
           <Input
             label={basicFields.domain}
+            tooltip="Specify research area or domain (e.g. Artificial Intelligence, Mechanical Engineering, Pharmacy) per MMDU Policy Sec 3."
             name="domain"
             value={formData.domain || ""}
             onChange={handleInputChange}
@@ -593,8 +624,13 @@ const SubmissionForm = ({
 
           {dropdownOptions.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
-                {basicFields.dropdown} <span className="text-red-500 ml-1 font-bold">*</span>
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+                <span>{basicFields.dropdown}</span>
+                <span className="text-red-500 font-bold">*</span>
+                <FieldTooltip
+                  text="Select submission category/type per MMDU Research Promotion Policy Table 1 guidelines."
+                  policyLink="/policies"
+                />
               </label>
               <select
                 name="dropdown"
@@ -999,49 +1035,78 @@ const SubmissionForm = ({
 
       {/* VERIFICATION LINKS */}
       <section className="px-6 py-5 border-b border-neutral-100">
-        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4">
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-4 flex items-center">
           Verification Links
+          <FieldTooltip
+            text="Scopus Link must begin with https://www.scopus.com/pages/publications/"
+            policyLink="/policies"
+            policyTitle="View Policy PDF"
+          />
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label={verificationLabels.first}
-            type={
-              verificationLabels.first.toLowerCase().match(/(link|url|website)/)
-                ? "url"
-                : "text"
-            }
-            placeholder={
-              verificationLabels.first.toLowerCase().match(/(link|url|website)/)
-                ? "https://..."
-                : "Enter detail"
-            }
-            name="firstVerification"
-            value={formData.firstVerification || ""}
-            onChange={handleInputChange}
-          />
-
-          {verificationLabels?.second && (
+          <div>
+            <div className="flex items-center gap-1 mb-1">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
+                {verificationLabels.first}
+              </label>
+              {verificationLabels.first.toLowerCase().includes("scopus") && (
+                <FieldTooltip
+                  text="Scopus Link must begin with https://www.scopus.com/pages/publications/"
+                  policyLink="/policies"
+                />
+              )}
+            </div>
             <Input
-              label={verificationLabels.second}
               type={
-                verificationLabels.second
-                  .toLowerCase()
-                  .match(/(link|url|website)/)
+                verificationLabels.first.toLowerCase().match(/(link|url|website)/)
                   ? "url"
                   : "text"
               }
               placeholder={
-                verificationLabels.second
-                  .toLowerCase()
-                  .match(/(link|url|website)/)
-                  ? "https://..."
+                verificationLabels.first.toLowerCase().match(/(link|url|website)/)
+                  ? "https://www.scopus.com/pages/publications/..."
                   : "Enter detail"
               }
-              name="secondVerification"
-              value={formData.secondVerification || ""}
+              name="firstVerification"
+              value={formData.firstVerification || ""}
               onChange={handleInputChange}
             />
+          </div>
+
+          {verificationLabels?.second && (
+            <div>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
+                  {verificationLabels.second}
+                </label>
+                {verificationLabels.second.toLowerCase().includes("scopus") && (
+                  <FieldTooltip
+                    text="Scopus Link must begin with https://www.scopus.com/pages/publications/"
+                    policyLink="/policies"
+                  />
+                )}
+              </div>
+              <Input
+                type={
+                  verificationLabels.second
+                    .toLowerCase()
+                    .match(/(link|url|website)/)
+                    ? "url"
+                    : "text"
+                }
+                placeholder={
+                  verificationLabels.second
+                    .toLowerCase()
+                    .match(/(link|url|website)/)
+                    ? "https://www.scopus.com/pages/publications/..."
+                    : "Enter detail"
+                }
+                name="secondVerification"
+                value={formData.secondVerification || ""}
+                onChange={handleInputChange}
+              />
+            </div>
           )}
         </div>
       </section>

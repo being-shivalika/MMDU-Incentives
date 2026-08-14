@@ -38,7 +38,7 @@ const Navbar = ({ onToggleSidebar, onOpenMobileSidebar }) => {
 
           {/* Title */}
           <div>
-            <h1 className="text-sm font-extrabold tracking-tight text-white">MMU RPMS</h1>
+            <h1 className="text-sm font-extrabold tracking-tight text-white">MMDU RPMS</h1>
             <p className="text-[10px] font-bold uppercase tracking-wider text-white/80 hidden lg:block">
               Research Portal Management System
             </p>

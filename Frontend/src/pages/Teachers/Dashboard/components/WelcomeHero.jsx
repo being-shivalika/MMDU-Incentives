@@ -12,7 +12,7 @@ const WelcomeHero = ({
     <div className="bg-white border border-neutral-200 text-neutral-950 p-6 rounded-2xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in duration-300">
       <div className="space-y-1">
         <h1 className="text-xl md:text-2xl font-bold tracking-tight text-neutral-950 m-0">
-          Welcome back, {userName || "Faculty"}
+          Welcome , {userName || "Faculty"}
         </h1>
         <p className="text-xs text-neutral-500 font-medium tracking-wide">
           {userDesignation || "Faculty Member"} &bull;{" "}

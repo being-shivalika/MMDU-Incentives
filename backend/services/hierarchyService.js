@@ -160,7 +160,7 @@ export const getClaimPermissions = async (claim, user) => {
   }
 
   if (status === 'PRINCIPAL_REVIEW') {
-    if (user.role === 'principal' || user.role === 'director' || isAdmin) {
+    if (['rpc_cell', 'rd_cell', 'principal', 'director', 'admin'].includes(user.role)) {
       canApprove = true;
       canReject = true;
       canReturn = true;
@@ -170,7 +170,7 @@ export const getClaimPermissions = async (claim, user) => {
 
   // 3. RPC Verification Stage ('RPC_VERIFICATION')
   if (status === 'RPC_VERIFICATION') {
-    if (['rpc_cell', 'rd_cell', 'admin'].includes(user.role)) {
+    if (['rpc_cell', 'rd_cell', 'principal', 'director', 'admin'].includes(user.role)) {
       canApprove = true;
       canReject = true;
       canReturn = true;

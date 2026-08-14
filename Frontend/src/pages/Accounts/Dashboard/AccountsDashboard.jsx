@@ -88,15 +88,21 @@ const AccountsDashboard = () => {
     setIsDrawerOpen(true);
   };
 
-  const handleAction = async (actionType, remarks) => {
+  const handleAction = async (actionType, remarks, customAmount) => {
     if (!selectedSubmission) return;
 
     try {
       const claimId = selectedSubmission.id || selectedSubmission._id;
-      if (actionType === "Approve Payment") {
-        await approveClaimPayment(claimId, remarks || "Incentive amount verified and approved by Accounts for annual payout cycle.");
+      if (actionType === "Decline") {
+        await processTransition({
+          claimId,
+          action: "return",
+          remarks: remarks || "Declined / Returned by Accounts for revision."
+        });
+      } else if (actionType === "Approve Payment") {
+        await approveClaimPayment(claimId, remarks || "Incentive amount verified and approved by Accounts for annual payout cycle.", customAmount);
       } else {
-        await markClaimAsPaid(claimId, remarks || "Ticked and marked as paid in annual disbursement cycle.");
+        await markClaimAsPaid(claimId, remarks || "Ticked and marked as paid in annual disbursement cycle.", customAmount);
       }
       await loadSubmissions();
       setIsDrawerOpen(false);

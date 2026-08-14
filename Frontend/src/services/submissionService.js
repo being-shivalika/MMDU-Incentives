@@ -46,19 +46,19 @@ export const deleteSubmission = async (id) => {
   return res;
 };
 
-export const approveClaimPayment = async (id, remarks = '') => {
+export const approveClaimPayment = async (id, remarks = '', approvedAmount = null) => {
   const res = await apiClient(`/submissions/${id}/approve-payment`, {
     method: 'PUT',
-    body: JSON.stringify({ remarks }),
+    body: JSON.stringify({ remarks, approvedAmount }),
   });
   notifyClaimsUpdated();
   return res;
 };
 
-export const markClaimAsPaid = async (id, remarks = '') => {
+export const markClaimAsPaid = async (id, remarks = '', approvedAmount = null) => {
   const res = await apiClient(`/submissions/${id}/pay`, {
     method: 'PUT',
-    body: JSON.stringify({ remarks }),
+    body: JSON.stringify({ remarks, approvedAmount }),
   });
   notifyClaimsUpdated();
   return res;

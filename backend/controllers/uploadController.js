@@ -6,13 +6,15 @@ import * as storageService from '../services/storageService.js';
 import { createAuditLog } from '../services/auditService.js';
 import { AUDIT_ACTIONS } from '../constants/auditActions.js';
 
+import { isClaimOwner } from '../services/claimService.js';
+
 export const uploadDocument = asyncHandler(async (req, res) => {
   const { claimId } = req.params;
   const claim = await Claim.findById(claimId);
   if (!claim) return errorResponse(res, 'Claim not found', null, 404);
   
   // Only owner can upload
-  if (claim.applicant.toString() !== req.user._id.toString()) {
+  if (!isClaimOwner(claim, req.user)) {
     return errorResponse(res, 'You can only upload documents to your own claims', null, 403);
   }
   

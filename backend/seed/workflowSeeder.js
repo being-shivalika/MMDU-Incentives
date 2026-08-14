@@ -35,7 +35,8 @@ const workflowConfig = {
       requiredRole: 'hod',
       badgeVariant: 'warning',
       allowedActions: [
-        { type: 'FORWARD_TO_PRINCIPAL', label: 'Comment & Forward to Principal', variant: 'primary', targetStage: 'PRINCIPAL_REVIEW', isForward: true, isTerminal: false },
+        { type: 'FORWARD_TO_RPC', label: 'Approve & Send to R&D', variant: 'primary', targetStage: 'RPC_VERIFICATION', isForward: true, isTerminal: false },
+        { type: 'FORWARD_TO_PRINCIPAL', label: 'Approve & Send to R&D', variant: 'primary', targetStage: 'RPC_VERIFICATION', isForward: true, isTerminal: false },
         { type: 'RETURN_TO_FACULTY', label: 'Return to Author for Correction', variant: 'secondary', targetStage: 'RETURNED', isForward: false, isTerminal: false }
       ]
     },

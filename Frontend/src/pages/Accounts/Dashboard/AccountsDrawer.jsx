@@ -5,11 +5,19 @@ import Badge from "../../../components/Ui/Badge";
 
 const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
   const [remarks, setRemarks] = useState("");
+  const [customAmount, setCustomAmount] = useState("");
+
+  React.useEffect(() => {
+    if (submission) {
+      const initialAmt = submission.approvedAmount || submission.individualShare || submission.userShare || submission.incentiveAmount || submission.totalIncentive || 0;
+      setCustomAmount(initialAmt);
+    }
+  }, [submission]);
 
   if (!isOpen || !submission) return null;
 
   const handleActionClick = (actionType) => {
-    onAction(actionType, remarks);
+    onAction(actionType, remarks, Number(customAmount) || 0);
     setRemarks(""); // Reset remarks
   };
 
@@ -22,7 +30,7 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
       <div className="absolute inset-y-0 right-0 max-w-xl w-full bg-white shadow-2xl flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-xl font-bold text-gray-900">
-            Payment Processing
+            Payment Processing & Audit
           </h2>
           <button
             onClick={onClose}
@@ -81,98 +89,34 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-4">
-                {(submission.metadata?.journalName || submission.fields?.journalName || submission.metadata?.conferenceTitle || submission.fields?.conferenceTitle) && (
-                  <div className="flex-1 bg-gray-50 border p-3 rounded-lg">
-                    <p className="text-xs text-gray-500 font-semibold uppercase">
-                      {submission.metadata?.journalName || submission.fields?.journalName ? "Name of Journal" : "Name of Conference / Seminar"}
-                    </p>
-                    <p className="font-bold text-gray-900 text-sm">
-                      {submission.metadata?.journalName || submission.fields?.journalName || submission.metadata?.conferenceTitle || submission.fields?.conferenceTitle}
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1 bg-gray-50 border p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 font-semibold uppercase">
-                    Quartile
-                  </p>
-                  <p className="font-medium text-gray-900">
-                    {submission.metadata?.quartile ||
-                      submission.fields?.quartile ||
-                      "N/A"}
-                  </p>
-                </div>
-                <div className="flex-1 bg-gray-50 border p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 font-semibold uppercase">
-                    Impact Factor
-                  </p>
-                  <p className="font-medium text-gray-900">
-                    {submission.metadata?.impactFactor ||
-                      submission.fields?.impactFactor ||
-                      "N/A"}
-                  </p>
-                </div>
-              </div>
 
-              <div className="flex gap-4 flex-wrap">
-                <div className="flex-1 min-w-[120px] bg-gray-50 border p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 font-semibold uppercase">
-                    Volume No.
-                  </p>
-                  <p className="font-medium text-gray-900">
-                    {submission.metadata?.volumeNo || submission.fields?.volumeNo || "N/A"}
-                  </p>
-                </div>
-                <div className="flex-1 min-w-[120px] bg-gray-50 border p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 font-semibold uppercase">
-                    Issue No.
-                  </p>
-                  <p className="font-medium text-gray-900">
-                    {submission.metadata?.issueNo || submission.fields?.issueNo || "N/A"}
-                  </p>
-                </div>
-                <div className="flex-1 min-w-[120px] bg-gray-50 border p-3 rounded-lg">
-                  <p className="text-xs text-gray-500 font-semibold uppercase">
-                    Page No.
-                  </p>
-                  <p className="font-medium text-gray-900">
-                    {submission.metadata?.pageNo || submission.fields?.pageNo || "N/A"}
-                  </p>
-                </div>
-              </div>
-
-              {(submission.metadata?.quartileProof || submission.fields?.quartileProof) && (
-                <div className="bg-[#8C0404]/10 border border-[#8C0404]/30 p-3 rounded-lg flex justify-between items-center text-xs font-semibold">
-                  <span className="text-[#8C0404] uppercase tracking-wide">Quartile Proof:</span>
-                  <a
-                    href={submission.metadata?.quartileProof || submission.fields?.quartileProof}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[#8C0404] hover:underline font-bold break-all flex items-center gap-1"
-                  >
-                    View Proof Document / Link ↗
-                  </a>
-                </div>
-              )}
-              <div className="mt-4 pt-4 bg-green-50 p-4 rounded-xl border border-green-200 space-y-2">
+              <div className="mt-4 pt-4 bg-green-50 p-4 rounded-xl border border-green-200 space-y-3">
                 <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-1">
-                  Financial & Author Split Information (Policy 2026)
+                  Accounts Verification & Incentive Amount Modification
                 </p>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-green-800">Total Publication Incentive:</span>
-                  <span className="font-bold text-green-900">₹{submission.totalIncentive || submission.approvedAmount || 0}</span>
+                  <span className="text-green-800">Policy Calculated Incentive:</span>
+                  <span className="font-bold text-green-900">₹{submission.totalIncentive || submission.calculatedAmount || 0}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-green-800">MMDU Authors Count:</span>
                   <span className="font-bold text-green-900">{submission.mmduAuthorCount || 1}</span>
                 </div>
-                <div className="flex justify-between items-center border-t border-green-200 pt-2">
-                  <span className="text-sm font-bold text-green-900">Individual Payable Share:</span>
-                  <span className="font-bold text-2xl text-green-900">
-                    ₹{submission.individualShare || submission.userShare || submission.incentiveAmount || 0}
-                  </span>
+                
+                {/* Editable Approved Amount Input */}
+                <div className="border-t border-green-200 pt-3 space-y-1.5">
+                  <label className="block text-xs font-bold text-green-900 uppercase">
+                    Accounts Approved Amount (₹) <span className="text-green-600 font-normal">(Editable by Accounts)</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-green-900 text-sm">₹</span>
+                    <input
+                      type="number"
+                      value={customAmount}
+                      onChange={(e) => setCustomAmount(e.target.value)}
+                      className="w-full pl-8 pr-3 py-2 bg-white border border-green-300 rounded-lg text-lg font-extrabold text-green-900 focus:ring-2 focus:ring-green-600 outline-none"
+                    />
+                  </div>
                 </div>
 
                 {submission.isHeld && (
@@ -189,7 +133,7 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
                 <textarea
                   className="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500 outline-none"
                   rows="3"
-                  placeholder="Enter transaction ID, reference number, or other payment remarks..."
+                  placeholder="Enter transaction ID, reference number, or decline/approval remarks..."
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                 />
@@ -203,25 +147,27 @@ const AccountsDrawer = ({ submission, isOpen, onClose, onAction }) => {
             <div className="w-full text-center text-xs font-bold text-emerald-800 uppercase tracking-wider py-3 bg-emerald-100 border border-emerald-300 rounded-xl">
               ✔ Payment Disbursed & Bank Credited (Released Payment)
             </div>
-          ) : (Number(submission.individualShare || submission.userShare || submission.incentiveAmount || 0) <= 0 || submission.isHeld) ? (
-            <div className="w-full text-center text-xs font-bold text-amber-800 uppercase tracking-wider py-3 bg-amber-50 border border-amber-200 rounded-xl">
-              ⚠️ Payment Not Applicable — {submission.isHeld ? 'Held' : 'Incentive amount is ₹0 per policy (Min 3 Q3/Q4 required)'}
-            </div>
           ) : (
             <div className="w-full flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => handleActionClick("Decline")}
+                className="px-4 py-3 bg-red-50 text-red-700 border border-red-200 rounded-xl font-bold hover:bg-red-100 transition-colors cursor-pointer"
+              >
+                Decline / Return
+              </button>
               {!submission.isAccountsApproved && (
                 <button
                   onClick={() => handleActionClick("Approve Payment")}
                   className="flex-1 bg-[#8C0404] text-white px-4 py-3 rounded-xl font-bold hover:bg-[#6F0303] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
-                  <Check className="h-5 w-5" /> Step 1: Approve Payment Amount
+                  <Check className="h-5 w-5" /> Approve Amount (₹{Number(customAmount).toLocaleString("en-IN")})
                 </button>
               )}
               <button
                 onClick={() => handleActionClick("Process Payment")}
                 className="flex-1 bg-emerald-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
               >
-                <Check className="h-5 w-5" /> {submission.isAccountsApproved ? "Tick as Paid (Release Payment)" : "Step 2: Tick as Paid"}
+                <Check className="h-5 w-5" /> {submission.isAccountsApproved ? "Tick as Paid" : "Approve & Tick as Paid"}
               </button>
             </div>
           )}

@@ -6,46 +6,66 @@ const formatString = (str) => {
   return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
-const getStatusStyle = (status) => {
-  const safeStatus = status?.toUpperCase() || "";
-  if (safeStatus.includes("DRAFT")) {
-    return "bg-neutral-100 text-neutral-600 border-neutral-200";
+const getStatusStyle = (status, submission = {}) => {
+  const s = String(status || "").toUpperCase();
+  const ost = String(submission.originalStatus || "").toUpperCase();
+
+  if (submission.isPaid || ost === "COMPLETED" || s.includes("DISBURSED")) {
+    return "bg-emerald-50 text-emerald-800 border-emerald-300 font-extrabold";
   }
-  if (safeStatus.includes("REVIEW") || safeStatus.includes("PENDING")) {
-    return "bg-amber-50 text-amber-700 border-amber-200";
+  if (submission.isAccountsApproved) {
+    return "bg-blue-50 text-blue-800 border-blue-300 font-bold";
   }
-  if (safeStatus.includes("APPROVED") || safeStatus.includes("VERIFIED")) {
-    return "bg-green-50 text-green-700 border-green-200";
+  if (ost === "ACCOUNTS_PROCESSING" || s.includes("ACCOUNTS")) {
+    return "bg-purple-50 text-purple-800 border-purple-200 font-bold";
   }
-  if (safeStatus.includes("REJECTED")) {
-    return "bg-red-50 text-red-700 border-red-200";
+  if (ost === "RPC_VERIFICATION" || ost === "PRINCIPAL_REVIEW" || s.includes("RPC") || s.includes("R & D") || s.includes("RD")) {
+    return "bg-amber-50 text-amber-800 border-amber-300 font-bold";
+  }
+  if (ost === "DEPARTMENT_REVIEW" || s.includes("HOD")) {
+    return "bg-amber-50 text-amber-800 border-amber-200 font-bold";
+  }
+  if (ost === "RETURNED" || s.includes("RETURN") || s.includes("REVISION")) {
+    return "bg-orange-50 text-orange-800 border-orange-200 font-bold";
+  }
+  if (ost === "REJECTED" || s.includes("REJECT")) {
+    return "bg-red-50 text-red-800 border-red-200 font-bold";
   }
   return "bg-neutral-100 text-neutral-600 border-neutral-200";
 };
 
 const formatStatus = (status, submission = {}) => {
-  if (!status) return "UNKNOWN";
-  const s = status.replace(/_/g, " ").toUpperCase();
-  
-  if (s === "DEPARTMENT REVIEW" || s === "DEPARTMENT_REVIEW" || s.includes("DEPARTMENT")) {
+  const s = String(status || "").toUpperCase();
+  const ost = String(submission.originalStatus || "").toUpperCase();
+
+  if (submission.isPaid || ost === "COMPLETED" || s.includes("DISBURSED")) {
+    return "APPROVED & DISBURSED";
+  }
+  if (submission.isAccountsApproved) {
+    return "APPROVED (PENDING CREDIT)";
+  }
+  if (ost === "ACCOUNTS_PROCESSING" || s.includes("ACCOUNTS")) {
+    return "PENDING ACCOUNTS REVIEW";
+  }
+  if (ost === "RPC_VERIFICATION" || ost === "PRINCIPAL_REVIEW" || s.includes("RPC") || s.includes("R & D") || s.includes("RD")) {
+    return "PENDING R & D REVIEW";
+  }
+  if (ost === "DEPARTMENT_REVIEW" || s.includes("HOD")) {
     const dept = String(submission.department || submission.metadata?.department || "").toLowerCase();
     const isMca = dept.includes("mca") || dept.includes("computer applications");
     return isMca ? "PENDING PRINCIPAL REVIEW" : "PENDING HOD REVIEW";
   }
-
-  if (s === "RPC VERIFICATION" || s === "RPC_VERIFICATION" || s.includes("RPC") || s.includes("R & D") || s.includes("RD")) {
-    return "PENDING R & D REVIEW";
+  if (ost === "RETURNED" || s.includes("RETURN") || s.includes("REVISION")) {
+    return "REVISION REQUESTED";
+  }
+  if (ost === "REJECTED" || s.includes("REJECT")) {
+    return "REJECTED";
+  }
+  if (ost === "DRAFT" || s.includes("DRAFT")) {
+    return "DRAFT";
   }
 
-  if (s === "ACCOUNTS PROCESSING" || s === "ACCOUNTS_PROCESSING" || s.includes("ACCOUNT")) {
-    return "PENDING ACCOUNTS REVIEW";
-  }
-
-  if (s === "COMPLETED" || s === "APPROVED") {
-    return "APPROVED & DISBURSED";
-  }
-
-  return s;
+  return s || "PENDING REVIEW";
 };
 
 const SubmissionCard = ({ submission, onClick }) => {
@@ -85,29 +105,34 @@ const SubmissionCard = ({ submission, onClick }) => {
 
   const getWorkflowProgress = (st, submission = {}) => {
     const s = String(st || "").toUpperCase();
-    if (s.includes("DRAFT")) {
-      return { percent: 20, label: "Draft Saved", color: "bg-amber-500", text: "text-amber-600", step: "Step 1 of 5" };
+    const ost = String(submission.originalStatus || "").toUpperCase();
+
+    if (submission.isPaid || ost === "COMPLETED" || s.includes("DISBURSED")) {
+      return { percent: 100, label: "Approved & Paid", color: "bg-emerald-600", text: "text-emerald-700", step: "Step 5 of 5" };
     }
-    if (s.includes("DEPARTMENT") || s.includes("HOD") || s.includes("PRINCIPAL")) {
+    if (submission.isAccountsApproved) {
+      return { percent: 90, label: "Approved (Pending Credit)", color: "bg-emerald-500", text: "text-emerald-600", step: "Step 4 of 5" };
+    }
+    if (ost === "ACCOUNTS_PROCESSING" || s.includes("ACCOUNTS")) {
+      return { percent: 80, label: "Finance & Accounts", color: "bg-purple-600", text: "text-purple-700", step: "Step 4 of 5" };
+    }
+    if (ost === "RPC_VERIFICATION" || ost === "PRINCIPAL_REVIEW" || s.includes("RPC") || s.includes("R & D") || s.includes("RD")) {
+      return { percent: 60, label: "R & D Review", color: "bg-[#8C0404]", text: "text-[#8C0404]", step: "Step 3 of 5" };
+    }
+    if (ost === "DEPARTMENT_REVIEW" || s.includes("HOD")) {
       const dept = String(submission.department || submission.metadata?.department || "").toLowerCase();
       const isMca = dept.includes("mca") || dept.includes("computer applications");
       const label = isMca ? "Principal Review" : "HOD Review";
       return { percent: 40, label, color: "bg-amber-500", text: "text-amber-600", step: "Step 2 of 5" };
     }
-    if (s.includes("RPC") || s.includes("R & D") || s.includes("RD")) {
-      return { percent: 60, label: "R & D Review", color: "bg-[#8C0404]", text: "text-[#8C0404]", step: "Step 3 of 5" };
-    }
-    if (s.includes("ACCOUNT") || s.includes("FINANCE")) {
-      return { percent: 80, label: "Finance & Accounts", color: "bg-[#8C0404]", text: "text-[#8C0404]", step: "Step 4 of 5" };
-    }
-    if (s.includes("COMPLETED") || s.includes("APPROVED") || s.includes("RELEASED")) {
-      return { percent: 100, label: "Approved & Paid", color: "bg-emerald-600", text: "text-emerald-700", step: "Step 5 of 5" };
-    }
-    if (s.includes("RETURN") || s.includes("REVISION")) {
+    if (ost === "RETURNED" || s.includes("RETURN") || s.includes("REVISION")) {
       return { percent: 35, label: "Revision Requested", color: "bg-orange-500", text: "text-orange-600", step: "Action Required" };
     }
-    if (s.includes("REJECT")) {
+    if (ost === "REJECTED" || s.includes("REJECT")) {
       return { percent: 100, label: "Rejected", color: "bg-rose-600", text: "text-rose-600", step: "Closed" };
+    }
+    if (ost === "DRAFT" || s.includes("DRAFT")) {
+      return { percent: 20, label: "Draft Saved", color: "bg-amber-500", text: "text-amber-600", step: "Step 1 of 5" };
     }
     return { percent: 40, label: "In Review", color: "bg-amber-500", text: "text-amber-600", step: "Step 2 of 5" };
   };
@@ -139,7 +164,7 @@ const SubmissionCard = ({ submission, onClick }) => {
                 {quartile}
               </span>
             )}
-            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border ${getStatusStyle(status)}`}>
+            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border ${getStatusStyle(status, submission)}`}>
               {formatStatus(status, submission)}
             </span>
           </div>

@@ -42,15 +42,19 @@ const ApplicantsDashboard = () => {
   const mySubmissions = submissions;
 
   const isApproved = (s) => {
-    const st = (s?.status || "").toLowerCase();
     const ost = (s?.originalStatus || "").toLowerCase();
-    return st === "approved" || st === "released" || st === "completed" || ost === "completed";
+    const st = (s?.status || "").toLowerCase();
+    return ost === "completed" || st === "approved" || st === "released" || s?.isPaid === true;
   };
 
   const isPending = (s) => {
-    const st = (s?.status || "").toLowerCase();
     const ost = (s?.originalStatus || "").toLowerCase();
-    return st.includes("pending") || ost === "department_review" || ost === "rpc_verification" || ost === "accounts_processing";
+    const st = (s?.status || "").toLowerCase();
+    if (isApproved(s)) return false;
+    if (st.includes("return") || st.includes("revision") || ost === "returned") return false;
+    if (st.includes("reject") || ost === "rejected") return false;
+    if (st.includes("draft") || ost === "draft") return false;
+    return true;
   };
 
   const isReturned = (s) => {
@@ -64,16 +68,11 @@ const ApplicantsDashboard = () => {
   const returned = mySubmissions.filter(isReturned);
 
   const isPaidClaim = (s) => {
-    const status = (s?.status || "").toLowerCase();
-    const paymentStatus = (s?.paymentStatus || "").toLowerCase();
-    return (s?.isPaid === true || paymentStatus === "paid" || status === "released") && !s?.isHeld;
+    return isApproved(s) && !s?.isHeld;
   };
 
   const isPendingPaymentClaim = (s) => {
-    const status = (s?.status || "").toLowerCase();
-    const paymentStatus = (s?.paymentStatus || "").toLowerCase();
-    const isAccountsApproved = s?.isAccountsApproved === true || paymentStatus === "approved_by_accounts" || paymentStatus === "ready_for_release" || status === "completed" || status.includes("accounts");
-    return !isPaidClaim(s) && isAccountsApproved && !s?.isHeld;
+    return isPending(s) && !s?.isHeld;
   };
 
   const totalReleasedIncentive = mySubmissions
@@ -125,30 +124,35 @@ const ApplicantsDashboard = () => {
     return months.map(({ label, value }) => ({ label, value }));
   }, [mySubmissions]);
 
-  const getStatusBadge = (status = "") => {
+  const getStatusBadge = (status = "", item = {}) => {
     const safe = String(status).toLowerCase();
-    if (safe === "approved" || safe === "released" || safe === "completed") {
+    const ost = String(item.originalStatus || "").toLowerCase();
+
+    if (safe === "approved" || safe === "released" || safe === "completed" || ost === "completed" || item.isPaid) {
       return <Badge variant="success">Completed & Disbursed</Badge>;
     }
-    if (safe.includes("r & d") || safe.includes("rd") || safe.includes("rpc") || safe.includes("hod") || safe.includes("principal") || safe.includes("department")) {
+    if (item.isAccountsApproved) {
+      return <Badge variant="info">Approved (Pending Credit)</Badge>;
+    }
+    if (ost === "accounts_processing" || safe.includes("accounts")) {
+      return <Badge variant="purple">Pending Accounts Review</Badge>;
+    }
+    if (ost === "rpc_verification" || ost === "principal_review" || safe.includes("r & d") || safe.includes("rd") || safe.includes("rpc")) {
       return <Badge variant="warning">Pending R & D Review</Badge>;
     }
-    if (safe.includes("accounts") || safe.includes("finance")) {
-      return <Badge variant="purple">Accounts Release</Badge>;
+    if (ost === "department_review" || safe.includes("hod")) {
+      return <Badge variant="warning">Pending HOD Review</Badge>;
     }
-    if (safe.includes("pending")) {
-      return <Badge variant="warning">Pending R & D Review</Badge>;
+    if (safe.includes("return") || safe.includes("revision") || ost === "returned") {
+      return <Badge variant="danger">Returned / Revision</Badge>;
     }
-    if (safe.includes("return") || safe.includes("revision")) {
-      return <Badge variant="danger">Returned</Badge>;
-    }
-    if (safe.includes("reject")) {
+    if (safe.includes("reject") || ost === "rejected") {
       return <Badge variant="danger">Rejected</Badge>;
     }
-    if (safe.includes("draft")) {
+    if (safe.includes("draft") || ost === "draft") {
       return <Badge variant="default">Draft</Badge>;
     }
-    return <Badge variant="default">{status?.replace(/_/g, " ")}</Badge>;
+    return <Badge variant="warning">{status?.replace(/_/g, " ")}</Badge>;
   };
 
   return (
@@ -285,7 +289,7 @@ const ApplicantsDashboard = () => {
                         <td className="py-3 text-neutral-500 font-medium whitespace-nowrap">
                           {dayjs(claim.submissionDate || claim.createdAt || claim.dateSubmitted).format("MMM DD YYYY")}
                         </td>
-                        <td className="py-3 whitespace-nowrap">{getStatusBadge(claim.status)}</td>
+                        <td className="py-3 whitespace-nowrap">{getStatusBadge(claim.status, claim)}</td>
                       </tr>
                     );
                   })

@@ -201,12 +201,22 @@ export const calculateIncentive = async (claim) => {
     ? claim.metadata.authors
     : [{ name: claim.applicantName, department: claim.department, employeeId: '', isMmdu: true }];
 
-  const mmduAuthors = rawAuthors.filter(a => a.isMmdu !== false && a.isMmdu !== 'no' && String(a.isMmdu).toLowerCase() !== 'false');
+  const checkIsMmdu = (a) => {
+    if (!a) return false;
+    if (a.isMmdu === false || a.isMmdu === 'no' || String(a.isMmdu).toLowerCase() === 'false') return false;
+    const inst = String(a.institution || a.affiliation || a.university || '').toLowerCase();
+    if (inst && (inst.includes('external') || inst.includes('other')) && !inst.includes('mmdu') && !inst.includes('maharishi markandeshwar')) {
+      return false;
+    }
+    return true;
+  };
+
+  const mmduAuthors = rawAuthors.filter(checkIsMmdu);
   const mmduAuthorCount = Math.max(1, mmduAuthors.length);
   const individualShare = Math.round(totalIncentive / mmduAuthorCount);
 
   const authorPayments = rawAuthors.map(author => {
-    const isMmdu = author.isMmdu !== false && author.isMmdu !== 'no' && String(author.isMmdu).toLowerCase() !== 'false';
+    const isMmdu = checkIsMmdu(author);
     return {
       name: author.name || 'Author',
       employeeId: author.employeeId || author.id || '',

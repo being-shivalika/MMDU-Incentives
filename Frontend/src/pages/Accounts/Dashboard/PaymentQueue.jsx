@@ -104,13 +104,23 @@ const PaymentQueue = () => {
     const status = (item.status || "").toLowerCase();
     const origStatus = (item.originalStatus || "").toLowerCase();
     
-    // Base eligibility: Candidates that reached Accounts or Completed
+    // Base eligibility: Candidates that reached Accounts, approved by Accounts, or Completed
     const isCandidate =
+      item.isAccountsApproved === true ||
+      item.isPaid === true ||
+      item.paymentStatus === "APPROVED_BY_ACCOUNTS" ||
+      item.paymentStatus === "READY_FOR_RELEASE" ||
+      item.paymentStatus === "PAID" ||
       status === "approved" ||
       status === "completed" ||
       status.includes("accounts") ||
+      status.includes("disbursed") ||
+      status.includes("paid") ||
       origStatus === "accounts_processing" ||
-      origStatus === "completed";
+      origStatus === "completed" ||
+      origStatus === "approved_by_accounts" ||
+      item.currentLevel === "Accounts" ||
+      item.currentLevel === "Completed";
 
     if (!isCandidate) return false;
 

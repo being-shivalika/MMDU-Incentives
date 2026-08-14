@@ -374,3 +374,17 @@
 2026-08-10T13:29:20.233Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0132 — Your Approval Processed
 2026-08-10T13:39:16.829Z warn: Email not configured. Would have sent to priya.mehta@mmdu.ac.in: [RPMS] Claim RPMS-2026-0133 — Approved by Dr. Amit Verma
 2026-08-10T13:39:16.903Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0133 — Your Approval Processed
+2026-08-12T08:14:52.786Z warn: Email not configured. Would have sent to vishal.gupta@mmumullana.org: [RPMS] Claim RPMS-2026-0022 — Approved by HOD
+2026-08-12T08:14:52.902Z warn: Email not configured. Would have sent to hod@gmail.com: [RPMS] Claim RPMS-2026-0022 — Your Approval Processed
+2026-08-12T08:43:56.342Z error: Error determining effective approver:
+2026-08-12T08:43:56.348Z error: Error determining effective approver:
+2026-08-12T08:43:56.349Z error: Error determining effective approver:
+2026-08-12T08:43:56.358Z error: Error determining effective approver:
+2026-08-12T08:47:34.596Z warn: Email not configured. Would have sent to faculty@gmail.com: [RPMS] Claim RPMS-2026-0031 — Approved by Dr. Amit Verma
+2026-08-12T08:47:34.678Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0031 — Your Approval Processed
+2026-08-12T08:53:14.607Z warn: Email not configured. Would have sent to faculty@gmail.com: [RPMS] Claim RPMS-2026-0031 — Approved by R&D Cell Coordinator
+2026-08-12T08:53:14.689Z warn: Email not configured. Would have sent to rd@mmdu.ac.in: [RPMS] Claim RPMS-2026-0031 — Your Approval Processed
+2026-08-12T09:10:12.666Z warn: Email not configured. Would have sent to faculty@gmail.com: [RPMS] Claim RPMS-2026-0032 — Approved by Dr. Amit Verma
+2026-08-12T09:10:12.750Z warn: Email not configured. Would have sent to amit.verma@mmdu.ac.in: [RPMS] Claim RPMS-2026-0032 — Your Approval Processed
+2026-08-12T09:13:02.032Z warn: Email not configured. Would have sent to faculty@gmail.com: [RPMS] Claim RPMS-2026-0032 — Approved by R&D Cell Coordinator
+2026-08-12T09:13:02.113Z warn: Email not configured. Would have sent to rd@mmdu.ac.in: [RPMS] Claim RPMS-2026-0032 — Your Approval Processed

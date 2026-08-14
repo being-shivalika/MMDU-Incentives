@@ -18,12 +18,37 @@ export const getNextSequence = async (name, prefix, year) => {
 };
 
 /**
- * Generate a claim number for the current year.
- * @returns {string} e.g., 'RPMS-2026-0001'
+ * Generate a structured claim number.
+ * Formatted like: General/MMDU/123, Publication/MMDU/768, MBA/2026/1234
+ * @param {Object} claimData
+ * @param {Object} user
+ * @returns {string} Structured Submit ID
  */
-export const generateClaimNumber = async () => {
+export const generateClaimNumber = async (claimData = {}, user = {}) => {
   const year = new Date().getFullYear().toString();
-  return getNextSequence('claimNumber', 'RPMS', year);
+
+  const cat = String(claimData.category || claimData.typeId || claimData.subtype || '').toLowerCase();
+  const dept = String(claimData.department || user.department || '').toLowerCase();
+
+  let prefixCategory = 'General';
+  if (cat.includes('pub') || cat.includes('journal')) prefixCategory = 'Publication';
+  else if (cat.includes('conf')) prefixCategory = 'Conference';
+  else if (cat.includes('book')) prefixCategory = 'Book';
+  else if (cat.includes('patent') || cat.includes('property') || cat.includes('ip')) prefixCategory = 'Patent';
+  else if (cat.includes('copyright')) prefixCategory = 'Copyright';
+
+  const counter = await Counter.findOneAndUpdate(
+    { name: 'claimNumber', year },
+    { $inc: { seq: 1 }, $setOnInsert: { prefix: 'MMDU' } },
+    { new: true, upsert: true }
+  );
+
+  const seq = String(counter.seq);
+
+  if (dept.includes('mba') || dept.includes('management')) {
+    return `MBA/${year}/${seq}`;
+  }
+  return `${prefixCategory}/MMDU/${seq}`;
 };
 
 /**

@@ -263,6 +263,7 @@ Dr. Amit Patel,accounts.office@mmumullana.org,accounts,Accounts,10931,MMDU@12345
       designation: "",
       phone: "",
       institute: "MMDU",
+      isActive: true,
     });
     setFormError("");
     setIsModalOpen(true);
@@ -281,6 +282,7 @@ Dr. Amit Patel,accounts.office@mmumullana.org,accounts,Accounts,10931,MMDU@12345
       designation: user.designation || "",
       phone: user.phone || "",
       institute: user.institute || "MMDU",
+      isActive: user.isActive !== false,
     });
     setFormError("");
     setIsModalOpen(true);
@@ -315,6 +317,7 @@ Dr. Amit Patel,accounts.office@mmumullana.org,accounts,Accounts,10931,MMDU@12345
           designation: formData.designation.trim(),
           phone: formData.phone.trim(),
           institute: formData.institute,
+          isActive: formData.isActive,
         };
         if (formData.password) {
           updatePayload.password = formData.password;
@@ -612,11 +615,15 @@ Dr. Amit Patel,accounts.office@mmumullana.org,accounts,Accounts,10931,MMDU@12345
                             <Edit2 size={13} /> Edit
                           </button>
                           <button
-                            onClick={() => handleDeleteUser(u)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition-colors cursor-pointer"
-                            title="Delete user from database"
+                            onClick={() => handleToggleActive(u)}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-colors cursor-pointer ${
+                              u.isActive !== false
+                                ? "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                                : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                            }`}
+                            title={u.isActive !== false ? "Set status to Inactive" : "Activate account"}
                           >
-                            <Trash2 size={13} /> Delete
+                            {u.isActive !== false ? "Set Inactive" : "Activate"}
                           </button>
                         </div>
                       </td>
@@ -716,6 +723,20 @@ Dr. Amit Patel,accounts.office@mmumullana.org,accounts,Accounts,10931,MMDU@12345
                         {r.label}
                       </option>
                     ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                    Account Status
+                  </label>
+                  <select
+                    value={formData.isActive ? "active" : "inactive"}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.value === "active" })}
+                    className="w-full rounded-xl border border-neutral-200 p-2.5 text-xs font-bold text-neutral-800 outline-none focus:border-[#8C0404]"
+                  >
+                    <option value="active">Active (Normal Portal Access)</option>
+                    <option value="inactive">Inactive (Account Disabled / Suspended)</option>
                   </select>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import React from "react";
 import SubmissionForm from "./SubmissionForm";
+import FieldTooltip from "../Ui/FieldTooltip";
 
 const ConferenceForm = ({
   formData,
@@ -38,15 +39,23 @@ const ConferenceForm = ({
       onDraft={onDraft}
     >
       <div className="flex flex-col gap-5 text-left">
-        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
-          Conference & Event Details
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-1 flex items-center gap-1">
+          <span>Conference & Event Details</span>
+          <FieldTooltip
+            text="Full-length Paper Publications in Conference (indexed in Scopus/WoS): Registration fee or ₹8,000 incentive (whichever is less) per Policy Table 1 & Sec 6(d)."
+            policyLink="/policies"
+          />
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Name of Conference/Seminar */}
           <div className="flex flex-col gap-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center">
-              Name of Conference / Seminar <span className="text-red-500 ml-1 font-bold">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Name of Conference / Seminar</span> <span className="text-red-500 font-bold">*</span>
+              <FieldTooltip
+                text="Must be indexed in SCOPUS or Web of Science (WoS) database per MMDU Policy Table 1."
+                policyLink="/policies"
+              />
             </label>
             <input
               type="text"
@@ -61,8 +70,12 @@ const ConferenceForm = ({
 
           {/* Level of Conference */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-              Level of Conference <span className="text-red-500">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Level of Conference</span> <span className="text-red-500">*</span>
+              <FieldTooltip
+                text="Financial assistance for national (up to ₹10,000/yr once in 3 yrs) or international (up to ₹30,000/yr once in 5 yrs) conferences per Policy Sec 14."
+                policyLink="/policies"
+              />
             </label>
             <select
               name="conferenceLevel"
@@ -80,8 +93,12 @@ const ConferenceForm = ({
 
           {/* Type of Author(s) */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-              Type of Author(s) <span className="text-red-500">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Type of Author(s)</span> <span className="text-red-500">*</span>
+              <FieldTooltip
+                text="Faculty presenter / first author eligible for reimbursement provided no other agency funded it per Policy Sec 14(i)."
+                policyLink="/policies"
+              />
             </label>
             <select
               name="authorType"
@@ -99,8 +116,12 @@ const ConferenceForm = ({
 
           {/* Indexing Tier */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-              Indexing Tier <span className="text-red-500">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Indexing Tier</span> <span className="text-red-500">*</span>
+              <FieldTooltip
+                text="Must be Scopus/WoS indexed proceeding with ISSN number for incentive eligibility per Table 1 & Table 4."
+                policyLink="/policies"
+              />
             </label>
             <select
               name="indexingTier"
@@ -117,8 +138,12 @@ const ConferenceForm = ({
 
           {/* Organised By */}
           <div className="flex flex-col gap-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-              Organised By <span className="text-red-500">*</span>
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide flex items-center gap-1">
+              <span>Organised By</span> <span className="text-red-500">*</span>
+              <FieldTooltip
+                text="Name of National/International Association, University, or Industry organizing the event."
+                policyLink="/policies"
+              />
             </label>
             <input
               type="text"

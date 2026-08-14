@@ -46,7 +46,8 @@ export const getWorkflowConfig = async (workflowKey = 'STANDARD_RESEARCH_WORKFLO
           requiredRole: 'hod',
           badgeVariant: 'warning',
           allowedActions: [
-            { type: 'FORWARD_TO_PRINCIPAL', label: 'Comment & Forward to Principal', variant: 'primary', targetStage: 'PRINCIPAL_REVIEW', isForward: true, isTerminal: false },
+            { type: 'FORWARD_TO_RPC', label: 'Approve & Send to R&D', variant: 'primary', targetStage: 'RPC_VERIFICATION', isForward: true, isTerminal: false },
+            { type: 'FORWARD_TO_PRINCIPAL', label: 'Approve & Send to R&D', variant: 'primary', targetStage: 'RPC_VERIFICATION', isForward: true, isTerminal: false },
             { type: 'RETURN_TO_FACULTY', label: 'Return to Author for Correction', variant: 'secondary', targetStage: 'RETURNED', isForward: false, isTerminal: false }
           ]
         },
@@ -142,6 +143,9 @@ export const getStageConfig = async (stageKey, workflowKey = 'STANDARD_RESEARCH_
  * Get the next stage in order (for forward progression).
  */
 export const getNextStage = async (currentStageKey, workflowKey = 'STANDARD_RESEARCH_WORKFLOW') => {
+  if (currentStageKey === 'DEPARTMENT_REVIEW' || currentStageKey === 'PRINCIPAL_REVIEW') {
+    return { stageKey: 'RPC_VERIFICATION', requiredRole: 'rpc_cell', label: 'Research Policy Committee (RPC)', shortLabel: 'RPC' };
+  }
   const config = await getWorkflowConfig(workflowKey);
   const stages = config.stages.sort((a, b) => a.order - b.order);
   const currentIndex = stages.findIndex(s => s.stageKey === currentStageKey);

@@ -10,6 +10,32 @@ import { CLAIM_STATUSES } from '../constants/claimStatuses.js';
 import logger from '../utils/logger.js';
 
 /**
+ * Helper to check if a user is the owner/applicant of a claim.
+ */
+export const isClaimOwner = (claim, user) => {
+  if (!claim || !user) return false;
+  const userIdStr = (user._id || user.id || '').toString();
+  const userEmail = (user.email || '').toLowerCase().trim();
+  const userName = (user.name || '').toLowerCase().trim();
+
+  if (claim.applicant && claim.applicant.toString() === userIdStr) return true;
+  if (claim.creator && claim.creator.toString() === userIdStr) return true;
+  if (claim.creatorId && claim.creatorId.toString() === userIdStr) return true;
+
+  if (userEmail) {
+    if (claim.creatorEmail && claim.creatorEmail.toLowerCase().trim() === userEmail) return true;
+    if (claim.applicantEmail && claim.applicantEmail.toLowerCase().trim() === userEmail) return true;
+  }
+
+  if (userName) {
+    if (claim.applicantName && claim.applicantName.toLowerCase().trim() === userName) return true;
+    if (claim.creatorName && claim.creatorName.toLowerCase().trim() === userName) return true;
+  }
+
+  return false;
+};
+
+/**
  * Get the current financial year label.
  */
 export const getCurrentFinancialYear = async () => {
@@ -27,7 +53,7 @@ export const getCurrentFinancialYear = async () => {
  * Create a new claim.
  */
 export const createClaim = async (claimData, user, ipAddress) => {
-  const claimNumber = await generateClaimNumber();
+  const claimNumber = await generateClaimNumber(claimData, user);
   const financialYear = await getCurrentFinancialYear();
   
   // Comprehensive duplicate check (DOI, Scopus Link, Verification Links, Title)
@@ -76,7 +102,12 @@ export const createClaim = async (claimData, user, ipAddress) => {
   const claim = new Claim({
     claimNumber,
     applicant: user._id,
+    creator: user._id,
+    creatorId: user._id,
     applicantName: user.name,
+    creatorName: user.name,
+    applicantEmail: user.email,
+    creatorEmail: user.email,
     department: user.department,
     institute: user.institute || 'MMDU',
     applicantRole: user.role,
@@ -186,7 +217,7 @@ export const updateClaim = async (claimId, updateData, user, ipAddress) => {
     }
     
     // Only allow owner to update for non-admins
-    if (claim.applicant.toString() !== user._id.toString()) {
+    if (!isClaimOwner(claim, user)) {
       const error = new Error('You can only update your own claims');
       error.statusCode = 403;
       throw error;
@@ -279,7 +310,7 @@ export const saveDraft = async (claimId, draftData, user) => {
     error.statusCode = 400;
     throw error;
   }
-  if (claim.applicant.toString() !== user._id.toString()) {
+  if (!isClaimOwner(claim, user)) {
     const error = new Error('You can only update your own claims');
     error.statusCode = 403;
     throw error;
@@ -304,8 +335,7 @@ export const getClaimById = async (claimId, user = null) => {
   }
   
   if (claim.status === CLAIM_STATUSES.DRAFT && user && user.role !== 'admin') {
-    const isOwner = (claim.applicant && claim.applicant.toString() === user._id.toString()) ||
-      (user.name && claim.applicantName && claim.applicantName.toLowerCase().trim() === user.name.toLowerCase().trim());
+    const isOwner = isClaimOwner(claim, user);
     if (!isOwner) {
       const error = new Error('Access denied to draft submission');
       error.statusCode = 403;
@@ -468,7 +498,7 @@ export const deleteDraft = async (claimId, user) => {
       error.statusCode = 400;
       throw error;
     }
-    if (claim.applicant && claim.applicant.toString() !== user._id.toString()) {
+    if (!isClaimOwner(claim, user)) {
       const error = new Error('You can only delete your own claims');
       error.statusCode = 403;
       throw error;

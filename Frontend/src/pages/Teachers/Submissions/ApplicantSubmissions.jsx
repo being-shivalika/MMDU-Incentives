@@ -39,7 +39,7 @@ const ApplicantSubmissions = () => {
     } catch (error) {
       console.error("Failed to fetch submissions", error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 

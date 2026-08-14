@@ -239,7 +239,10 @@ export const processTransition = async (submissionId, actionType, user, comment,
   
   // 7. Determine the new desk holder
   const targetStageConfig = await workflowConfigService.getStageConfig(targetStatus);
-  const newDesk = targetStageConfig?.requiredRole || null;
+  let newDesk = targetStageConfig?.requiredRole || null;
+  if (targetStatus === 'RPC_VERIFICATION') newDesk = 'rpc_cell';
+  if (targetStatus === 'ACCOUNTS_PROCESSING') newDesk = 'accounts';
+  if (targetStatus === 'DEPARTMENT_REVIEW') newDesk = 'hod';
   
   // 8. Step name
   const stepName = getStepName(actualActionType, user.role);
