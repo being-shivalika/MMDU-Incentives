@@ -5,6 +5,7 @@ import * as approvalService from '../services/approvalService.js';
 import { getClaimPermissions, getEffectiveApprover } from '../services/hierarchyService.js';
 import ApprovalHistory from '../models/ApprovalHistory.js';
 import Claim from '../models/Claim.js';
+import { recalculateClaimAuthorShares } from '../services/authorDistributionService.js';
 
 /**
  * @desc List claims with filtering and pagination
@@ -110,18 +111,26 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
   const permissions = user ? await getClaimPermissions(claimObj, user) : { canEdit: claimObj.status === 'DRAFT' || claimObj.status === 'RETURNED' };
   const effectiveApprover = await getEffectiveApprover(claimObj.department, claimObj.institute);
 
+  // Check if claim is paid
+  const isPaidClaim = Boolean(claimObj.isPaid || claimObj.paymentStatus === 'PAID' || claimObj.status === 'COMPLETED');
+  if (isPaidClaim) {
+    claimObj.status = 'COMPLETED';
+    claimObj.isPaid = true;
+    claimObj.paymentStatus = 'PAID';
+  }
+
   // Mapping currentDesk to currentLevel
   let currentLevel = 'Applicant';
-  if (claimObj.currentDesk === 'rpc_cell' || claimObj.currentDesk === 'rpc' || claimObj.currentDesk === 'rd_cell' || claimObj.status === 'RPC_VERIFICATION' || claimObj.status === 'PRINCIPAL_REVIEW') currentLevel = 'R & D';
+  if (isPaidClaim || claimObj.status === 'COMPLETED') currentLevel = 'Completed';
+  else if (claimObj.currentDesk === 'rpc_cell' || claimObj.currentDesk === 'rpc' || claimObj.currentDesk === 'rd_cell' || claimObj.status === 'RPC_VERIFICATION' || claimObj.status === 'PRINCIPAL_REVIEW') currentLevel = 'R & D';
   else if (claimObj.currentDesk === 'accounts' || claimObj.status === 'ACCOUNTS_PROCESSING') currentLevel = 'Accounts';
   else if (claimObj.currentDesk === 'hod' || claimObj.currentDesk === 'principal' || claimObj.status === 'DEPARTMENT_REVIEW') currentLevel = effectiveApprover.role === 'principal' ? 'Principal' : 'HOD';
   else if (claimObj.currentDesk === 'director') currentLevel = 'Director';
-  else if (claimObj.status === 'COMPLETED') currentLevel = 'Completed';
   else if (claimObj.status === 'REJECTED') currentLevel = 'Applicant';
   
   // Mapping status to frontend string
   let frontendStatus = `Pending ${currentLevel} Review`;
-  if (claimObj.status === 'COMPLETED') frontendStatus = 'Approved';
+  if (isPaidClaim || claimObj.status === 'COMPLETED') frontendStatus = 'Approved';
   else if (claimObj.status === 'REJECTED') frontendStatus = 'Rejected';
   else if (claimObj.status === 'RETURNED') frontendStatus = 'Revision Requested';
   else if (claimObj.status === 'DRAFT') frontendStatus = 'Draft';
@@ -141,6 +150,11 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
         };
       }
     });
+  }
+
+  // Recalculate author shares for unpaid claims based on current author active/inactive status
+  if (!claimObj.isPaid && claimObj.status !== 'COMPLETED') {
+    await recalculateClaimAuthorShares(claimObj);
   }
 
   // Find user's own individual share from authorPayments if applicable
@@ -194,51 +208,63 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
     effectiveApprover,
     permissions,
     
-    workflowHistory: approvalHistory 
-      ? approvalHistory
-          .filter(h => {
-            const act = String(h.action || '').toUpperCase();
-            const step = String(h.step || '').toUpperCase();
-            return !act.includes('DRAFT') && !step.includes('DRAFT');
-          })
-          .map(h => {
-            const role = (h.actionByRole || '').toLowerCase();
-            let levelLabel = 'Faculty';
+    workflowHistory: (() => {
+      if (!approvalHistory || !Array.isArray(approvalHistory)) return [];
+      const raw = approvalHistory
+        .filter(h => {
+          const act = String(h.action || '').toUpperCase();
+          const step = String(h.step || '').toUpperCase();
+          return !act.includes('DRAFT') && !step.includes('DRAFT');
+        })
+        .map(h => {
+          const role = (h.actionByRole || '').toLowerCase();
+          let levelLabel = 'Faculty';
 
-            if (role === 'student') {
-              levelLabel = 'Student';
-            } else if (role === 'faculty') {
-              levelLabel = 'Faculty';
-            } else if (role === 'hod') {
-              levelLabel = 'HOD';
-            } else if (role === 'principal') {
-              levelLabel = 'Principal';
-            } else if (role === 'director') {
-              levelLabel = 'Director';
-            } else if (role === 'rpc_cell' || role === 'rd_cell' || role === 'rpc') {
-              levelLabel = 'R & D';
-            } else if (role === 'accounts' || role === 'finance') {
-              const hasPayout = (claimObj.totalIncentive > 0 || claimObj.approvedAmount > 0 || userShare > 0) && !claimObj.isHeld && (claimObj.status === 'COMPLETED' || (h.action && h.action.includes('RELEASE')));
-              levelLabel = hasPayout ? 'Account Credited The Money' : 'Completed';
-            } else if (h.action && (h.action.includes('SUBMIT') || h.action.includes('SAVE'))) {
-              levelLabel = claimObj.applicantRole === 'student' ? 'Student' : 'Faculty';
-            }
+          if (role === 'student') {
+            levelLabel = 'Student';
+          } else if (role === 'faculty') {
+            levelLabel = 'Faculty';
+          } else if (role === 'hod') {
+            levelLabel = 'HOD';
+          } else if (role === 'principal') {
+            levelLabel = 'Principal';
+          } else if (role === 'director') {
+            levelLabel = 'Director';
+          } else if (role === 'rpc_cell' || role === 'rd_cell' || role === 'rpc') {
+            levelLabel = 'R & D';
+          } else if (role === 'accounts' || role === 'finance') {
+            const hasPayout = (claimObj.totalIncentive > 0 || claimObj.approvedAmount > 0 || userShare > 0) && !claimObj.isHeld && (claimObj.status === 'COMPLETED' || (h.action && h.action.includes('RELEASE')));
+            levelLabel = hasPayout ? 'Account Credited The Money' : 'Accounts';
+          } else if (h.action && (h.action.includes('SUBMIT') || h.action.includes('SAVE'))) {
+            levelLabel = claimObj.applicantRole === 'student' ? 'Student' : 'Faculty';
+          }
 
-            const isRejected = h.action && (h.action.includes('REJECT') || h.action.includes('WITHDRAW'));
-            const isReturned = h.action && (h.action.includes('RETURN') || h.action.includes('REVISE') || h.action.includes('CORRECT'));
-            const actionText = isRejected ? 'rejected' : isReturned ? 'revision requested' : (h.action && (h.action.includes('SUBMIT') || h.action.includes('RESUBMIT'))) ? 'submitted' : 'approved';
+          const isRejected = h.action && (h.action.includes('REJECT') || h.action.includes('WITHDRAW'));
+          const isReturned = h.action && (h.action.includes('RETURN') || h.action.includes('REVISE') || h.action.includes('CORRECT'));
+          const actionText = isRejected ? 'rejected' : isReturned ? 'revision requested' : (h.action && (h.action.includes('SUBMIT') || h.action.includes('RESUBMIT'))) ? 'submitted' : 'approved';
 
-            return {
-              level: levelLabel,
-              action: actionText,
-              isRejected,
-              isReturned,
-              by: h.actionByName,
-              date: h.date,
-              remarks: h.remarks
-            };
-          })
-      : [],
+          return {
+            level: levelLabel,
+            action: actionText,
+            isRejected,
+            isReturned,
+            by: h.actionByName,
+            date: h.date,
+            remarks: h.remarks
+          };
+        });
+
+      const deduplicated = [];
+      raw.forEach(item => {
+        const last = deduplicated[deduplicated.length - 1];
+        if (last && last.level === item.level) {
+          deduplicated[deduplicated.length - 1] = item;
+        } else {
+          deduplicated.push(item);
+        }
+      });
+      return deduplicated;
+    })(),
     reviewHistory: approvalHistory 
       ? approvalHistory.map(h => ({
           step: h.step,
@@ -344,6 +370,7 @@ export const markClaimAsPaid = asyncHandler(async (req, res) => {
   claim.isAccountsApproved = true;
   claim.isPaid = true;
   claim.paymentStatus = 'PAID';
+  claim.status = 'COMPLETED';
   const amount = claim.approvedAmount || claim.individualShare || claim.userShare || claim.totalIncentive || claim.calculatedAmount || claim.incentiveAmount || 0;
   claim.releasedAmount = amount;
   claim.paidAmount = amount;
@@ -365,8 +392,8 @@ export const markClaimAsPaid = asyncHandler(async (req, res) => {
     claim: claim._id,
     step: 'Payment Released',
     action: 'RELEASE_PAYMENT',
-    fromStatus: claim.status,
-    toStatus: claim.status,
+    fromStatus: 'ACCOUNTS_PROCESSING',
+    toStatus: 'COMPLETED',
     actionBy: req.user._id,
     actionByName: req.user.name,
     actionByRole: req.user.role,
@@ -406,6 +433,7 @@ export const markBatchClaimsAsPaid = asyncHandler(async (req, res) => {
     const amount = claim.individualShare || claim.userShare || claim.approvedAmount || claim.totalIncentive || claim.calculatedAmount || claim.incentiveAmount || 0;
     claim.isPaid = true;
     claim.paymentStatus = 'PAID';
+    claim.status = 'COMPLETED';
     claim.releasedAmount = amount;
     claim.paidAmount = amount;
     claim.paymentDetails = {

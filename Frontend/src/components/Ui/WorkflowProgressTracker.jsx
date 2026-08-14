@@ -1,42 +1,147 @@
 import React from "react";
-import { CheckCircle2, Clock, XCircle, RotateCcw, AlertTriangle, ArrowRight } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, RotateCcw, AlertTriangle, Activity } from "lucide-react";
+import dayjs from "dayjs";
 
 /**
- * Dynamic Workflow Progress Tracker Component
- * Driven strictly by backend workflowProgress data.
+ * Standardized Unified Workflow Progress Component
+ * Single reusable workflow file used across ALL dashboards and submission details pages.
  */
-const WorkflowProgressTracker = ({ workflowProgress, isHeld, heldReason }) => {
-  if (!workflowProgress || !Array.isArray(workflowProgress.steps)) {
-    return null;
-  }
+const WorkflowProgressTracker = ({ 
+  submission, 
+  workflowProgress, 
+  isHeld: propIsHeld, 
+  heldReason: propHeldReason, 
+  title = "Workflow Progress"
+}) => {
+  const sub = submission || {};
+  if (!sub || Object.keys(sub).length === 0) return null;
 
-  const { steps, currentStage, percentage, statusLabel, isRejected, isReturned, isFallbackRouting, fallbackReason } = workflowProgress;
+  const isHeld = propIsHeld !== undefined ? propIsHeld : sub.isHeld;
+  const heldReason = propHeldReason || sub.heldReason;
+
+  const ost = String(sub.originalStatus || sub.status || '').toUpperCase();
+  const st = String(sub.status || '').toUpperCase();
+
+  const isPaid = Boolean(
+    sub.isPaid || 
+    sub.paymentStatus === 'PAID' || 
+    ost === 'COMPLETED' || 
+    st === 'COMPLETED' || 
+    st.includes('DISBURSED') || 
+    st.includes('PAID')
+  );
+
+  const isAccountsPending = (ost === 'ACCOUNTS_PROCESSING' || sub.isAccountsApproved) && !isPaid;
+  const isRpcPending = (ost === 'RPC_VERIFICATION' || ost === 'PRINCIPAL_REVIEW') && !isAccountsPending && !isPaid;
+  const isDeptPending = ost === 'DEPARTMENT_REVIEW' && !isRpcPending && !isAccountsPending && !isPaid;
+  const isRejected = ost === 'REJECTED' || st.includes('REJECT');
+  const isReturned = ost === 'RETURNED' || st.includes('RETURN') || st.includes('REVISION');
+
+  const deptStr = String(sub.creatorDept || sub.department || '').toLowerCase();
+  const isMcaDept = deptStr.includes('mca') || deptStr.includes('computer applications');
+
+  const createdDate = sub.submittedAt || sub.dateSubmitted || sub.createdAt 
+    ? dayjs(sub.submittedAt || sub.dateSubmitted || sub.createdAt).format("DD MMM YYYY, HH:mm")
+    : dayjs().format("DD MMM YYYY, HH:mm");
+
+  const updatedDate = sub.updatedAt 
+    ? dayjs(sub.updatedAt).format("DD MMM YYYY, HH:mm")
+    : createdDate;
+
+  // Synthesize standard 4 workflow steps
+  const steps = [
+    {
+      key: 'FACULTY',
+      title: sub.applicantRole === 'student' ? 'Student Submission' : 'Faculty Submission',
+      action: 'Submitted',
+      by: `${sub.creatorName || sub.submittedBy || 'Applicant'}`,
+      date: createdDate,
+      badge: 'Submitted',
+      badgeStyle: 'bg-neutral-50 text-neutral-700 border-neutral-300',
+      dotStyle: 'bg-emerald-500'
+    },
+    {
+      key: 'HOD',
+      title: isMcaDept ? 'Principal Direct Review' : 'HOD Review',
+      action: isDeptPending ? (isRejected ? 'Rejected' : isReturned ? 'Revision Requested' : 'Under Review') : 'Approved & Forwarded',
+      by: isMcaDept ? 'Principal Office' : 'Department HOD',
+      date: isDeptPending ? updatedDate : createdDate,
+      badge: isDeptPending ? (isRejected ? 'Rejected' : isReturned ? 'Returned' : 'Pending Review') : 'Approved',
+      badgeStyle: isDeptPending 
+        ? (isRejected ? 'bg-red-50 text-red-700 border-red-200' : isReturned ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-amber-50 text-amber-700 border-amber-200')
+        : 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      dotStyle: isDeptPending ? (isRejected ? 'bg-red-500' : isReturned ? 'bg-orange-500' : 'bg-amber-500 animate-pulse') : 'bg-emerald-500'
+    },
+    {
+      key: 'RPC',
+      title: 'R & D Verification',
+      action: isRpcPending ? (isRejected ? 'Rejected' : isReturned ? 'Revision Requested' : 'Under Verification') : (isAccountsPending || isPaid ? 'Verified & Forwarded' : 'Pending Verification'),
+      by: 'RPC / R&D Cell',
+      date: isRpcPending ? updatedDate : (isAccountsPending || isPaid ? updatedDate : '—'),
+      badge: isRpcPending 
+        ? (isRejected ? 'Rejected' : isReturned ? 'Returned' : 'Pending Verification')
+        : (isAccountsPending || isPaid ? 'Verified' : 'Pending'),
+      badgeStyle: isRpcPending 
+        ? (isRejected ? 'bg-red-50 text-red-700 border-red-200' : isReturned ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-amber-50 text-amber-700 border-amber-200')
+        : (isAccountsPending || isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-neutral-100 text-neutral-500 border-neutral-200'),
+      dotStyle: isRpcPending 
+        ? (isRejected ? 'bg-red-500' : isReturned ? 'bg-orange-500' : 'bg-amber-500 animate-pulse')
+        : (isAccountsPending || isPaid ? 'bg-emerald-500' : 'bg-neutral-300')
+    },
+    {
+      key: 'ACCOUNTS',
+      title: 'Accounts Disbursement',
+      action: isPaid ? 'Incentive Released & Bank Credited' : (isAccountsPending ? 'Disbursement Pending' : 'Awaiting R&D Approval'),
+      by: 'Accounts Office',
+      date: isPaid || isAccountsPending ? updatedDate : '—',
+      badge: isPaid ? 'Disbursed & Paid' : (isAccountsPending ? 'Pending Accounts Review' : 'Pending'),
+      badgeStyle: isPaid 
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-extrabold'
+        : (isAccountsPending ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-neutral-100 text-neutral-500 border-neutral-200'),
+      dotStyle: isPaid 
+        ? 'bg-emerald-500 ring-4 ring-emerald-100'
+        : (isAccountsPending ? 'bg-amber-500 animate-pulse ring-4 ring-amber-100' : 'bg-neutral-300')
+    }
+  ];
+
+  const overallStatusLabel = isPaid 
+    ? "Approved & Disbursed" 
+    : (isAccountsPending 
+      ? "Pending Accounts Review" 
+      : (isRpcPending 
+        ? "Pending R & D Review" 
+        : (isDeptPending 
+          ? (isMcaDept ? "Pending Principal Review" : "Pending HOD Review") 
+          : (isRejected ? "Rejected" : isReturned ? "Revision Requested" : "Under Review"))));
+
+  const overallBadgeStyle = isPaid 
+    ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+    : (isRejected 
+      ? "bg-red-50 text-red-700 border-red-200" 
+      : (isReturned 
+        ? "bg-orange-50 text-orange-700 border-orange-200" 
+        : "bg-amber-50 text-amber-800 border-amber-200"));
 
   return (
     <div className="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm text-left space-y-4">
       {/* Header Info */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3">
         <div>
-          <h3 className="text-sm font-bold text-neutral-800 uppercase tracking-wider">
-            Submission Workflow Diagram
+          <h3 className="text-sm font-bold text-neutral-800 uppercase tracking-wider flex items-center gap-2">
+            <Activity className="h-4 w-4 text-[#8C0404]" /> {title}
           </h3>
           <p className="text-xs text-neutral-500 mt-0.5">
-            Stage: <span className="font-semibold text-neutral-700">{currentStage}</span>
+            Claim #: <span className="font-mono font-bold text-neutral-800">{sub.claimNumber || sub.id}</span>
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border ${
-            isCompletedStatus(statusLabel) ? 'bg-green-50 text-green-700 border-green-200' :
-            isRejected ? 'bg-red-50 text-red-700 border-red-200' :
-            isReturned ? 'bg-orange-50 text-orange-700 border-orange-200' :
-            'bg-blue-50 text-blue-700 border-blue-200'
-          }`}>
-            {statusLabel}
+          <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border ${overallBadgeStyle}`}>
+            {overallStatusLabel}
           </span>
         </div>
       </div>
 
-      {/* Held Payment Notice (Second Publication Rule) */}
+      {/* Held Payment Notice */}
       {isHeld && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -46,79 +151,38 @@ const WorkflowProgressTracker = ({ workflowProgress, isHeld, heldReason }) => {
         </div>
       )}
 
-      {/* Automatic Fallback Notice */}
-      {isFallbackRouting && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5 text-xs text-blue-800 flex items-center gap-2">
-          <span className="font-bold text-[10px] uppercase bg-blue-200 px-1.5 py-0.5 rounded">Auto-Routing</span>
-          <span>{fallbackReason}</span>
-        </div>
-      )}
+      {/* Vertical Step Timeline (Exact match with attached image style) */}
+      <div className="relative space-y-6 pt-2">
+        {/* Continuous Vertical Line - Perfectly aligned at center 7px */}
+        <div className="absolute top-3 bottom-3 left-[7px] w-0.5 bg-neutral-200 -translate-x-1/2"></div>
 
-      {/* Progress Bar */}
-      <div className="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
-        <div 
-          className={`h-full transition-all duration-500 ${
-            isRejected ? 'bg-red-500' : isReturned ? 'bg-orange-500' : 'bg-blue-600'
-          }`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
+        {steps.map((step, idx) => (
+          <div key={idx} className="relative flex items-start justify-between gap-4 pl-6">
+            {/* Timeline Dot - 14px width starting at left 0px, center is 7px */}
+            <div className={`absolute left-0 top-1 h-3.5 w-3.5 rounded-full border-2 border-white ${step.dotStyle}`}></div>
 
-      {/* Horizontal Step Timeline */}
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 pt-2">
-        {steps.map((step, idx) => {
-          const isCompleted = step.status === 'completed';
-          const isActive = step.status === 'active';
-          const stepRejected = step.status === 'rejected';
-          const stepReturned = step.status === 'returned';
-
-          return (
-            <div 
-              key={step.id || idx}
-              className={`p-3 rounded-lg border flex flex-col justify-between transition-colors ${
-                isCompleted ? 'bg-green-50/40 border-green-200 text-green-900' :
-                isActive ? 'bg-blue-50 border-blue-300 text-blue-900 ring-2 ring-blue-100' :
-                stepRejected ? 'bg-red-50 border-red-200 text-red-900' :
-                stepReturned ? 'bg-orange-50 border-orange-200 text-orange-900' :
-                'bg-neutral-50 border-neutral-200 text-neutral-400'
-              }`}
-            >
-              <div className="flex items-center justify-between gap-1 mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider">
-                  Step {idx + 1}
-                </span>
-                {isCompleted && <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />}
-                {isActive && <Clock className="h-4 w-4 text-blue-600 animate-pulse flex-shrink-0" />}
-                {(stepRejected || stepReturned) && (
-                  <span className="flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-full bg-red-600 animate-ping inline-block"></span>
-                    {stepRejected ? <XCircle className="h-4 w-4 text-red-600 flex-shrink-0" /> : <RotateCcw className="h-4 w-4 text-amber-600 flex-shrink-0" />}
-                  </span>
-                )}
-              </div>
-
-              <div>
-                <p className={`text-xs font-bold leading-tight ${
-                  isCompleted ? 'text-green-900' : isActive ? 'text-blue-900' : stepRejected ? 'text-red-900' : stepReturned ? 'text-orange-900' : 'text-neutral-500'
-                }`}>
-                  {step.label}
-                </p>
-                {step.actorName && (
-                  <p className="text-[10px] text-neutral-500 mt-1 truncate">
-                    By: {step.actorName}
-                  </p>
-                )}
-              </div>
+            <div className="space-y-0.5 flex-1">
+              <p className="text-xs font-bold text-neutral-900">
+                {step.title}
+              </p>
+              <p className="text-xs font-medium text-neutral-600">
+                {step.action}
+              </p>
+              <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+                BY: {step.by} {step.date !== '—' ? `• ${step.date}` : ''}
+              </p>
             </div>
-          );
-        })}
+
+            <div className="shrink-0">
+              <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border ${step.badgeStyle}`}>
+                {step.badge}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
-};
-
-const isCompletedStatus = (statusLabel) => {
-  return statusLabel?.toLowerCase().includes('completed') || statusLabel?.toLowerCase().includes('disbursed');
 };
 
 export default WorkflowProgressTracker;

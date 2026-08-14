@@ -315,19 +315,47 @@ const ApplicantSubmissionDetails = () => {
 
                     if (key === "authors" && Array.isArray(value)) {
                       return (
-                        <div key={key} className="space-y-1.5 md:col-span-2">
+                        <div key={key} className="space-y-2 md:col-span-2">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                            Authors & Co-authors
+                            Authors & Incentive Share Distribution
                           </span>
-                          <div className="flex flex-wrap gap-2 pt-1">
-                            {value.map((auth, aIdx) => (
-                              <span
-                                key={aIdx}
-                                className="px-3 py-1 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-800"
-                              >
-                                {auth.name || auth} {auth.department ? `(${auth.department})` : ""}
-                              </span>
-                            ))}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                            {value.map((auth, aIdx) => {
+                              const paymentMatch = submission.authorPayments?.find(
+                                p => p.name?.toLowerCase() === (auth.name || auth).toLowerCase()
+                              );
+                              const isInactive = paymentMatch ? paymentMatch.isActive === false : (auth.isActive === false || auth.status === 'inactive');
+                              const amount = paymentMatch ? paymentMatch.payableAmount : null;
+
+                              return (
+                                <div
+                                  key={aIdx}
+                                  className={`p-2.5 rounded-lg border text-xs flex justify-between items-center ${
+                                    isInactive
+                                      ? "bg-red-50/60 border-red-200 text-red-900"
+                                      : "bg-neutral-50 border-neutral-200 text-neutral-800"
+                                  }`}
+                                >
+                                  <div>
+                                    <p className="font-semibold">{auth.name || auth}</p>
+                                    <p className="text-[10px] text-neutral-500">
+                                      {auth.department ? `${auth.department} • ` : ""}{auth.institution || (auth.isMmdu !== false ? 'MMDU' : 'External')}
+                                    </p>
+                                  </div>
+                                  <div className="text-right shrink-0 ml-2">
+                                    {isInactive ? (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800">
+                                        Inactive (₹0 Share)
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                        ₹{amount !== null ? amount : "Split Share"}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       );
@@ -498,104 +526,8 @@ const ApplicantSubmissionDetails = () => {
             </div>
           )}
 
-          {/* WORKFLOW TRACKING TIMELINE */}
-          <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
-            <div className="px-5 py-4 border-b border-neutral-100 bg-neutral-50/50 flex items-center gap-2">
-              <Activity className="h-4 w-4 text-neutral-500" />
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-                Workflow Progress
-              </h2>
-            </div>
-
-            <div className="p-5">
-              <div className="mb-6 space-y-1">
-                <p className="text-xs text-neutral-500 flex justify-between">
-                  <span>Current Stage:</span>
-                  <span className="font-bold text-neutral-800">
-                    {currentLevel || "N/A"}
-                  </span>
-                </p>
-                <p className="text-xs text-neutral-500 flex justify-between">
-                  <span>Last Updated:</span>
-                  <span className="font-bold text-neutral-800">
-                    {workflowHistory?.length > 0
-                      ? new Date(
-                          workflowHistory[workflowHistory.length - 1].date,
-                        ).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : "N/A"}
-                  </span>
-                </p>
-              </div>
-
-              {/* TIMELINE UI REFINED */}
-              <div className="relative border-l border-neutral-200 ml-2 space-y-6">
-                {workflowHistory &&
-                  workflowHistory
-                    .filter((stage) => {
-                      const act = String(stage.action || "").toUpperCase();
-                      const lvl = String(stage.level || "").toUpperCase();
-                      return !act.includes("DRAFT") && !lvl.includes("DRAFT");
-                    })
-                    .map((stage, idx, arr) => {
-                      const isLast = idx === arr.length - 1;
-                      const isRejectedOrReturned =
-                        stage.isRejected ||
-                        stage.isReturned ||
-                        stage.action.includes("Reject") ||
-                        stage.action.includes("Revision") ||
-                        stage.action.includes("Return");
-
-                    let dotColor = "bg-green-500 border-white"; // past approved step
-                    if (isRejectedOrReturned) {
-                      dotColor = "bg-red-600 border-white ring-4 ring-red-100 shadow-[0_0_8px_rgba(220,38,38,0.8)] animate-pulse";
-                    } else if (isLast) {
-                      dotColor = "bg-blue-600 border-white ring-4 ring-blue-100 shadow-[0_0_0_3px_rgba(37,99,235,0.2)]";
-                    }
-
-                    return (
-                      <div key={idx} className="relative pl-6">
-                        {/* Timeline Dot */}
-                        <div
-                          className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 ${dotColor}`}
-                        ></div>
-
-                        <div className="space-y-0.5">
-                          <p
-                            className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
-                              isRejectedOrReturned
-                                ? "text-red-700 font-extrabold"
-                                : isLast
-                                ? "text-neutral-800"
-                                : "text-neutral-500"
-                            }`}
-                          >
-                            <span>{stage.level}</span>
-                            <span className="lowercase font-medium text-neutral-400">
-                              ({stage.action})
-                            </span>
-                            {isRejectedOrReturned && (
-                              <span className="h-2 w-2 rounded-full bg-red-600 animate-ping inline-block"></span>
-                            )}
-                          </p>
-                          <p className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-                            <Clock className="h-2.5 w-2.5" />
-                            {new Date(stage.date).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          </div>
+          {/* UNIFIED WORKFLOW PROGRESS BLOCK */}
+          <WorkflowProgressTracker submission={submission} title="Workflow Progress" />
         </div>
       </div>
     </div>

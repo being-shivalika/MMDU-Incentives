@@ -13,6 +13,7 @@ import { ROUTES } from "../../../constants/routes";
 import Badge from "../../../components/Ui/Badge";
 import Card from "../../../components/Ui/Card";
 import ActionButton from "../../../shared/components/ActionButton";
+import WorkflowProgressTracker from "../../../components/Ui/WorkflowProgressTracker";
 
 const SubmissionReviewDetails = () => {
   const { id } = useParams();
@@ -133,6 +134,13 @@ const SubmissionReviewDetails = () => {
           </Badge>
         </div>
       </div>
+
+      {/* UNIFIED WORKFLOW PROGRESS BLOCK */}
+      <WorkflowProgressTracker 
+        workflowProgress={submission.workflowProgress} 
+        submission={submission}
+        title="R&D Cell Workflow Progress" 
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -330,29 +338,75 @@ const SubmissionReviewDetails = () => {
             <div className="relative pl-4 space-y-6 mt-4">
               <div className="absolute top-0 bottom-0 left-[11px] w-0.5 bg-gray-200"></div>
               
+              {/* Step 1: Faculty Submitted */}
               <div className="relative">
-                <div className="absolute -left-4 w-6 h-6 rounded-full bg-green-500 border-4 border-white"></div>
+                <div className="absolute -left-4 w-6 h-6 rounded-full bg-green-500 border-4 border-white flex items-center justify-center"></div>
                 <div className="pl-6">
                   <p className="text-sm font-bold text-gray-900">Faculty Submitted</p>
-                  <p className="text-xs text-gray-500">{dayjs(submission.submittedAt).format("DD MMM YYYY, HH:mm")}</p>
+                  <p className="text-xs text-gray-500">{dayjs(submission.submittedAt || submission.createdAt).format("DD MMM YYYY, HH:mm")}</p>
                 </div>
               </div>
               
+              {/* Step 2: HOD Review */}
               <div className="relative">
-                <div className="absolute -left-4 w-6 h-6 rounded-full bg-green-500 border-4 border-white"></div>
+                <div className="absolute -left-4 w-6 h-6 rounded-full bg-green-500 border-4 border-white flex items-center justify-center"></div>
                 <div className="pl-6">
                   <p className="text-sm font-bold text-gray-900">HOD Approved</p>
                   <p className="text-xs text-gray-500">Verified department details</p>
                 </div>
               </div>
               
-              <div className="relative">
-                <div className="absolute -left-4 w-6 h-6 rounded-full bg-[#8C0404] border-4 border-white"></div>
-                <div className="pl-6">
-                  <p className="text-sm font-bold text-gray-900">RPC Verification</p>
-                  <p className="text-xs text-gray-500">Currently under review</p>
-                </div>
-              </div>
+              {/* Step 3: RPC / R&D Verification */}
+              {(() => {
+                const ost = String(submission.originalStatus || "").toUpperCase();
+                const st = String(submission.status || "").toUpperCase();
+                const isRpcApproved = ost === "ACCOUNTS_PROCESSING" || ost === "COMPLETED" || submission.isAccountsApproved || submission.isPaid || st.includes("ACCOUNTS") || st.includes("DISBURSED");
+                const isRpcRejected = ost === "REJECTED" || st.includes("REJECT");
+                const isRpcReturned = ost === "RETURNED" || st.includes("RETURN") || st.includes("REVISION");
+
+                return (
+                  <div className="relative">
+                    <div className={`absolute -left-4 w-6 h-6 rounded-full border-4 border-white flex items-center justify-center ${
+                      isRpcApproved ? "bg-green-500" : isRpcRejected ? "bg-red-500" : isRpcReturned ? "bg-orange-500" : "bg-[#8C0404]"
+                    }`}></div>
+                    <div className="pl-6">
+                      <p className="text-sm font-bold text-gray-900">RPC / R&D Verification</p>
+                      <p className="text-xs text-gray-500 font-medium">
+                        {isRpcApproved
+                          ? "Verified & Approved by R&D"
+                          : isRpcRejected
+                          ? "Rejected by R&D"
+                          : isRpcReturned
+                          ? "Returned for Clarification"
+                          : "Currently under review"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Step 4: Accounts Verification / Payment */}
+              {(() => {
+                const ost = String(submission.originalStatus || "").toUpperCase();
+                const st = String(submission.status || "").toUpperCase();
+                const isRpcApproved = ost === "ACCOUNTS_PROCESSING" || ost === "COMPLETED" || submission.isAccountsApproved || submission.isPaid || st.includes("ACCOUNTS") || st.includes("DISBURSED");
+                if (!isRpcApproved) return null;
+
+                const isPaid = submission.isPaid || ost === "COMPLETED" || st.includes("DISBURSED");
+                return (
+                  <div className="relative">
+                    <div className={`absolute -left-4 w-6 h-6 rounded-full border-4 border-white flex items-center justify-center ${
+                      isPaid ? "bg-green-500" : "bg-purple-600"
+                    }`}></div>
+                    <div className="pl-6">
+                      <p className="text-sm font-bold text-gray-900">Accounts & Finance</p>
+                      <p className="text-xs text-gray-500 font-medium">
+                        {isPaid ? "Incentive Released & Paid" : "Pending Accounts Verification & Release"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </Card>
         </div>
