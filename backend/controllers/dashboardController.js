@@ -4,13 +4,26 @@ import Claim from '../models/Claim.js';
 import Transaction from '../models/Transaction.js';
 import User from '../models/User.js';
 import { CLAIM_STATUSES } from '../constants/claimStatuses.js';
+import { buildAuthorQueryConditions } from '../services/claimService.js';
 
 export const getDashboardStats = asyncHandler(async (req, res) => {
   const user = req.user;
   let stats = {};
   
   if (user.role === 'faculty' || user.role === 'student') {
-    const baseQuery = { applicant: user._id };
+    const authorConds = buildAuthorQueryConditions(user);
+    const baseQuery = {
+      $or: authorConds,
+      $and: [
+        {
+          $or: [
+            { status: { $ne: CLAIM_STATUSES.DRAFT } },
+            { applicant: user._id },
+            { applicantName: { $regex: new RegExp(`^${user.name.trim()}$`, 'i') } }
+          ]
+        }
+      ]
+    };
     const [total, pending, approved, returned, rejected] = await Promise.all([
       Claim.countDocuments(baseQuery),
       Claim.countDocuments({ ...baseQuery, status: { $in: ['DEPARTMENT_REVIEW', 'PRINCIPAL_REVIEW', 'RPC_VERIFICATION', 'ACCOUNTS_PROCESSING'] } }),
@@ -19,10 +32,20 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
       Claim.countDocuments({ ...baseQuery, status: CLAIM_STATUSES.REJECTED })
     ]);
     
-    const incentiveResult = await Claim.aggregate([
-      { $match: { applicant: user._id, status: CLAIM_STATUSES.COMPLETED } },
-      { $group: { _id: null, total: { $sum: '$releasedAmount' } } }
-    ]);
+    // Find all completed claims visible to this user
+    const completedClaims = await Claim.find({ ...baseQuery, status: CLAIM_STATUSES.COMPLETED });
+    let totalIncentive = 0;
+    completedClaims.forEach(claim => {
+      let share = claim.releasedAmount || claim.individualShare || claim.approvedAmount || claim.totalIncentive || 0;
+      if (claim.authorPayments && claim.authorPayments.length > 0) {
+        const matched = claim.authorPayments.find(a =>
+          (user.employeeId && a.employeeId === user.employeeId) ||
+          (user.name && a.name && a.name.toLowerCase().includes(user.name.toLowerCase()))
+        );
+        if (matched) share = matched.payableAmount;
+      }
+      totalIncentive += share;
+    });
     
     stats = {
       totalSubmissions: total,
@@ -30,7 +53,7 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
       approved,
       returned,
       rejected,
-      totalIncentive: incentiveResult[0]?.total || 0,
+      totalIncentive,
       currency: 'INR'
     };
   } else if (user.role === 'hod') {
@@ -84,7 +107,7 @@ export const getRecentSubmissions = asyncHandler(async (req, res) => {
   
   let query = {};
   if (user.role === 'faculty' || user.role === 'student') {
-    query.applicant = user._id;
+    query.$or = buildAuthorQueryConditions(user);
   } else if (user.role === 'hod') {
     query.department = user.department;
   }
@@ -116,7 +139,7 @@ export const getChartData = asyncHandler(async (req, res) => {
   
   let matchQuery = {};
   if (user.role === 'faculty' || user.role === 'student') {
-    matchQuery.applicant = user._id;
+    matchQuery.$or = buildAuthorQueryConditions(user);
   } else if (user.role === 'hod') {
     matchQuery.department = user.department;
   }

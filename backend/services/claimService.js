@@ -350,6 +350,66 @@ export const getClaimById = async (claimId, user = null) => {
 };
 
 /**
+ * Helper to build query conditions for claims where user is applicant or co-author.
+ */
+export const buildAuthorQueryConditions = (user) => {
+  if (!user) return [];
+  const userIdStr = (user._id || user.id || '').toString();
+  const userEmpId = (user.employeeId || '').trim();
+  const userName = (user.name || '').trim();
+  const userEmail = (user.email || '').trim().toLowerCase();
+
+  const conditions = [
+    { applicant: user._id }
+  ];
+
+  if (userIdStr) {
+    conditions.push(
+      { creator: user._id },
+      { creatorId: user._id },
+      { 'metadata.coAuthors': userIdStr }
+    );
+  }
+
+  if (userName) {
+    const escapedName = userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const nameRegex = new RegExp(`^${escapedName}$`, 'i');
+    const nameContainsRegex = new RegExp(escapedName, 'i');
+    conditions.push(
+      { applicantName: nameRegex },
+      { creatorName: nameRegex },
+      { 'authorPayments.name': nameContainsRegex },
+      { 'metadata.authors.name': nameContainsRegex },
+      { 'metadata.coAuthors.name': nameContainsRegex }
+    );
+  }
+
+  if (userEmpId) {
+    conditions.push(
+      { 'authorPayments.employeeId': userEmpId },
+      { 'metadata.coAuthors': userEmpId },
+      { 'metadata.coAuthors.employeeId': userEmpId },
+      { 'metadata.coAuthors.id': userEmpId },
+      { 'metadata.authors.employeeId': userEmpId },
+      { 'metadata.authors.id': userEmpId },
+      { 'metadata.authors.firstAuthor': userEmpId },
+      { 'metadata.authors.correspondingAuthor': userEmpId }
+    );
+  }
+
+  if (userEmail) {
+    conditions.push(
+      { applicantEmail: userEmail },
+      { creatorEmail: userEmail },
+      { 'metadata.authors.email': userEmail },
+      { 'metadata.coAuthors.email': userEmail }
+    );
+  }
+
+  return conditions;
+};
+
+/**
  * List claims with filtering, pagination, and sorting.
  */
 export const listClaims = async (filters = {}, pagination = {}, user) => {
@@ -367,10 +427,7 @@ export const listClaims = async (filters = {}, pagination = {}, user) => {
   // - Faculty / Student: Sees only their own claims.
 
   if (user.role === 'faculty' || user.role === 'student') {
-    query.$or = [
-      { applicant: user._id },
-      { applicantName: { $regex: new RegExp(`^${user.name.trim()}$`, 'i') } }
-    ];
+    query.$or = buildAuthorQueryConditions(user);
   } else if (user.role === 'hod') {
     if (user.department) {
       const cleanDept = user.department.trim();

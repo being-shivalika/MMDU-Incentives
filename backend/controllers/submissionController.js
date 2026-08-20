@@ -157,6 +157,14 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
     await recalculateClaimAuthorShares(claimObj);
   }
 
+  // Determine submitter vs co-author relationship for viewing user
+  const isSubmitter = Boolean(user && (
+    (claimObj.applicant && claimObj.applicant.toString() === (user._id || user.id || '').toString()) ||
+    (claimObj.creatorId && claimObj.creatorId.toString() === (user._id || user.id || '').toString()) ||
+    (user.email && (claimObj.applicantEmail === user.email || claimObj.creatorEmail === user.email))
+  ));
+  const submittedBy = isSubmitter ? 'You' : (claimObj.applicantName || 'Author');
+
   // Find user's own individual share from authorPayments if applicable
   let userShare = claimObj.individualShare || claimObj.approvedAmount || claimObj.calculatedAmount || 0;
   if (user && claimObj.authorPayments && claimObj.authorPayments.length > 0) {
@@ -183,6 +191,8 @@ const transformClaimForResponse = async (claim, approvalHistory = null, user = n
     creatorName: claimObj.applicantName,
     creatorDept: claimObj.department,
     creatorRole: claimObj.applicantRole,
+    submittedBy: submittedBy,
+    isSubmitter: isSubmitter,
     dateSubmitted: claimObj.submissionDate || claimObj.createdAt,
     financialYear: claimObj.financialYear,
     incentiveAmount: userShare,

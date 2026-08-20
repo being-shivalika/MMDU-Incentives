@@ -1,9 +1,11 @@
 import dns from "node:dns";
 
 dns.setDefaultResultOrder("ipv4first");
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
-
-// ... rest of your server.js imports and code follow below
+try {
+  dns.setServers(["8.8.8.8", "8.8.4.4"]);
+} catch (e) {
+  // Ignore DNS setServers failure if custom resolver active
+}
 
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
@@ -29,9 +31,6 @@ import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import morgan from "morgan";
 import { apiLimiter } from "./middleware/rateLimiter.js";
-
-// Connect to database
-connectDB();
 
 const app = express();
 app.set("trust proxy", 1);
@@ -83,7 +82,8 @@ app.use(errorHandler);
 
 const PORT = Number(process.env.PORT) || 5000;
 
-const startServer = (port) => {
+const startServer = async (port) => {
+  await connectDB();
   const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
