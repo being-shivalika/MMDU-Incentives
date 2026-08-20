@@ -7,7 +7,7 @@ import { recalculateClaimAuthorShares } from './authorDistributionService.js';
  * Determine the policy condition key from claim metadata.
  * Maps claim fields to policy rule conditions.
  */
-const determineCondition = (claim) => {
+export const determineCondition = (claim) => {
   const { category, subtype, metadata } = claim;
   
   if (category === 'research_publications' || category === 'conferences') {

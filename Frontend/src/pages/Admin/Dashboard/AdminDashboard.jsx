@@ -47,7 +47,7 @@ const AdminDashboard = () => {
           <h1 className="text-2xl font-bold text-neutral-900">
             Welcome Admin, {user?.name || "Administrator"}
           </h1>
-          <p className="text-xs text-neutral-500 mt-1">Universal Administrative Control over claims, users, audit logs, and system metrics.</p>
+          <p className="text-xs text-neutral-500 mt-1">Universal Administrative Control over claims, users, and system metrics.</p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -102,9 +102,6 @@ const AdminDashboard = () => {
       <Card className="p-6 border border-neutral-200/80 rounded-2xl bg-white shadow-sm space-y-4">
         <div className="flex justify-between items-center border-b border-neutral-100 pb-3">
           <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-900">Recent Portal Activity</h2>
-          <Link to="/admin/audit-logs" className="text-xs font-bold uppercase tracking-wider text-[#8C0404] hover:text-[#6F0303] flex items-center gap-1">
-            View Audit Logs <ArrowRight size={14} />
-          </Link>
         </div>
         
         {isLoading ? (

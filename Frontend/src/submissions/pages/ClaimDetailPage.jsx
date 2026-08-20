@@ -130,7 +130,9 @@ export const ClaimDetailPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-0.5 border-b border-brand-gray-50 pb-2">
                 <span className="text-[10px] text-brand-gray-400 font-bold uppercase tracking-wider block">Submitted By</span>
-                <p className="text-sm font-semibold text-brand-gray-800">{submission.creatorName} ({submission.creatorDept})</p>
+                <p className="text-sm font-semibold text-brand-gray-800">
+                  {submission.submittedBy === 'You' ? 'You' : `${submission.creatorName || submission.submittedBy} (${submission.creatorDept || ''})`}
+                </p>
               </div>
               <div className="space-y-0.5 border-b border-brand-gray-50 pb-2">
                 <span className="text-[10px] text-brand-gray-400 font-bold uppercase tracking-wider block">Date Logged</span>

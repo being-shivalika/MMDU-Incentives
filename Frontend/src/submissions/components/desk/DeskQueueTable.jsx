@@ -75,7 +75,7 @@ export const DeskQueueTable = ({ submissions = [], loading }) => {
                   <div className="flex flex-col text-left">
                     <span className="font-bold text-brand-gray-800 flex items-center gap-1">
                       <User className="h-3.5 w-3.5 shrink-0 text-brand-gray-400" />
-                      {sub.creatorName}
+                      {sub.submittedBy || sub.creatorName}
                     </span>
                     <span className="text-[10px] text-brand-gray-400 font-semibold">{sub.creatorDept}</span>
                   </div>
